@@ -1,4 +1,6 @@
 :root {
+  --navbar-height: 100px;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -7,4 +9,9 @@
 
 #root {
   width: 100%;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
 }
