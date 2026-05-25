@@ -2,6 +2,10 @@ import { useState } from "react";
 
 import "./Upload.css";
 
+interface UploadResponse {
+  files: string[];
+}
+
 function Upload() {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -42,10 +46,8 @@ function Upload() {
       return;
     }
 
-    console.log(response);
-
-    const responseJson = await response.json();
-    console.log(responseJson);
+    const responseJson: UploadResponse =
+      (await response.json()) as UploadResponse;
     setResponseData(JSON.stringify(responseJson));
   };
 
