@@ -24,11 +24,19 @@ services:
     command: python -m workers.main
     environment:
       REDIS_URL: redis://redis:6379/0
+      PYTHONUNBUFFERED: 1
     volumes:
       - .:/backend
       - uploads:/backend/uploads
     depends_on:
       - redis
+    develop:
+      watch:
+        - path: ./workers
+          action: restart
+
+        - path: ./shared
+          action: restart
 
 volumes:
   redis_data:

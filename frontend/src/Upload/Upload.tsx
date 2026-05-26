@@ -30,6 +30,9 @@ function Upload() {
   };
 
   const handleUpload = async () => {
+    setError(null);
+    setResponseData(null);
+
     const formData = new FormData();
 
     files.forEach((file) => {
@@ -60,6 +63,7 @@ function Upload() {
         onChange={handleFileChange}
         onClick={() => {
           setError(null);
+          setResponseData(null);
         }}
       />
       <button disabled={files.length === 0} onClick={() => void handleUpload()}>
