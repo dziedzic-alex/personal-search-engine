@@ -1,0 +1,18 @@
+CREATE EXTENSION vector;
+
+CREATE TABLE documents (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    content_url VARCHAR(255) NOT NULL,
+    content_type VARCHAR(255) NOT NULL,
+    created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE chunks (
+    id SERIAL PRIMARY KEY,
+    document_id INT NOT NULL REFERENCES documents(id),
+    content TEXT NOT NULL,
+    embedding VECTOR(384) NOT NULL,
+    created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+
