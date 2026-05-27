@@ -5,6 +5,7 @@ import "./Navlinks.css";
 function Navlinks() {
   return (
     <div className="navlinks">
+      <Link to="/search"> Search </Link>
       <Link to="/upload"> Upload </Link>
     </div>
   );
