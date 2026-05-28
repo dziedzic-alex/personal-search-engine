@@ -6,6 +6,15 @@ interface UploadResponse {
   files: string[];
 }
 
+const ALLOWED_FILE_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
+
 function Upload() {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -15,8 +24,10 @@ function Upload() {
     const newFiles = e.target.files ? Array.from(e.target.files) : [];
 
     const hasInvalidFile = newFiles.some((file) => {
-      if (file.type !== "application/pdf") {
-        setError("Only PDF files are supported currently");
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        setError(
+          `Only ${ALLOWED_FILE_TYPES.join(", ")} files are supported currently`,
+        );
         e.target.value = "";
         return true;
       }
@@ -59,7 +70,7 @@ function Upload() {
       <input
         type="file"
         multiple
-        accept="application/pdf"
+        accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
         onChange={handleFileChange}
         onClick={() => {
           setError(null);
