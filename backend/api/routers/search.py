@@ -3,10 +3,10 @@ from shared.db_client import get_db_client
 from sentence_transformers import SentenceTransformer
 
 router = APIRouter(prefix="/search", tags=["search"])
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 @router.get("/")
 def search(query: str):
-    model = SentenceTransformer("all-MiniLM-L6-v2")
     query_embedding = model.encode(query)
 
     relevant_documents = []
