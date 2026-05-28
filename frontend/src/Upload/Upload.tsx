@@ -15,6 +15,16 @@ const ALLOWED_FILE_TYPES = [
   "image/heif",
 ];
 
+const ALLOWED_FILE_EXTENSIONS = [
+  "pdf",
+  "jpeg",
+  "jpg",
+  "png",
+  "webp",
+  "heic",
+  "heif",
+];
+
 function Upload() {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +34,15 @@ function Upload() {
     const newFiles = e.target.files ? Array.from(e.target.files) : [];
 
     const hasInvalidFile = newFiles.some((file) => {
-      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      if (
+        !ALLOWED_FILE_TYPES.includes(file.type) &&
+        !ALLOWED_FILE_EXTENSIONS.includes(
+          file.name.split(".").pop()?.toLowerCase() ?? "",
+        )
+      ) {
+        console.log(file.type);
+        console.log(file.name);
+        console.log(file.name.split(".").pop()?.toLowerCase() ?? "");
         setError(
           `Only ${ALLOWED_FILE_TYPES.join(", ")} files are supported currently`,
         );
