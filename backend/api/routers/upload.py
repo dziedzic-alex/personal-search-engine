@@ -29,6 +29,11 @@ def upload_files(files: list[UploadFile] = File(...)):
 
             content_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
 
+            sanitized_content_type = file.content_type.split("/")[1]
+            if sanitized_content_type == "octet-stream":
+                extension = filename.split(".").pop().lower()
+                sanitized_content_type = extension
+
             document_id = None
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -36,7 +41,7 @@ def upload_files(files: list[UploadFile] = File(...)):
                     INSERT INTO documents (name, status, content_url, content_hash, content_type)
                     VALUES (%s, %s, %s, %s, %s) RETURNING id 
                     """,
-                    (filename, "pending", str(destination), content_hash, file.content_type)
+                    (filename, "pending", str(destination), content_hash, sanitized_content_type)
                 )
                 document_id = cursor.fetchone()[0]
                 connection.commit()

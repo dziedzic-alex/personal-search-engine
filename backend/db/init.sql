@@ -13,11 +13,12 @@ CREATE TABLE documents (
     created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE chunks (
+CREATE TABLE document_embeddings (
     id SERIAL PRIMARY KEY,
     document_id INT NOT NULL REFERENCES documents(id),
-    content TEXT NOT NULL,
-    embedding VECTOR(384) NOT NULL,
+    content TEXT,
+    text_embedding VECTOR(384),
+    image_embedding VECTOR(512),
     created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
 
