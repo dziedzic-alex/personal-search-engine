@@ -1,15 +1,14 @@
 from fastapi import APIRouter
 from shared.db_client import get_db_client
-from sentence_transformers import SentenceTransformer
+from shared.models.text_embedding import get_text_embedding_model
+from shared.models.image_embedding import get_image_embedding_model
 
 router = APIRouter(prefix="/search", tags=["search"])
-text_embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-image_embedding_model = SentenceTransformer('clip-ViT-B-32')
 
 @router.get("/")
 def search(query: str):
-    query_text_embedding = text_embedding_model.encode(query)
-    query_image_embedding = image_embedding_model.encode(query)
+    query_text_embedding = get_text_embedding_model().encode(query)
+    query_image_embedding = get_image_embedding_model().encode(query)
 
     relevant_documents = []
     with get_db_client() as connection:
