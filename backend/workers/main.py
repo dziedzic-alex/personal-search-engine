@@ -6,7 +6,6 @@ from sentence_transformers import SentenceTransformer
 from shared.db_client import get_db_client
 from PIL import Image, ImageOps
 import pytesseract
-from transformers import pipeline
 from pillow_heif import register_heif_opener
 
 register_heif_opener()
@@ -15,7 +14,7 @@ def main():
     print('Worker is running')
 
     model = SentenceTransformer("all-MiniLM-L6-v2")
-    caption_generator = pipeline("image-text-to-text", model="llava-hf/llava-v1.6-mistral-7b-hf")
+    clip = SentenceTransformer('clip-ViT-B-32')
 
     redis_client = get_redis_client()
 
@@ -43,13 +42,23 @@ def main():
             if db_document[6] == "jpeg" or db_document[6] == "jpg" or db_document[6] == "png" or \
             db_document[6] == "webp" or db_document[6] == "heic" or db_document[6] == "heif":
                 print(f"Document {db_document[1]} is an image. Falling back to OCR and caption generation.")
+                
                 image = Image.open(db_document[3])
                 image = ImageOps.exif_transpose(image)
                 if image.mode not in ["RGB", "L"]:
                     image = image.convert("RGB")
-                caption = caption_generator(image=image, text="Describe the image in detail.")
-                print(caption)
-                chunks.append(caption)
+
+                image_embedding = clip.encode(image)
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        INSERT INTO document_embeddings (document_id, image_embedding)
+                        VALUES (%s, %s)
+                        """,
+                        (db_document[0], image_embedding)
+                    )
+                    connection.commit()
+                    
                 image = image.convert("L")
                 text = pytesseract.image_to_string(image)
                 chunks.append(text)
@@ -74,15 +83,15 @@ def main():
                         text = pytesseract.image_to_string(image)
                         chunks.append(text)
 
-            embeddings = model.encode(chunks)
+            text_embeddings = model.encode(chunks)
             with connection.cursor() as cursor:
-                for chunk, embedding in zip(chunks, embeddings):
+                for chunk, text_embedding in zip(chunks, text_embeddings):
                     cursor.execute(
                         """
-                        INSERT INTO chunks (document_id, content, embedding)
+                        INSERT INTO document_embeddings (document_id, content, text_embedding)
                         VALUES (%s, %s, %s)
                         """,
-                        (db_document[0], chunk, embedding)
+                        (db_document[0], chunk, text_embedding)
                     )
 
                 connection.commit()
