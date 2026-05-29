@@ -44,7 +44,7 @@ def upload_files(files: list[UploadFile] = File(...)):
                     (filename, "pending", str(destination), content_hash, sanitized_content_type)
                 )
                 document_id = cursor.fetchone()[0]
-                connection.commit()
+            connection.commit()
 
             if document_id:
                 redis_client.lpush("jobs:upload", json.dumps({"document_id": document_id}))
