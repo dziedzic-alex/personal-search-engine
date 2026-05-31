@@ -53,6 +53,9 @@ services:
         - path: ./shared
           action: restart
 
+        - path: ./db
+          action: restart
+
 volumes:
   redis_data:
   uploads:
