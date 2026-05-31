@@ -6,6 +6,7 @@ CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     status document_status NOT NULL DEFAULT 'pending',
+    error TEXT,
     content_url VARCHAR(255) NOT NULL,
     content_hash VARCHAR(255) NOT NULL,
     thumbnail_url VARCHAR(255) NOT NULL DEFAULT '',
