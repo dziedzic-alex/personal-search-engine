@@ -1,15 +1,17 @@
 from db.base import Base
-from sqlalchemy import Column, Integer, ForeignKey, Text, DateTime, Vector
+from sqlalchemy import ForeignKey, Text, DateTime
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from pgvector.sqlalchemy import Vector
 
 class DocumentEmbedding(Base):
     __tablename__ = "document_embeddings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    document_id: Mapped[int] = mapped_column(ForeignKey("documents.id"), nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=True)
-    text_embedding: Mapped[Vector(384)] = mapped_column(nullable=True)
-    image_embedding: Mapped[Vector(512)] = mapped_column(nullable=True)
-    created_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    document_id: Mapped[int] = mapped_column(ForeignKey("documents.id"))
+    content: Mapped[str | None] = mapped_column(Text)
+    text_embedding: Mapped[list[float] | None] = mapped_column(Vector(384))
+    image_embedding: Mapped[list[float] | None] = mapped_column(Vector(512))
+    created_time: Mapped[datetime] = mapped_column(DateTime, insert_default=datetime.now)
+
+    document: Mapped["Document"] = relationship("Document", back_populates="document_embeddings")
