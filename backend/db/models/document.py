@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Enum
 import enum
+from db.models.document_embedding import DocumentEmbedding
 
 class DocumentStatus(str, enum.Enum):
     PENDING = "pending"
@@ -16,7 +17,14 @@ class Document(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
-    status: Mapped[DocumentStatus] = mapped_column(Enum(DocumentStatus, name="document_status"), insert_default=DocumentStatus.PENDING)
+    status: Mapped[DocumentStatus] = mapped_column(
+        Enum(
+            DocumentStatus, 
+            name="document_status",
+            values_callable=lambda enum_members: [enum_member.value for enum_member in enum_members]
+        ),
+        insert_default=DocumentStatus.PENDING
+    )
     error: Mapped[str | None] = mapped_column(Text)
     content_url: Mapped[str] = mapped_column(String(255))
     content_hash: Mapped[str] = mapped_column(String(255))

@@ -1,15 +1,17 @@
 import fitz
 from PIL import Image
 from shared.models.text_embedding import get_text_embedding_model
-from shared.db_client import get_db_client
 from workers.image import index_image
+from db.models.document import Document
+from db.session import SessionLocal
+from db.models.document_embedding import DocumentEmbedding
 
 def load_pdf_from_path(path: str) -> fitz.Document:
     return fitz.open(path)
 
-def process_pdf_document(db_document):
-    document = load_pdf_from_path(db_document[3])
-    index_pdf(db_document[0], document)
+def process_pdf_document(db_document: Document):
+    pdf = load_pdf_from_path(db_document.content_url)
+    index_pdf(db_document.id, pdf)
 
 def index_pdf(document_id: int, document: fitz.Document):
     chunks: list[str] = []
@@ -26,15 +28,8 @@ def index_pdf(document_id: int, document: fitz.Document):
 
     text_embedding_model = get_text_embedding_model()
     text_embeddings = text_embedding_model.encode(chunks)
-    with get_db_client() as connection:
-        with connection.cursor() as cursor:
-            for chunk, text_embedding in zip(chunks, text_embeddings):
-                cursor.execute(
-                    """
-                    INSERT INTO document_embeddings (document_id, content, text_embedding)
-                    VALUES (%s, %s, %s)
-                    """,
-                    (document_id, chunk, text_embedding)
-                )
+    with SessionLocal() as session:
+        for chunk, text_embedding in zip(chunks, text_embeddings):
+            session.add(DocumentEmbedding(document_id=document_id, content=chunk, text_embedding=text_embedding))
 
-        connection.commit()
+        session.commit()

@@ -3,10 +3,12 @@ import shutil
 import hashlib
 import json
 from shared.redis_client import get_redis_client
-from shared.db_client import get_db_client
 
 from fastapi import APIRouter
 from fastapi import UploadFile, File
+
+from db.models.document import Document
+from db.session import SessionLocal
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
@@ -19,7 +21,7 @@ def upload_files(files: list[UploadFile] = File(...)):
 
     redis_client = get_redis_client()
 
-    with get_db_client() as connection:
+    with SessionLocal() as session:
         for file in files:
             filename = file.filename
 
@@ -34,21 +36,18 @@ def upload_files(files: list[UploadFile] = File(...)):
                 extension = filename.split(".").pop().lower()
                 sanitized_content_type = extension
 
-            document_id = None
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    """
-                    INSERT INTO documents (name, status, content_url, content_hash, content_type)
-                    VALUES (%s, %s, %s, %s, %s) RETURNING id 
-                    """,
-                    (filename, "pending", str(destination), content_hash, sanitized_content_type)
-                )
-                document_id = cursor.fetchone()[0]
-            connection.commit()
+            document = Document(
+                name=filename,
+                content_url=str(destination),
+                content_hash=content_hash,
+                content_type=sanitized_content_type
+            )
+            
+            session.add(document)
+            session.commit()
 
-            if document_id:
-                redis_client.lpush("jobs:upload", json.dumps({"document_id": document_id}))
-                files_being_processed.append({"filename": file.filename, "status": "pending"})
+            redis_client.lpush("jobs:upload", json.dumps({"document_id": document.id}))
+            files_being_processed.append({"filename": file.filename, "status": "pending"})
 
     return {"files_being_processed": files_being_processed}
 
