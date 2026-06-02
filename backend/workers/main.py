@@ -10,8 +10,9 @@ from shared.models.image_embedding import get_image_embedding_model
 
 register_heif_opener()
 
+
 def main():
-    print('Worker is running')
+    print("Worker is running")
 
     get_text_embedding_model()
     get_image_embedding_model()
@@ -33,7 +34,7 @@ def main():
 
         document = None
         with SessionLocal() as session:
-            document = session.get(Document, job_data['document_id'])
+            document = session.get(Document, job_data["document_id"])
 
         if document is None:
             print(f"Document {job_data['document_id']} not found. Skipping...")
@@ -41,17 +42,22 @@ def main():
 
         content_type = document.content_type
 
-        if content_type == "jpeg" or content_type == "jpg" or content_type == "png" or \
-        content_type == "webp" or content_type == "heic" or content_type == "heif":
+        if (
+            content_type == "jpeg"
+            or content_type == "jpg"
+            or content_type == "png"
+            or content_type == "webp"
+            or content_type == "heic"
+            or content_type == "heif"
+        ):
             process_image_document(document)
         elif content_type == "pdf":
             process_pdf_document(document)
         else:
             print(f"Unsupported document type: {content_type}. Skipping...")
             continue
-                
-        print(f"Document {document.name} processed")
 
+        print(f"Document {document.name} processed")
 
 
 if __name__ == "__main__":

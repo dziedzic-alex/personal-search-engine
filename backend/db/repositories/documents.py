@@ -3,6 +3,7 @@ from shared.models.image_embedding import get_image_embedding_model
 from sqlalchemy.orm import Session
 from sqlalchemy import text, Row
 
+
 class DocumentRepository:
     def __init__(self, session: Session):
         self.session = session
@@ -13,7 +14,7 @@ class DocumentRepository:
 
         result = self.session.execute(
             text(
-            """
+                """
             SELECT name, 
             LEAST(
                 MIN(document_embeddings.text_embedding <=> :query_text_embedding), 
@@ -27,7 +28,10 @@ class DocumentRepository:
             LIMIT 5
             """
             ),
-            {"query_text_embedding": query_text_embedding, "query_image_embedding": query_image_embedding}
+            {
+                "query_text_embedding": query_text_embedding,
+                "query_image_embedding": query_image_embedding,
+            },
         )
         relevant_documents = result.all()
 

@@ -15,6 +15,7 @@ router = APIRouter(prefix="/upload", tags=["upload"])
 UPLOAD_DIR = Path(__file__).parents[2] / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+
 @router.post("/")
 def upload_files(files: list[UploadFile] = File(...)):
     files_being_processed: list[dict] = []
@@ -40,16 +41,15 @@ def upload_files(files: list[UploadFile] = File(...)):
                 name=filename,
                 content_url=str(destination),
                 content_hash=content_hash,
-                content_type=sanitized_content_type
+                content_type=sanitized_content_type,
             )
-            
+
             session.add(document)
             session.commit()
 
             redis_client.lpush("jobs:upload", json.dumps({"document_id": document.id}))
-            files_being_processed.append({"filename": file.filename, "status": "pending"})
+            files_being_processed.append(
+                {"filename": file.filename, "status": "pending"}
+            )
 
     return {"files_being_processed": files_being_processed}
-
-        
-    

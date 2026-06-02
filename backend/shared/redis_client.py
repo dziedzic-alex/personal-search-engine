@@ -3,6 +3,7 @@ import os
 
 client: redis.Redis | None = None
 
+
 def get_redis_client() -> redis.Redis:
     global client
     if client is None:

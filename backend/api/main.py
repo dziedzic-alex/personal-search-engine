@@ -14,6 +14,7 @@ app = FastAPI()
 app.include_router(upload.router)
 app.include_router(search.router)
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
