@@ -38,3 +38,21 @@ jobs:
 
       - name: Build bundle
         run: npm run build
+
+      - name: Setup Python
+        working-directory: backend
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14.5"
+
+      - name: Install Python dev dependencies
+        working-directory: backend
+        run: pip install -r requirements-dev.txt
+
+      - name: Run Python format check
+        working-directory: backend
+        run: ruff format --check .
+
+      - name: Run Python lint
+        working-directory: backend
+        run: ruff check .
