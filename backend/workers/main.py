@@ -1,6 +1,7 @@
 from shared.redis_client import get_redis_client
 import json
-from shared.db_client import get_db_client
+from db.session import SessionLocal
+from db.models.document import Document
 from pillow_heif import register_heif_opener
 from workers.image import process_image_document
 from workers.pdf import process_pdf_document
@@ -30,25 +31,26 @@ def main():
 
         print(f"Processing job: {job_data}")
 
-        db_document = None
-        with get_db_client() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT * FROM documents WHERE id = %s", 
-                    (job_data['document_id'],)
-                )
-                db_document = cursor.fetchone()
+        document = None
+        with SessionLocal() as session:
+            document = session.get(Document, job_data['document_id'])
 
-        if db_document[6] == "jpeg" or db_document[6] == "jpg" or db_document[6] == "png" or \
-        db_document[6] == "webp" or db_document[6] == "heic" or db_document[6] == "heif":
-            process_image_document(db_document)
-        elif db_document[6] == "pdf":
-            process_pdf_document(db_document)
+        if document is None:
+            print(f"Document {job_data['document_id']} not found. Skipping...")
+            continue
+
+        content_type = document.content_type
+
+        if content_type == "jpeg" or content_type == "jpg" or content_type == "png" or \
+        content_type == "webp" or content_type == "heic" or content_type == "heif":
+            process_image_document(document)
+        elif content_type == "pdf":
+            process_pdf_document(document)
         else:
-            print(f"Unsupported document type: {db_document[6]}. Skipping...")
+            print(f"Unsupported document type: {content_type}. Skipping...")
             continue
                 
-        print(f"Document {db_document[1]} processed")
+        print(f"Document {document.name} processed")
 
 
 
