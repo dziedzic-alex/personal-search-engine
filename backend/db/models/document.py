@@ -23,7 +23,7 @@ class Document(Base):
             name="document_status",
             values_callable=lambda enum_members: [enum_member.value for enum_member in enum_members]
         ),
-            insert_default=DocumentStatus.PENDING
+        insert_default=DocumentStatus.PENDING
     )
     error: Mapped[str | None] = mapped_column(Text)
     content_url: Mapped[str] = mapped_column(String(255))
