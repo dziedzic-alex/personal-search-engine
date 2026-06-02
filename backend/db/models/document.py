@@ -21,8 +21,10 @@ class Document(Base):
         Enum(
             DocumentStatus, 
             name="document_status",
-            values_callable=lambda enum_members: [enum_member.value for enum_member in enum_members]),
-            insert_default=DocumentStatus.PENDING)
+            values_callable=lambda enum_members: [enum_member.value for enum_member in enum_members]
+        ),
+            insert_default=DocumentStatus.PENDING
+    )
     error: Mapped[str | None] = mapped_column(Text)
     content_url: Mapped[str] = mapped_column(String(255))
     content_hash: Mapped[str] = mapped_column(String(255))
