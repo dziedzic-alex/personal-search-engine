@@ -1,9 +1,9 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
 from collections.abc import Generator
-from sqlalchemy import event
+
 from pgvector.psycopg import register_vector
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import Session, sessionmaker
 
 engine = create_engine(os.getenv("DATABASE_URL"))
 SessionLocal = sessionmaker(bind=engine)
@@ -14,7 +14,7 @@ def register_vector_extension(db_connection, connection_record):
     register_vector(db_connection)
 
 
-def get_session() -> Generator[Session, None, None]:
+def get_session() -> Generator[Session]:
     session = SessionLocal()
     try:
         yield session

@@ -1,7 +1,8 @@
-from shared.models.text_embedding import get_text_embedding_model
-from shared.models.image_embedding import get_image_embedding_model
+from sqlalchemy import Row, text
 from sqlalchemy.orm import Session
-from sqlalchemy import text, Row
+
+from shared.models.image_embedding import get_image_embedding_model
+from shared.models.text_embedding import get_text_embedding_model
 
 
 class DocumentRepository:

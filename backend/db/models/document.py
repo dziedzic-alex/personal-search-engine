@@ -1,9 +1,10 @@
-from db.base import Base
-from sqlalchemy import String, DateTime, Text
-from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Enum
 import enum
+from datetime import datetime
+
+from sqlalchemy import DateTime, Enum, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from db.base import Base
 from db.models.document_embedding import DocumentEmbedding
 
 
@@ -38,6 +39,6 @@ class Document(Base):
         DateTime, insert_default=datetime.now
     )
 
-    document_embeddings: Mapped[list["DocumentEmbedding"]] = relationship(
+    document_embeddings: Mapped[list[DocumentEmbedding]] = relationship(
         "DocumentEmbedding", back_populates="document"
     )

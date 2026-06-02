@@ -1,5 +1,6 @@
-import redis
 import os
+
+import redis
 
 client: redis.Redis | None = None
 

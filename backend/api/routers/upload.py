@@ -1,14 +1,13 @@
-from pathlib import Path
-import shutil
 import hashlib
 import json
-from shared.redis_client import get_redis_client
+import shutil
+from pathlib import Path
 
-from fastapi import APIRouter
-from fastapi import UploadFile, File
+from fastapi import APIRouter, File, UploadFile
 
 from db.models.document import Document
 from db.session import SessionLocal
+from shared.redis_client import get_redis_client
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 

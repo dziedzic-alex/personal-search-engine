@@ -1,10 +1,11 @@
-from PIL import Image, ImageOps
 import pytesseract
+from PIL import Image, ImageOps
+
+from db.models.document import Document
+from db.models.document_embedding import DocumentEmbedding
+from db.session import SessionLocal
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
-from db.models.document import Document
-from db.session import SessionLocal
-from db.models.document_embedding import DocumentEmbedding
 
 
 def load_image_from_path(path: str) -> Image.Image:

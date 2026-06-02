@@ -1,8 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
 from db.repositories.documents import DocumentRepository
 from db.session import get_session
-from sqlalchemy.orm import Session
-from fastapi import Depends
 
 router = APIRouter(prefix="/search", tags=["search"])
 

@@ -1,10 +1,11 @@
 import fitz
 from PIL import Image
+
+from db.models.document import Document
+from db.models.document_embedding import DocumentEmbedding
+from db.session import SessionLocal
 from shared.models.text_embedding import get_text_embedding_model
 from workers.image import index_image
-from db.models.document import Document
-from db.session import SessionLocal
-from db.models.document_embedding import DocumentEmbedding
 
 
 def load_pdf_from_path(path: str) -> fitz.Document:

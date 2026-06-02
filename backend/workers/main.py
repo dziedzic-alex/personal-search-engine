@@ -1,12 +1,14 @@
-from shared.redis_client import get_redis_client
 import json
-from db.session import SessionLocal
-from db.models.document import Document
+
 from pillow_heif import register_heif_opener
+
+from db.models.document import Document
+from db.session import SessionLocal
+from shared.models.image_embedding import get_image_embedding_model
+from shared.models.text_embedding import get_text_embedding_model
+from shared.redis_client import get_redis_client
 from workers.image import process_image_document
 from workers.pdf import process_pdf_document
-from shared.models.text_embedding import get_text_embedding_model
-from shared.models.image_embedding import get_image_embedding_model
 
 register_heif_opener()
 
