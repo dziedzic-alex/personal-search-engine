@@ -8,7 +8,7 @@ from db.base import Base
 from db.models.document_embedding import DocumentEmbedding
 
 
-class DocumentStatus(str, enum.Enum):
+class DocumentStatus(enum.StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"

@@ -33,7 +33,7 @@ def index_pdf(document_id: int, document: fitz.Document):
     text_embedding_model = get_text_embedding_model()
     text_embeddings = text_embedding_model.encode(chunks)
     with SessionLocal() as session:
-        for chunk, text_embedding in zip(chunks, text_embeddings):
+        for chunk, text_embedding in zip(chunks, text_embeddings, strict=True):
             session.add(
                 DocumentEmbedding(
                     document_id=document_id,

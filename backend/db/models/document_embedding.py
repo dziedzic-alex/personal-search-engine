@@ -5,6 +5,7 @@ from sqlalchemy import DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
+from db.models.document import Document
 
 
 class DocumentEmbedding(Base):

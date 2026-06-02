@@ -2,6 +2,7 @@ import hashlib
 import json
 import shutil
 from pathlib import Path
+from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile
 
@@ -14,9 +15,11 @@ router = APIRouter(prefix="/upload", tags=["upload"])
 UPLOAD_DIR = Path(__file__).parents[2] / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+UploadFiles = Annotated[list[UploadFile], File(...)]
+
 
 @router.post("/")
-def upload_files(files: list[UploadFile] = File(...)):
+def upload_files(files: UploadFiles):
     files_being_processed: list[dict] = []
 
     redis_client = get_redis_client()
