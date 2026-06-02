@@ -13,7 +13,7 @@ import pgvector.sqlalchemy
 
 
 # revision identifiers, used by Alembic.
-revision: str = '1'
+revision: str = '1e02fb52ad1f'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -34,7 +34,7 @@ def upgrade() -> None:
     sa.Column('thumbnail_url', sa.String(length=255), nullable=False, server_default=sa.text("''")),
     sa.Column('content_type', sa.String(length=255), nullable=False),
     sa.Column('created_time', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name='pk_documents')
     )
     op.create_table('document_embeddings',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -43,8 +43,8 @@ def upgrade() -> None:
     sa.Column('text_embedding', pgvector.sqlalchemy.vector.VECTOR(dim=384), nullable=True),
     sa.Column('image_embedding', pgvector.sqlalchemy.vector.VECTOR(dim=512), nullable=True),
     sa.Column('created_time', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
-    sa.ForeignKeyConstraint(['document_id'], ['documents.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['document_id'], ['documents.id'], name='fk_document_embeddings_document_id_documents'),
+    sa.PrimaryKeyConstraint('id', name='pk_document_embeddings')
     )
 
 
