@@ -1,8 +1,12 @@
-from db.base import Base
-from sqlalchemy import ForeignKey, Text, DateTime
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from pgvector.sqlalchemy import Vector
+from sqlalchemy import DateTime, ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from db.base import Base
+from db.models.document import Document
+
 
 class DocumentEmbedding(Base):
     __tablename__ = "document_embeddings"
@@ -12,6 +16,10 @@ class DocumentEmbedding(Base):
     content: Mapped[str | None] = mapped_column(Text)
     text_embedding: Mapped[list[float] | None] = mapped_column(Vector(384))
     image_embedding: Mapped[list[float] | None] = mapped_column(Vector(512))
-    created_time: Mapped[datetime] = mapped_column(DateTime, insert_default=datetime.now)
+    created_time: Mapped[datetime] = mapped_column(
+        DateTime, insert_default=datetime.now
+    )
 
-    document: Mapped["Document"] = relationship("Document", back_populates="document_embeddings")
+    document: Mapped[Document] = relationship(
+        "Document", back_populates="document_embeddings"
+    )

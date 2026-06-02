@@ -1,7 +1,9 @@
-import redis
 import os
 
+import redis
+
 client: redis.Redis | None = None
+
 
 def get_redis_client() -> redis.Redis:
     global client
