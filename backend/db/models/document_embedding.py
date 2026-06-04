@@ -1,11 +1,14 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
-from db.models.document import Document
+
+if TYPE_CHECKING:
+    from db.models.document import Document
 
 
 class DocumentEmbedding(Base):
