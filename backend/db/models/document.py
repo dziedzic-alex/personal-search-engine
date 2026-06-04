@@ -1,11 +1,14 @@
 import enum
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
-from db.models.document_embedding import DocumentEmbedding
+
+if TYPE_CHECKING:
+    from db.models.document_embedding import DocumentEmbedding
 
 
 class DocumentStatus(enum.StrEnum):
