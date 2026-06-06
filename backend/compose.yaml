@@ -1,6 +1,11 @@
 services:
   db:
     image: pgvector/pgvector:pg18-trixie
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vector_db"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
     environment:
@@ -17,6 +22,15 @@ services:
     volumes:
       - redis_data:/data
 
+  migrate:
+    build: .
+    command: alembic -c db/alembic.ini upgrade head
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
+    depends_on:
+      db:
+        condition: service_healthy
+
   api:
     build: .
     command: fastapi dev api/main.py --host 0.0.0.0 --port 8000 --reload
@@ -29,8 +43,10 @@ services:
       - .:/backend
       - uploads:/backend/uploads
     depends_on:
-      - redis
-      - db
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
 
   worker:
     build: .
@@ -42,8 +58,10 @@ services:
       - .:/backend
       - uploads:/backend/uploads
     depends_on:
-      - redis
-      - db
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
     develop:
       watch:
         - path: ./workers
