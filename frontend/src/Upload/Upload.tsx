@@ -40,9 +40,6 @@ function Upload() {
           file.name.split(".").pop()?.toLowerCase() ?? "",
         )
       ) {
-        console.log(file.type);
-        console.log(file.name);
-        console.log(file.name.split(".").pop()?.toLowerCase() ?? "");
         setError(
           `Only ${ALLOWED_FILE_TYPES.join(", ")} files are supported currently`,
         );
