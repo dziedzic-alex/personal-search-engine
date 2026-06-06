@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile
 
-from db.models.document import Document
+from db.models import Document
 from db.session import SessionLocal
 from shared.redis_client import get_redis_client
 
