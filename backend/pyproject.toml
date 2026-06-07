@@ -9,3 +9,7 @@ ignore = ["E501"]
 [tool.pyright]
 pythonVersion = "3.14"
 typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

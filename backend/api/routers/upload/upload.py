@@ -6,13 +6,17 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile
 
+from api.routers.upload.upload_utils import (
+    is_allowed_content_type,
+    sanitize_content_type,
+)
 from db.models import Document
 from db.session import SessionLocal
 from shared.redis_client import get_redis_client
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
-UPLOAD_DIR = Path(__file__).parents[2] / "uploads"
+UPLOAD_DIR = Path(__file__).parents[3] / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 UploadFiles = Annotated[list[UploadFile], File(...)]
@@ -28,16 +32,16 @@ def upload_files(files: UploadFiles):
         for file in files:
             filename = file.filename
 
+            sanitized_content_type = sanitize_content_type(file.content_type, filename)
+
+            if not is_allowed_content_type(sanitized_content_type):
+                continue
+
             destination = UPLOAD_DIR / filename
             with open(destination, "wb") as f:
                 shutil.copyfileobj(file.file, f)
 
             content_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
-
-            sanitized_content_type = file.content_type.split("/")[1]
-            if sanitized_content_type == "octet-stream":
-                extension = filename.split(".").pop().lower()
-                sanitized_content_type = extension
 
             document = Document(
                 name=filename,
