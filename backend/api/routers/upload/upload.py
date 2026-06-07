@@ -6,7 +6,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile
 
-from api.routers.upload.upload_utils import is_allowed_content_type, sanitize_content_type
+from api.routers.upload.upload_utils import (
+    is_allowed_content_type,
+    sanitize_content_type,
+)
 from db.models import Document
 from db.session import SessionLocal
 from shared.redis_client import get_redis_client
@@ -29,9 +32,7 @@ def upload_files(files: UploadFiles):
         for file in files:
             filename = file.filename
 
-            sanitized_content_type = sanitize_content_type(
-                file.content_type, filename
-            )
+            sanitized_content_type = sanitize_content_type(file.content_type, filename)
 
             if not is_allowed_content_type(sanitized_content_type):
                 continue

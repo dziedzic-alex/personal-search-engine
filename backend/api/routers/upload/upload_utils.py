@@ -15,5 +15,6 @@ ALLOWED_CONTENT_TYPES = [
     "heif",
 ]
 
+
 def is_allowed_content_type(content_type: str) -> bool:
     return content_type in ALLOWED_CONTENT_TYPES
