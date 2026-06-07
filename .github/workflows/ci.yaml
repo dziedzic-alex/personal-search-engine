@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
+  frontend_validate:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -28,7 +28,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install Node dependencies
-        run: npm install
+        run: npm ci
 
       - name: Prettier format check
         run: npx prettier --check .
@@ -39,19 +39,40 @@ jobs:
       - name: Build bundle
         run: npm run build
 
+      - name: Run tests
+        run: npm run test:run
+
+  backend_validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      REDIS_URL: redis://localhost:6379/0
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/vector_db
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.14.5"
+          cache: "pip"
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
 
-      - name: Install Python dev dependencies
-        working-directory: backend
-        run: pip install -r requirements-dev.txt
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Run Python format check
-        working-directory: backend
         run: ruff format --check .
 
       - name: Run Python lint
-        working-directory: backend
         run: ruff check .
+
+      - name: Run tests
+        run: pytest
