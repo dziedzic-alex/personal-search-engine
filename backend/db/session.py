@@ -1,11 +1,12 @@
-import os
 from collections.abc import Generator
 
 from pgvector.psycopg import register_vector
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
-engine = create_engine(os.getenv("DATABASE_URL"))
+from shared.settings import settings
+
+engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(bind=engine)
 
 
