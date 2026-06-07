@@ -35,8 +35,7 @@ function Search() {
 
   return (
     <div className="search">
-      <input
-        type="text"
+      <textarea
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
