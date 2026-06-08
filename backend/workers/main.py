@@ -2,7 +2,7 @@ import json
 
 from pillow_heif import register_heif_opener
 
-from db.models.document import Document
+from db.models.document import Document, DocumentStatus
 from db.session import SessionLocal
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
@@ -30,28 +30,45 @@ def main():
         if not job:
             continue
 
-        queue_name, job_data = job
+        _, job_data = job
         job_data = json.loads(job_data)
 
         print(f"Processing job: {job_data}")
 
-        document = None
         with SessionLocal() as session:
-            document = session.get(Document, job_data["document_id"])
+            document: Document = session.get(Document, job_data["document_id"])
 
-        if document is None:
-            print(f"Document {job_data['document_id']} not found. Skipping...")
-            continue
+            if document is None:
+                print(f"Document {job_data['document_id']} not found. Skipping...")
+                continue
 
-        if document.content_type in IMAGE_CONTENT_TYPE_VALUES:
-            process_image_document(document)
-        elif document.content_type == ContentType.PDF.value:
-            process_pdf_document(document)
-        else:
-            print(f"Unsupported document type: {document.content_type}. Skipping...")
-            continue
+            document.status = DocumentStatus.PROCESSING
+            session.commit()
 
-        print(f"Document {document.name} processed")
+        try:
+            if document.content_type in IMAGE_CONTENT_TYPE_VALUES:
+                process_image_document(document)
+            elif document.content_type == ContentType.PDF.value:
+                process_pdf_document(document)
+            else:
+                raise ValueError(f"Unsupported document type: {document.content_type}")
+
+            with SessionLocal() as session:
+                document = session.get(Document, job_data["document_id"])
+                document.status = DocumentStatus.COMPLETED
+                document.error = None
+                session.commit()
+
+            print(f"Document {document.name} successfully processed")
+
+        except Exception as e:
+            print(f"Error processing document {document.name}: {e}")
+            with SessionLocal() as session:
+                document = session.get(Document, job_data["document_id"])
+                document.status = DocumentStatus.FAILED
+                document.error = str(e)
+                session.commit()
+       
 
 
 if __name__ == "__main__":
