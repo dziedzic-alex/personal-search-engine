@@ -44,7 +44,14 @@ def test_upload_processes_only_supported_files_in_batch(upload_client, tmp_path)
 
     assert response.status_code == 200
     assert response.json() == {
-        "files_being_processed": [{"filename": "doc.pdf", "status": "pending"}]
+        "files_being_processed": [
+            {"filename": "doc.pdf", "status": "pending"},
+            {
+                "filename": "notes.txt",
+                "status": "skipped",
+                "error": "Content type not allowed",
+            },
+        ]
     }
     mock_session.add.assert_called_once()
     mock_session.commit.assert_called_once()
@@ -53,3 +60,30 @@ def test_upload_processes_only_supported_files_in_batch(upload_client, tmp_path)
     )
     assert (tmp_path / "doc.pdf").read_bytes() == b"pdf content"
     assert not (tmp_path / "notes.txt").exists()
+
+
+def test_upload_skips_duplicate_filename(upload_client, mocker):
+    client, mock_session, mock_redis = upload_client
+
+    mock_scalars = mocker.MagicMock()
+    mock_scalars.first.return_value = mocker.MagicMock()
+    mock_session.scalars.return_value = mock_scalars
+
+    response = client.post(
+        "/upload/",
+        files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "files_being_processed": [
+            {
+                "filename": "test.pdf",
+                "status": "skipped",
+                "error": "already exists",
+            }
+        ]
+    }
+    mock_session.add.assert_not_called()
+    mock_session.commit.assert_not_called()
+    mock_redis.lpush.assert_not_called()
