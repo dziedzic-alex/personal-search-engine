@@ -4,6 +4,7 @@ from pillow_heif import register_heif_opener
 
 from db.models.document import Document
 from db.session import SessionLocal
+from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 from shared.redis_client import get_redis_client
@@ -42,21 +43,12 @@ def main():
             print(f"Document {job_data['document_id']} not found. Skipping...")
             continue
 
-        content_type = document.content_type
-
-        if (
-            content_type == "jpeg"
-            or content_type == "jpg"
-            or content_type == "png"
-            or content_type == "webp"
-            or content_type == "heic"
-            or content_type == "heif"
-        ):
+        if document.content_type in IMAGE_CONTENT_TYPE_VALUES:
             process_image_document(document)
-        elif content_type == "pdf":
+        elif document.content_type == ContentType.PDF.value:
             process_pdf_document(document)
         else:
-            print(f"Unsupported document type: {content_type}. Skipping...")
+            print(f"Unsupported document type: {document.content_type}. Skipping...")
             continue
 
         print(f"Document {document.name} processed")

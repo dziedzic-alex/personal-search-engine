@@ -12,6 +12,7 @@ from api.routers.upload.upload_utils import (
 )
 from db.models import Document
 from db.session import SessionLocal
+from shared.content_type import ContentType
 from shared.redis_client import get_redis_client
 
 router = APIRouter(prefix="/upload", tags=["upload"])
@@ -47,7 +48,7 @@ def upload_files(files: UploadFiles):
                 name=filename,
                 content_url=str(destination),
                 content_hash=content_hash,
-                content_type=sanitized_content_type,
+                content_type=ContentType(sanitized_content_type).value,
             )
 
             session.add(document)
