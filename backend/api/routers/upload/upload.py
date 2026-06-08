@@ -1,4 +1,3 @@
-import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -42,12 +41,9 @@ def upload_files(files: UploadFiles):
             with open(destination, "wb") as f:
                 shutil.copyfileobj(file.file, f)
 
-            content_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
-
             document = Document(
                 name=filename,
                 content_url=str(destination),
-                content_hash=content_hash,
                 content_type=ContentType(sanitized_content_type).value,
             )
 

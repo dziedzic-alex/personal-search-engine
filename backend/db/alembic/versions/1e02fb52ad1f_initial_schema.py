@@ -38,7 +38,6 @@ def upgrade() -> None:
         ),
         sa.Column("error", sa.Text(), nullable=True),
         sa.Column("content_url", sa.String(length=255), nullable=False),
-        sa.Column("content_hash", sa.String(length=255), nullable=False),
         sa.Column(
             "thumbnail_url",
             sa.String(length=255),
