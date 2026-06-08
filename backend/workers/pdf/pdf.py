@@ -6,6 +6,7 @@ from db.models.document_embedding import DocumentEmbedding
 from db.session import SessionLocal
 from shared.models.text_embedding import get_text_embedding_model
 from workers.image import index_image
+from workers.pdf.pdf_utils import is_text_block_usable, sanitize_text_block
 
 
 def load_pdf_from_path(path: str) -> fitz.Document:
@@ -24,10 +25,10 @@ def index_pdf(document_id: int, document: fitz.Document):
         image = Image.frombytes("RGB", [pixels.width, pixels.height], pixels.samples)
         index_image(document_id, image)
         for text_block in page.get_text_blocks():
-            if "\x00" in text_block[4]:
+            if not is_text_block_usable(text_block[4]):
                 continue
 
-            chunks.append(text_block[4].replace("\n", " "))
+            chunks.append(sanitize_text_block(text_block[4]))
     document.close()
 
     text_embedding_model = get_text_embedding_model()

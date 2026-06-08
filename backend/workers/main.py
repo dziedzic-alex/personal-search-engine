@@ -9,7 +9,7 @@ from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 from shared.redis_client import get_redis_client
 from workers.image import process_image_document
-from workers.pdf import process_pdf_document
+from workers.pdf.pdf import process_pdf_document
 
 register_heif_opener()
 
