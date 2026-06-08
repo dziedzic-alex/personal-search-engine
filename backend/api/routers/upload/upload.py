@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile
+from sqlalchemy import select
 
 from api.routers.upload.upload_utils import (
     is_allowed_content_type,
@@ -35,6 +36,18 @@ def upload_files(files: UploadFiles):
             sanitized_content_type = sanitize_content_type(file.content_type, filename)
 
             if not is_allowed_content_type(sanitized_content_type):
+                files_being_processed.append(
+                    {"filename": filename, "status": "skipped", "error": "Content type not allowed"}
+                )
+                continue
+
+            existing_document = session.scalars(select(Document).where(Document.name == filename)).first()
+
+            if existing_document is not None:
+                print(f"Document {filename} already exists. Skipping...")
+                files_being_processed.append(
+                    {"filename": filename, "status": "skipped", "error": "already exists"}
+                )
                 continue
 
             destination = UPLOAD_DIR / filename
