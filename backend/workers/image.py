@@ -7,8 +7,8 @@ from db.session import SessionLocal
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 
-MIN_IMAGE_WIDTH = 50
-MIN_IMAGE_HEIGHT = 50
+MIN_IMAGE_WIDTH = 64
+MIN_IMAGE_HEIGHT = 64
 
 
 def load_image_from_path(path: str) -> Image.Image:
