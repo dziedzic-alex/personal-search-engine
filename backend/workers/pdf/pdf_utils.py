@@ -5,6 +5,7 @@ import unicodedata
 # filter blocks that are not worth embedding
 MIN_ALNUM = 3
 MIN_PRINTABLE_RATIO = 0.85
+MIN_PAGE_TEXT_LENGTH = 200
 
 
 def is_printable_char(char: str) -> bool:
@@ -53,3 +54,7 @@ def sanitize_text_block(text_block: str) -> str:
     # PDF blocks use newlines for layout; normalize to a single line for embedding.
     text = text_block.replace("\ufffd", "").replace("\n", " ")
     return re.sub(r"\s+", " ", text).strip()
+
+
+def should_fallback_to_image(text: str) -> bool:
+    return len(text) < MIN_PAGE_TEXT_LENGTH
