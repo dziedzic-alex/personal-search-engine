@@ -18,7 +18,7 @@ XMP_DATE_FIELDS = (
 )
 
 
-def parse_exif_datetime(value: str | None) -> datetime | None:
+def _parse_exif_datetime(value: str | None) -> datetime | None:
     if not value:
         return None
 
@@ -28,28 +28,28 @@ def parse_exif_datetime(value: str | None) -> datetime | None:
         return None
 
 
-def parse_xmp_datetime(value: str) -> datetime | None:
+def _parse_xmp_datetime(value: str) -> datetime | None:
     try:
         return datetime.fromisoformat(value)
     except ValueError:
         return None
 
 
-def parse_source_created_time_from_exif(image: Image.Image) -> datetime | None:
+def _parse_source_created_time_from_exif(image: Image.Image) -> datetime | None:
     exif = image.getexif()
     if not exif:
         return None
 
     exif_ifd = exif.get_ifd(Base.ExifOffset)
     for tag in (Base.DateTimeOriginal, Base.DateTimeDigitized):
-        source_created_time = parse_exif_datetime(exif_ifd.get(tag))
+        source_created_time = _parse_exif_datetime(exif_ifd.get(tag))
         if source_created_time is not None:
             return source_created_time
 
-    return parse_exif_datetime(exif.get(Base.DateTime))
+    return _parse_exif_datetime(exif.get(Base.DateTime))
 
 
-def parse_source_created_time_from_xmp(image: Image.Image) -> datetime | None:
+def _parse_source_created_time_from_xmp(image: Image.Image) -> datetime | None:
     if not image.info:
         return None
 
@@ -68,14 +68,14 @@ def parse_source_created_time_from_xmp(image: Image.Image) -> datetime | None:
         for element in root.iter():
             attribute_value = element.attrib.get(qualified_name)
             if attribute_value:
-                source_created_time = parse_xmp_datetime(attribute_value)
+                source_created_time = _parse_xmp_datetime(attribute_value)
                 if source_created_time is not None:
                     return source_created_time
 
         for element in root.iter(qualified_name):
             if not element.text:
                 continue
-            source_created_time = parse_xmp_datetime(element.text)
+            source_created_time = _parse_xmp_datetime(element.text)
             if source_created_time is not None:
                 return source_created_time
 
@@ -83,10 +83,10 @@ def parse_source_created_time_from_xmp(image: Image.Image) -> datetime | None:
 
 
 def extract_image_metadata(image: Image.Image, document_id: int):
-    source_created_time = parse_source_created_time_from_exif(image)
+    source_created_time = _parse_source_created_time_from_exif(image)
 
     if source_created_time is None:
-        source_created_time = parse_source_created_time_from_xmp(image)
+        source_created_time = _parse_source_created_time_from_xmp(image)
 
     if source_created_time is None:
         return

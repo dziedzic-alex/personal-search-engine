@@ -27,7 +27,7 @@ OCR_PDF_EMBEDDED_PROFILE = TextQualityProfile(
 )
 
 
-def is_printable_char(char: str) -> bool:
+def _is_printable_char(char: str) -> bool:
     if char in "\n\r\t ":
         return True
 
@@ -42,7 +42,7 @@ def passes_text_quality_checks(text: str, profile: TextQualityProfile) -> bool:
     if len(text) < profile.min_length:
         return False
 
-    printable_count = sum(1 for char in text if is_printable_char(char))
+    printable_count = sum(1 for char in text if _is_printable_char(char))
     if printable_count / len(text) < profile.min_printable_ratio:
         return False
 

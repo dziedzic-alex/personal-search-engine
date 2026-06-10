@@ -16,12 +16,12 @@ from workers.pdf.pdf_utils import (
 from workers.text_quality import sanitize_text
 
 
-def load_pdf_from_path(path: str) -> fitz.Document:
+def _load_pdf_from_path(path: str) -> fitz.Document:
     return fitz.open(path)
 
 
 def process_pdf_document(db_document: Document):
-    pdf = load_pdf_from_path(db_document.content_url)
+    pdf = _load_pdf_from_path(db_document.content_url)
     extract_pdf_metadata(pdf, db_document.id)
     index_pdf(db_document.id, pdf)
 

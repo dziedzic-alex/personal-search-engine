@@ -37,7 +37,7 @@ OCR_PROFILES: dict[ImageIndexContext, TextQualityProfile] = {
 }
 
 
-def load_image_from_path(path: str) -> Image.Image:
+def _load_image_from_path(path: str) -> Image.Image:
     image = Image.open(path)
     image = ImageOps.exif_transpose(image)
     if image.mode not in ["RGB", "L"]:
@@ -47,12 +47,12 @@ def load_image_from_path(path: str) -> Image.Image:
 
 
 def process_image_document(document: Document):
-    image = load_image_from_path(document.content_url)
+    image = _load_image_from_path(document.content_url)
     extract_image_metadata(image, document.id)
     index_image(document.id, image, context=ImageIndexContext.PHOTO)
 
 
-def should_index(image: Image.Image) -> bool:
+def _should_index(image: Image.Image) -> bool:
     return image.width >= MIN_IMAGE_WIDTH and image.height >= MIN_IMAGE_HEIGHT
 
 
@@ -73,7 +73,7 @@ def index_image(
     *,
     context: ImageIndexContext = ImageIndexContext.PHOTO,
 ) -> bool:
-    if not should_index(image):
+    if not _should_index(image):
         return False
 
     gray = image.convert("L")
