@@ -1,4 +1,4 @@
-from workers.pdf.pdf_utils import is_text_block_usable
+from workers.pdf.pdf_utils import is_text_block_usable, should_fallback_to_image
 
 
 def test_is_text_block_usable_accepts_normal_text():
@@ -31,3 +31,11 @@ def test_is_text_block_usable_rejects_whitespace_only():
 
 def test_is_text_block_usable_rejects_too_few_alphanumeric_characters():
     assert not is_text_block_usable("!!")
+
+
+def test_should_fallback_to_image_when_page_text_is_short():
+    assert should_fallback_to_image("short page text")
+
+
+def test_should_not_fallback_to_image_when_page_text_is_long_enough():
+    assert not should_fallback_to_image("A" * 200)
