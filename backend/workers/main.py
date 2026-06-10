@@ -35,7 +35,7 @@ def main():
 
         print(f"Processing job: {job_data}")
 
-        with SessionLocal() as session:
+        with SessionLocal(expire_on_commit=False) as session:
             document: Document = session.get(Document, job_data["document_id"])
 
             if document is None:
@@ -53,7 +53,7 @@ def main():
             else:
                 raise ValueError(f"Unsupported document type: {document.content_type}")
 
-            with SessionLocal() as session:
+            with SessionLocal(expire_on_commit=False) as session:
                 document = session.get(Document, job_data["document_id"])
                 document.status = DocumentStatus.COMPLETED
                 document.error = None
@@ -63,6 +63,7 @@ def main():
 
         except Exception as e:
             print(f"Error processing document {document.name}: {e}")
+
             with SessionLocal() as session:
                 document = session.get(Document, job_data["document_id"])
                 document.status = DocumentStatus.FAILED
