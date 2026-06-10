@@ -20,6 +20,9 @@ def upload_client(mocker, tmp_path):
         next_document_id += 1
 
     mock_session.add.side_effect = assign_document_id
+    mock_scalars = mocker.MagicMock()
+    mock_scalars.first.return_value = None
+    mock_session.scalars.return_value = mock_scalars
     mock_session.__enter__ = mocker.Mock(return_value=mock_session)
     mock_session.__exit__ = mocker.Mock(return_value=False)
 

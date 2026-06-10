@@ -1,10 +1,10 @@
-import hashlib
 import json
 import shutil
 from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile
+from sqlalchemy import select
 
 from api.routers.upload.upload_utils import (
     is_allowed_content_type,
@@ -12,6 +12,7 @@ from api.routers.upload.upload_utils import (
 )
 from db.models import Document
 from db.session import SessionLocal
+from shared.content_type import ContentType
 from shared.redis_client import get_redis_client
 
 router = APIRouter(prefix="/upload", tags=["upload"])
@@ -35,19 +36,38 @@ def upload_files(files: UploadFiles):
             sanitized_content_type = sanitize_content_type(file.content_type, filename)
 
             if not is_allowed_content_type(sanitized_content_type):
+                files_being_processed.append(
+                    {
+                        "filename": filename,
+                        "status": "skipped",
+                        "error": "Content type not allowed",
+                    }
+                )
+                continue
+
+            existing_document = session.scalars(
+                select(Document).where(Document.name == filename)
+            ).first()
+
+            if existing_document is not None:
+                print(f"Document {filename} already exists. Skipping...")
+                files_being_processed.append(
+                    {
+                        "filename": filename,
+                        "status": "skipped",
+                        "error": "already exists",
+                    }
+                )
                 continue
 
             destination = UPLOAD_DIR / filename
             with open(destination, "wb") as f:
                 shutil.copyfileobj(file.file, f)
 
-            content_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
-
             document = Document(
                 name=filename,
                 content_url=str(destination),
-                content_hash=content_hash,
-                content_type=sanitized_content_type,
+                content_type=ContentType(sanitized_content_type).value,
             )
 
             session.add(document)
