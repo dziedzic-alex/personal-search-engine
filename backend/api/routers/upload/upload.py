@@ -68,6 +68,7 @@ def upload_files(files: UploadFiles):
                 name=filename,
                 content_url=str(destination),
                 content_type=ContentType(sanitized_content_type).value,
+                size_bytes=destination.stat().st_size,
             )
 
             session.add(document)
