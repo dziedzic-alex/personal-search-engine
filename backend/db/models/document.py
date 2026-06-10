@@ -38,6 +38,7 @@ class Document(Base):
     thumbnail_url: Mapped[str] = mapped_column(String(255), insert_default="")
     content_type: Mapped[str] = mapped_column(String(255))
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_created_time: Mapped[datetime | None] = mapped_column(DateTime)
     created_time: Mapped[datetime] = mapped_column(
         DateTime, insert_default=datetime.now
     )
