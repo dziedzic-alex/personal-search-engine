@@ -48,9 +48,7 @@ def extract_pdf_metadata(document: fitz.Document, document_id: int):
         return
 
     if source_created_time.tzinfo is not None:
-        source_created_time = source_created_time.astimezone(UTC).replace(
-            tzinfo=None
-        )
+        source_created_time = source_created_time.astimezone(UTC).replace(tzinfo=None)
 
     with SessionLocal() as session:
         session.execute(
