@@ -8,6 +8,7 @@ from db.models.document_embedding import DocumentEmbedding
 from db.session import SessionLocal
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
+from workers.image.image_utils import extract_image_metadata
 from workers.text_quality import (
     OCR_PDF_EMBEDDED_PROFILE,
     OCR_PDF_PAGE_PROFILE,
@@ -47,6 +48,7 @@ def load_image_from_path(path: str) -> Image.Image:
 
 def process_image_document(document: Document):
     image = load_image_from_path(document.content_url)
+    extract_image_metadata(image, document.id)
     index_image(document.id, image, context=ImageIndexContext.PHOTO)
 
 
