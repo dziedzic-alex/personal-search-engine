@@ -9,6 +9,7 @@ from shared.models.text_embedding import get_text_embedding_model
 
 MIN_IMAGE_WIDTH = 64
 MIN_IMAGE_HEIGHT = 64
+MIN_IMAGE_AREA = MIN_IMAGE_WIDTH * MIN_IMAGE_HEIGHT
 
 
 def load_image_from_path(path: str) -> Image.Image:
@@ -26,7 +27,7 @@ def process_image_document(document: Document):
 
 
 def should_index(image: Image.Image) -> bool:
-    return image.width >= MIN_IMAGE_WIDTH and image.height >= MIN_IMAGE_HEIGHT
+    return image.width * image.height >= MIN_IMAGE_AREA
 
 def index_image(document_id: int, image: Image.Image) -> bool:
     if not should_index(image):
