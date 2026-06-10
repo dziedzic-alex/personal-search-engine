@@ -4,7 +4,7 @@ from tests.workers.helpers import (
     make_page,
     make_png_image_bytes,
 )
-from workers.image import ImageIndexContext
+from workers.image.image import ImageIndexContext
 from workers.pdf.pdf import index_pdf
 
 
