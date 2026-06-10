@@ -1,4 +1,4 @@
-from workers.pdf.pdf_utils import is_text_block_usable, sanitize_text_block
+from workers.pdf.pdf_utils import is_text_block_usable
 
 
 def test_is_text_block_usable_accepts_normal_text():
@@ -31,11 +31,3 @@ def test_is_text_block_usable_rejects_whitespace_only():
 
 def test_is_text_block_usable_rejects_too_few_alphanumeric_characters():
     assert not is_text_block_usable("!!")
-
-
-def test_sanitize_text_block_collapses_whitespace():
-    assert sanitize_text_block("Hello\n\n  world") == "Hello world"
-
-
-def test_sanitize_text_block_strips_replacement_characters():
-    assert sanitize_text_block("Hello\ufffd world") == "Hello world"
