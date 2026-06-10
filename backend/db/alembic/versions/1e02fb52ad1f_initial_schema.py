@@ -45,6 +45,8 @@ def upgrade() -> None:
             server_default=sa.text("''"),
         ),
         sa.Column("content_type", sa.String(length=255), nullable=False),
+        sa.Column("size_bytes", sa.Integer(), nullable=False),
+        sa.Column("source_created_time", sa.DateTime()),
         sa.Column(
             "created_time",
             sa.DateTime(),

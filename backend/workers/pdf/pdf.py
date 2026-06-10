@@ -7,17 +7,22 @@ from db.models.document import Document
 from db.models.document_embedding import DocumentEmbedding
 from db.session import SessionLocal
 from shared.models.text_embedding import get_text_embedding_model
-from workers.image import ImageIndexContext, index_image
-from workers.pdf.pdf_utils import is_text_block_usable, should_fallback_to_image
+from workers.image.image import ImageIndexContext, index_image
+from workers.pdf.pdf_utils import (
+    extract_pdf_metadata,
+    is_text_block_usable,
+    should_fallback_to_image,
+)
 from workers.text_quality import sanitize_text
 
 
-def load_pdf_from_path(path: str) -> fitz.Document:
+def _load_pdf_from_path(path: str) -> fitz.Document:
     return fitz.open(path)
 
 
 def process_pdf_document(db_document: Document):
-    pdf = load_pdf_from_path(db_document.content_url)
+    pdf = _load_pdf_from_path(db_document.content_url)
+    extract_pdf_metadata(pdf, db_document.id)
     index_pdf(db_document.id, pdf)
 
 
