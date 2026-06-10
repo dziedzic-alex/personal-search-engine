@@ -90,7 +90,9 @@ def index_image(
     with SessionLocal() as session:
         if image_embedding is not None:
             session.add(
-                DocumentEmbedding(document_id=document_id, image_embedding=image_embedding)
+                DocumentEmbedding(
+                    document_id=document_id, image_embedding=image_embedding
+                )
             )
 
         if text_embedding is not None:

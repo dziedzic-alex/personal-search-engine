@@ -1,4 +1,9 @@
-from tests.workers.helpers import added_embeddings, make_document, make_page, make_png_image_bytes
+from tests.workers.helpers import (
+    added_embeddings,
+    make_document,
+    make_page,
+    make_png_image_bytes,
+)
 from workers.image import ImageIndexContext
 from workers.pdf.pdf import index_pdf
 
@@ -20,7 +25,9 @@ def test_text_rich_page_indexes_chunks_without_images(
     document.close.assert_called_once()
 
 
-def test_scanned_page_uses_pixmap_fallback(mock_pdf_session, mock_embedding_models, mocker):
+def test_scanned_page_uses_pixmap_fallback(
+    mock_pdf_session, mock_embedding_models, mocker
+):
     page = make_page(text_blocks=[])
     document = make_document([page])
     mock_index_image = mocker.patch("workers.pdf.pdf.index_image", return_value=True)
@@ -45,7 +52,9 @@ def test_embedded_image_uses_pdf_embedded_context(
     index_pdf(1, document)
 
     mock_index_image.assert_called_once()
-    assert mock_index_image.call_args.kwargs["context"] == ImageIndexContext.PDF_EMBEDDED
+    assert (
+        mock_index_image.call_args.kwargs["context"] == ImageIndexContext.PDF_EMBEDDED
+    )
     page.get_pixmap.assert_not_called()
     mock_embedding_models[0].encode.assert_not_called()
 
@@ -61,12 +70,20 @@ def test_pixmap_fallback_when_embedded_image_is_too_small(
     index_pdf(1, document)
 
     assert mock_index_image.call_count == 2
-    assert mock_index_image.call_args_list[0].kwargs["context"] == ImageIndexContext.PDF_EMBEDDED
-    assert mock_index_image.call_args_list[1].kwargs["context"] == ImageIndexContext.PDF_PAGE
+    assert (
+        mock_index_image.call_args_list[0].kwargs["context"]
+        == ImageIndexContext.PDF_EMBEDDED
+    )
+    assert (
+        mock_index_image.call_args_list[1].kwargs["context"]
+        == ImageIndexContext.PDF_PAGE
+    )
     page.get_pixmap.assert_called_once()
 
 
-def test_duplicate_xref_is_indexed_once(mock_pdf_session, mock_embedding_models, mocker):
+def test_duplicate_xref_is_indexed_once(
+    mock_pdf_session, mock_embedding_models, mocker
+):
     rich_text = "C" * 250
     page_one = make_page(text_blocks=[rich_text], images=[(5,)], page_number=0)
     page_two = make_page(text_blocks=[rich_text], images=[(5,)], page_number=1)
@@ -77,7 +94,9 @@ def test_duplicate_xref_is_indexed_once(mock_pdf_session, mock_embedding_models,
     index_pdf(1, document)
 
     mock_index_image.assert_called_once()
-    assert mock_index_image.call_args.kwargs["context"] == ImageIndexContext.PDF_EMBEDDED
+    assert (
+        mock_index_image.call_args.kwargs["context"] == ImageIndexContext.PDF_EMBEDDED
+    )
     document.extract_image.assert_called_once_with(5)
     page_one.get_pixmap.assert_not_called()
     page_two.get_pixmap.assert_not_called()

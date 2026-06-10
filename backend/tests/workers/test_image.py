@@ -36,7 +36,9 @@ def test_pdf_page_includes_image_embedding_when_ocr_fails():
     )
 
 
-def test_index_image_skips_tiny_images(mock_image_session, mock_embedding_models, mocker):
+def test_index_image_skips_tiny_images(
+    mock_image_session, mock_embedding_models, mocker
+):
     mocker.patch("workers.image.pytesseract.image_to_string", return_value="caption")
 
     assert not index_image(1, make_image(width=32, height=32))
@@ -68,7 +70,9 @@ def test_photo_with_short_caption_writes_both_embeddings(
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 2
-    assert any(embedding.content and embedding.text_embedding for embedding in embeddings)
+    assert any(
+        embedding.content and embedding.text_embedding for embedding in embeddings
+    )
     assert any(
         embedding.image_embedding and not embedding.content for embedding in embeddings
     )
@@ -92,7 +96,9 @@ def test_photo_with_long_ocr_writes_text_embedding_only(
 def test_photo_with_garbage_ocr_writes_image_embedding_only(
     mock_image_session, mock_embedding_models, mocker
 ):
-    mocker.patch("workers.image.pytesseract.image_to_string", return_value="|[] ]]] ||| ....")
+    mocker.patch(
+        "workers.image.pytesseract.image_to_string", return_value="|[] ]]] ||| ...."
+    )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
 

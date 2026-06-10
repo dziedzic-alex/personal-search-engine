@@ -69,7 +69,6 @@ def main():
                 document.status = DocumentStatus.FAILED
                 document.error = str(e)
                 session.commit()
-       
 
 
 if __name__ == "__main__":

@@ -37,16 +37,26 @@ def upload_files(files: UploadFiles):
 
             if not is_allowed_content_type(sanitized_content_type):
                 files_being_processed.append(
-                    {"filename": filename, "status": "skipped", "error": "Content type not allowed"}
+                    {
+                        "filename": filename,
+                        "status": "skipped",
+                        "error": "Content type not allowed",
+                    }
                 )
                 continue
 
-            existing_document = session.scalars(select(Document).where(Document.name == filename)).first()
+            existing_document = session.scalars(
+                select(Document).where(Document.name == filename)
+            ).first()
 
             if existing_document is not None:
                 print(f"Document {filename} already exists. Skipping...")
                 files_being_processed.append(
-                    {"filename": filename, "status": "skipped", "error": "already exists"}
+                    {
+                        "filename": filename,
+                        "status": "skipped",
+                        "error": "already exists",
+                    }
                 )
                 continue
 

@@ -8,7 +8,9 @@ from workers.text_quality import (
 
 
 def test_passes_text_quality_checks_accepts_normal_text():
-    assert passes_text_quality_checks("Hello world from a PDF page", PDF_TEXT_BLOCK_PROFILE)
+    assert passes_text_quality_checks(
+        "Hello world from a PDF page", PDF_TEXT_BLOCK_PROFILE
+    )
 
 
 def test_passes_text_quality_checks_rejects_too_few_alphanumeric_characters():

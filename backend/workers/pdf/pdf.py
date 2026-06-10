@@ -20,6 +20,7 @@ def process_pdf_document(db_document: Document):
     pdf = load_pdf_from_path(db_document.content_url)
     index_pdf(db_document.id, pdf)
 
+
 def index_pdf(document_id: int, document: fitz.Document):
     chunks: list[str] = []
     processed_image_xrefs: set[int] = set()
@@ -51,13 +52,17 @@ def index_pdf(document_id: int, document: fitz.Document):
                 ):
                     page_image_indexed = True
             except Exception as e:
-                print(f"Error extracting image {xref} from page {page.number} in document {document_id}: {e}")
+                print(
+                    f"Error extracting image {xref} from page {page.number} in document {document_id}: {e}"
+                )
                 continue
 
         should_fallback = should_fallback_to_image(page_text)
         if should_fallback and not page_image_indexed:
             pixels = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-            image = Image.frombytes("RGB", [pixels.width, pixels.height], pixels.samples)
+            image = Image.frombytes(
+                "RGB", [pixels.width, pixels.height], pixels.samples
+            )
             index_image(document_id, image, context=ImageIndexContext.PDF_PAGE)
 
         if not should_fallback:
