@@ -1,5 +1,9 @@
 from tests.workers.helpers import added_embeddings, make_image
-from workers.image.image import ImageIndexContext, index_image, should_encode_image_embedding
+from workers.image.image import (
+    ImageIndexContext,
+    index_image,
+    should_encode_image_embedding,
+)
 from workers.text_quality import OCR_PDF_PAGE_PROFILE, passes_text_quality_checks
 
 
@@ -39,7 +43,9 @@ def test_pdf_page_includes_image_embedding_when_ocr_fails():
 def test_index_image_skips_tiny_images(
     mock_image_session, mock_embedding_models, mocker
 ):
-    mocker.patch("workers.image.image.pytesseract.image_to_string", return_value="caption")
+    mocker.patch(
+        "workers.image.image.pytesseract.image_to_string", return_value="caption"
+    )
 
     assert not index_image(1, make_image(width=32, height=32))
 
@@ -63,7 +69,8 @@ def test_photo_with_short_caption_writes_both_embeddings(
     mock_image_session, mock_embedding_models, mocker
 ):
     mocker.patch(
-        "workers.image.image.pytesseract.image_to_string", return_value="Lake Tahoe 2024"
+        "workers.image.image.pytesseract.image_to_string",
+        return_value="Lake Tahoe 2024",
     )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
@@ -82,7 +89,9 @@ def test_photo_with_long_ocr_writes_text_embedding_only(
     mock_image_session, mock_embedding_models, mocker
 ):
     long_text = "document " * 30
-    mocker.patch("workers.image.image.pytesseract.image_to_string", return_value=long_text)
+    mocker.patch(
+        "workers.image.image.pytesseract.image_to_string", return_value=long_text
+    )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
 
@@ -97,7 +106,8 @@ def test_photo_with_garbage_ocr_writes_image_embedding_only(
     mock_image_session, mock_embedding_models, mocker
 ):
     mocker.patch(
-        "workers.image.image.pytesseract.image_to_string", return_value="|[] ]]] ||| ...."
+        "workers.image.image.pytesseract.image_to_string",
+        return_value="|[] ]]] ||| ....",
     )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
