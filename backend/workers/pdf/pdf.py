@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import fitz
 from PIL import Image
 
@@ -5,9 +7,9 @@ from db.models.document import Document
 from db.models.document_embedding import DocumentEmbedding
 from db.session import SessionLocal
 from shared.models.text_embedding import get_text_embedding_model
-from workers.image import index_image
-from workers.pdf.pdf_utils import is_text_block_usable, sanitize_text_block, should_fallback_to_image
-from io import BytesIO
+from workers.image import ImageIndexContext, index_image
+from workers.pdf.pdf_utils import is_text_block_usable, should_fallback_to_image
+from workers.text_quality import sanitize_text
 
 
 def load_pdf_from_path(path: str) -> fitz.Document:
@@ -27,7 +29,7 @@ def index_pdf(document_id: int, document: fitz.Document):
             if not is_text_block_usable(text_block[4]):
                 continue
 
-            page_chunks.append(sanitize_text_block(text_block[4]))
+            page_chunks.append(sanitize_text(text_block[4]))
 
         page_text = " ".join(page_chunks)
         images = page.get_images()
@@ -44,7 +46,9 @@ def index_pdf(document_id: int, document: fitz.Document):
                 base_image = document.extract_image(xref)
                 image_bytes = base_image["image"]
                 image = Image.open(BytesIO(image_bytes)).convert("RGB")
-                if index_image(document_id, image):
+                if index_image(
+                    document_id, image, context=ImageIndexContext.PDF_EMBEDDED
+                ):
                     page_image_indexed = True
             except Exception as e:
                 print(f"Error extracting image {xref} from page {page.number} in document {document_id}: {e}")
@@ -54,7 +58,7 @@ def index_pdf(document_id: int, document: fitz.Document):
         if should_fallback and not page_image_indexed:
             pixels = page.get_pixmap(matrix=fitz.Matrix(2, 2))
             image = Image.frombytes("RGB", [pixels.width, pixels.height], pixels.samples)
-            index_image(document_id, image)
+            index_image(document_id, image, context=ImageIndexContext.PDF_PAGE)
 
         if not should_fallback:
             chunks.extend(page_chunks)
