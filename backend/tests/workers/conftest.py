@@ -28,6 +28,12 @@ def mock_pdf_utils_session(mocker, mock_worker_session):
 
 
 @pytest.fixture
+def mock_image_utils_session(mocker, mock_worker_session):
+    mocker.patch("workers.image.image_utils.SessionLocal", return_value=mock_worker_session)
+    return mock_worker_session
+
+
+@pytest.fixture
 def mock_embedding_models(mocker):
     text_model = mocker.MagicMock()
     image_model = mocker.MagicMock()
