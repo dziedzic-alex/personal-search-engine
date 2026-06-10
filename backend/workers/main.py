@@ -35,6 +35,7 @@ def main():
 
         print(f"Processing job: {job_data}")
 
+        content_type = None
         with SessionLocal() as session:
             document: Document = session.get(Document, job_data["document_id"])
 
@@ -42,32 +43,34 @@ def main():
                 print(f"Document {job_data['document_id']} not found. Skipping...")
                 continue
 
+            content_type = document.content_type
+
             document.status = DocumentStatus.PROCESSING
             session.commit()
 
         try:
-            if document.content_type in IMAGE_CONTENT_TYPE_VALUES:
+            if content_type in IMAGE_CONTENT_TYPE_VALUES:
                 process_image_document(document)
-            elif document.content_type == ContentType.PDF.value:
+            elif content_type == ContentType.PDF.value:
                 process_pdf_document(document)
             else:
-                raise ValueError(f"Unsupported document type: {document.content_type}")
+                raise ValueError(f"Unsupported document type: {content_type}")
 
             with SessionLocal() as session:
                 document = session.get(Document, job_data["document_id"])
                 document.status = DocumentStatus.COMPLETED
                 document.error = None
                 session.commit()
+                print(f"Document {document.name} successfully processed")
 
-            print(f"Document {document.name} successfully processed")
 
         except Exception as e:
-            print(f"Error processing document {document.name}: {e}")
             with SessionLocal() as session:
                 document = session.get(Document, job_data["document_id"])
                 document.status = DocumentStatus.FAILED
                 document.error = str(e)
                 session.commit()
+                print(f"Error processing document {document.name}: {e}")
        
 
 
