@@ -1,9 +1,11 @@
+from datetime import UTC
+
 import fitz
-from datetime import timezone
-from db.session import SessionLocal
-from db.models.document import Document
-from sqlalchemy import update
 from pypdf._utils import parse_iso8824_date
+from sqlalchemy import update
+
+from db.models.document import Document
+from db.session import SessionLocal
 from workers.text_quality import PDF_TEXT_BLOCK_PROFILE, passes_text_quality_checks
 
 MIN_PAGE_TEXT_LENGTH = 200
@@ -46,7 +48,7 @@ def extract_pdf_metadata(document: fitz.Document, document_id: int):
         return
 
     if source_created_time.tzinfo is not None:
-        source_created_time = source_created_time.astimezone(timezone.utc).replace(
+        source_created_time = source_created_time.astimezone(UTC).replace(
             tzinfo=None
         )
 
