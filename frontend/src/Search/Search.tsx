@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import "./Search.css";
 
+type SearchMode = "text" | "image";
+
 interface SearchResponse {
   relevant_documents: {
     name: string;
@@ -10,6 +12,7 @@ interface SearchResponse {
 
 function Search() {
   const [query, setQuery] = useState<string>("");
+  const [searchMode, setSearchMode] = useState<SearchMode>("text");
   const [responseData, setResponseData] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,9 +20,12 @@ function Search() {
     setError(null);
     setResponseData(null);
 
-    const response: Response = await fetch(`/api/search/?query=${query}`, {
-      method: "GET",
-    });
+    const response: Response = await fetch(
+      `/api/search/?query=${query}&searchMode=${searchMode}`,
+      {
+        method: "GET",
+      },
+    );
 
     if (!response.ok) {
       setError("Failed to search");
@@ -46,6 +52,15 @@ function Search() {
           }
         }}
       />
+      <select
+        value={searchMode}
+        onChange={(e) => {
+          setSearchMode(e.target.value as SearchMode);
+        }}
+      >
+        <option value="text">Text based documents</option>
+        <option value="image">Image based documents</option>
+      </select>
       <button onClick={() => void handleSearch()}>Search</button>
       {error && <p>{error}</p>}
       {responseData && <p>{responseData}</p>}
