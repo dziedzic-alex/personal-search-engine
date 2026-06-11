@@ -29,7 +29,6 @@ function Search() {
     const responseJson: SearchResponse =
       (await response.json()) as SearchResponse;
 
-    console.log(responseJson);
     setResponseData(JSON.stringify(responseJson));
   };
 
