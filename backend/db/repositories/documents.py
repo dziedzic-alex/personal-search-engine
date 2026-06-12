@@ -1,4 +1,4 @@
-from sqlalchemy import Row, text
+from sqlalchemy import Row, bindparam, text
 from sqlalchemy.orm import Session
 
 from shared.models.image_embedding import get_image_embedding_model
@@ -155,10 +155,10 @@ class DocumentRepository:
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
             """
-            ),
+            ).bindparams(bindparam("content_types", expanding=True)),
             {
                 "query_image_embedding": query_image_embedding,
-                "content_types": IMAGE_CONTENT_TYPE_VALUES,
+                "content_types": list(IMAGE_CONTENT_TYPE_VALUES),
             },
         )
 
@@ -200,10 +200,10 @@ class DocumentRepository:
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
             """
-            ),
+            ).bindparams(bindparam("content_types", expanding=True)),
             {
                 "query_text_embedding": query_text_embedding,
-                "content_types": IMAGE_CONTENT_TYPE_VALUES,
+                "content_types": list(IMAGE_CONTENT_TYPE_VALUES),
             },
         )
         most_relevant_text_embedding_per_document = text_embedding_search_result.all()
