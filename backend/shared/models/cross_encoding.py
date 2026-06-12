@@ -1,7 +1,5 @@
 from sentence_transformers import CrossEncoder
 
-# BAAI/bge-reranker-base
-# cross-encoder/ms-marco-MiniLM-L-6-v2
 MODEL_NAME = "BAAI/bge-reranker-base"
 model: CrossEncoder | None = None
 
