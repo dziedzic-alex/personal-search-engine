@@ -61,7 +61,7 @@ def upgrade() -> None:
         sa.Column("document_id", sa.Integer(), nullable=False),
         sa.Column("content", sa.Text(), nullable=True),
         sa.Column(
-            "text_embedding", pgvector.sqlalchemy.vector.VECTOR(dim=384), nullable=True
+            "text_embedding", pgvector.sqlalchemy.vector.VECTOR(dim=768), nullable=True
         ),
         sa.Column(
             "image_embedding", pgvector.sqlalchemy.vector.VECTOR(dim=512), nullable=True
