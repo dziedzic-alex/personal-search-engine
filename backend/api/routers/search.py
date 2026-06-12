@@ -3,7 +3,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from shared.search_mode import SearchMode
 
 from db.repositories.documents import DocumentRepository
 from db.session import get_session
