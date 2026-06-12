@@ -21,7 +21,7 @@ function Search() {
     setResponseData(null);
 
     const response: Response = await fetch(
-      `/api/search/?query=${query}&searchMode=${searchMode}`,
+      `/api/search/?query=${query}&search_mode=${searchMode}`,
       {
         method: "GET",
       },
