@@ -1,6 +1,6 @@
 from sentence_transformers import SentenceTransformer
 
-MODEL_NAME = "clip-ViT-B-32"
+MODEL_NAME = "clip-ViT-L-14"
 model: SentenceTransformer | None = None
 
 

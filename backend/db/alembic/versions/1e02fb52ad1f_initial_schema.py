@@ -64,7 +64,7 @@ def upgrade() -> None:
             "text_embedding", pgvector.sqlalchemy.vector.VECTOR(dim=768), nullable=True
         ),
         sa.Column(
-            "image_embedding", pgvector.sqlalchemy.vector.VECTOR(dim=512), nullable=True
+            "image_embedding", pgvector.sqlalchemy.vector.VECTOR(dim=768), nullable=True
         ),
         sa.Column(
             "created_time",
