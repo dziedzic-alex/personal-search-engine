@@ -100,7 +100,7 @@ class DocumentRepository:
         most_relevant_image_embedding_per_document = image_embedding_search_result.all()
 
 
-        cross_encoding_scores = get_cross_encoding_model().predict([[query, f"{text_document.name} - {text_document.content}"] for text_document in most_relevant_text_embedding_per_document])
+        cross_encoding_scores = get_cross_encoding_model().predict([[query, f"{text_document.name}\n{text_document.content}"] for text_document in most_relevant_text_embedding_per_document])
         most_relevant_text_embedding_per_document = zip(most_relevant_text_embedding_per_document, cross_encoding_scores)
         most_relevant_text_embedding_per_document = sorted(most_relevant_text_embedding_per_document, key=lambda x: x[1], reverse=True)
 
@@ -208,7 +208,7 @@ class DocumentRepository:
         )
         most_relevant_text_embedding_per_document = text_embedding_search_result.all()
 
-        cross_encoding_scores = get_cross_encoding_model().predict([[query, f"{text_document.name} - {text_document.content}"] for text_document in most_relevant_text_embedding_per_document])
+        cross_encoding_scores = get_cross_encoding_model().predict([[query, f"{text_document.name}\n{text_document.content}"] for text_document in most_relevant_text_embedding_per_document])
         most_relevant_text_embedding_per_document = zip(most_relevant_text_embedding_per_document, cross_encoding_scores)
         most_relevant_text_embedding_per_document = sorted(most_relevant_text_embedding_per_document, key=lambda x: x[1], reverse=True)
 
