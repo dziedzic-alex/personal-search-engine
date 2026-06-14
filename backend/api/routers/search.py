@@ -23,12 +23,12 @@ def search(query: str, search_mode: SearchMode, session: SessionDep):
         relevant_documents = DocumentRepository(session).get_relevant_image_documents(query)
 
     response = []
-    for document, ranking_score in relevant_documents:
+    for result in relevant_documents:
         response.append(
             {
-                "name": document.name,
-                "distance": document.average_distance,
-                "ranking_score": ranking_score,
+                "name": result.name,
+                "distance": result.average_distance,
+                "cross_encoding_score": result.cross_encoding_score,
             }
         )
 

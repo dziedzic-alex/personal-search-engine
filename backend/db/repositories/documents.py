@@ -1,4 +1,6 @@
-from sqlalchemy import Row, bindparam, text
+from typing import NamedTuple
+
+from sqlalchemy import bindparam, text
 from sqlalchemy.orm import Session
 
 from shared.models.image_embedding import get_image_embedding_model
@@ -6,11 +8,49 @@ from shared.models.text_embedding import get_text_embedding_model
 from shared.models.cross_encoding import get_cross_encoding_model
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES
 
+
+class SearchResult(NamedTuple):
+    name: str
+    content_url: str
+    thumbnail_url: str
+    average_distance: float
+    cross_encoding_score: float | None
+
+
 class DocumentRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_relevant_text_documents(self, query: str) -> list[Row]:
+    def _cross_encode_text_rows(self, query: str, text_rows) -> list[SearchResult]:
+        reranker_pairs = [
+            [query, f"{row.name}\n{content}"]
+            for row in text_rows
+            for content in row.contents
+        ]
+        reranker_scores = get_cross_encoding_model().predict(reranker_pairs)
+
+        ranked_results: list[SearchResult] = []
+        score_offset = 0
+        for row in text_rows:
+            chunk_count = len(row.contents)
+            chunk_ce_scores = reranker_scores[score_offset:score_offset + chunk_count]
+            average_cross_encoding_score = float(sum(chunk_ce_scores) / chunk_count)
+
+            ranked_results.append(
+                SearchResult(
+                    name=row.name,
+                    content_url=row.content_url,
+                    thumbnail_url=row.thumbnail_url,
+                    average_distance=float(row.average_distance),
+                    cross_encoding_score=average_cross_encoding_score,
+                )
+            )
+            score_offset += chunk_count
+
+        ranked_results.sort(key=lambda result: result.cross_encoding_score, reverse=True)
+        return ranked_results
+
+    def get_relevant_text_documents(self, query: str) -> list[SearchResult]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -57,7 +97,7 @@ class DocumentRepository:
                 "query_text_embedding": query_text_embedding,
             },
         )
-        most_relevant_text_documents = text_embedding_search_result.all()
+        text_rows = text_embedding_search_result.all()
 
         image_embedding_search_result = self.session.execute(
             text(
@@ -98,37 +138,26 @@ class DocumentRepository:
             },
         )
 
-        most_relevant_image_embedding_per_document = image_embedding_search_result.all()
+        image_retrieval_rows = image_embedding_search_result.all()
 
+        ranked_results = self._cross_encode_text_rows(query, text_rows)
+        seen_document_ids = {row.id for row in text_rows}
 
-        cross_encoding_pairs = [[query, f"{document.name}\n{content}"] for document in most_relevant_text_documents for content in document.contents]
-        cross_encoding_scores = get_cross_encoding_model().predict(cross_encoding_pairs)
+        for row in image_retrieval_rows:
+            if row.id not in seen_document_ids:
+                ranked_results.append(
+                    SearchResult(
+                        name=row.name,
+                        content_url=row.content_url,
+                        thumbnail_url=row.thumbnail_url,
+                        average_distance=float(row.average_distance),
+                        cross_encoding_score=None,
+                    )
+                )
 
-        seen_document_ids = set()
-        most_relevant_documents = []
-        offset = 0
-        for document in most_relevant_text_documents:
-            document_id, name, content_url, thumbnail_url, average_distance, contents = document
-            num_embeddings_for_document = len(contents)
-            seen_document_ids.add(document_id)
-           
-            cross_encoding_scores_for_document = cross_encoding_scores[offset:offset + num_embeddings_for_document]
-            average_cross_encoding_score = sum(cross_encoding_scores_for_document) / len(cross_encoding_scores_for_document)
+        return ranked_results
 
-            relevant_document = [document_id, name, content_url, thumbnail_url, average_distance, float(average_cross_encoding_score)]
-            most_relevant_documents.append(relevant_document)
-
-            offset += num_embeddings_for_document
-
-        most_relevant_documents = sorted(most_relevant_documents, key=lambda x: x[5], reverse=True)
-
-        for image_document in most_relevant_image_embedding_per_document:
-            if image_document.id not in seen_document_ids:
-                most_relevant_documents.append([image_document.id, image_document.name, image_document.content_url, image_document.thumbnail_url, float(image_document.average_distance), 'no cross encoding image'])
-
-        return most_relevant_documents
-
-    def get_relevant_image_documents(self, query: str) -> list[Row]:
+    def get_relevant_image_documents(self, query: str) -> list[SearchResult]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -173,7 +202,7 @@ class DocumentRepository:
             },
         )
 
-        most_relevant_image_embedding_per_document = image_embedding_search_result.all()
+        image_retrieval_rows = image_embedding_search_result.all()
 
         text_embedding_search_result = self.session.execute(
             text(
@@ -203,11 +232,12 @@ class DocumentRepository:
                 documents.content_url,
                 documents.thumbnail_url,
                 doc_scores.average_distance,
-                topk_per_document.content
+                array_agg(topk_per_document.content) as contents
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
-                    INNER JOIN topk_per_document ON documents.id = topk_per_document.document_id AND topk_per_document.rank = 1
+                    INNER JOIN topk_per_document ON documents.id = topk_per_document.document_id AND topk_per_document.rank <= 3
                 WHERE documents.content_type IN :content_types
+                GROUP BY documents.id, doc_scores.average_distance
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
             """
@@ -217,24 +247,24 @@ class DocumentRepository:
                 "content_types": list(IMAGE_CONTENT_TYPE_VALUES),
             },
         )
-        most_relevant_text_embedding_per_document = text_embedding_search_result.all()
+        text_rows = text_embedding_search_result.all()
 
-        cross_encoding_scores = get_cross_encoding_model().predict([[query, f"{text_document.name}\n{text_document.content}"] for text_document in most_relevant_text_embedding_per_document])
-        most_relevant_text_embedding_per_document = zip(most_relevant_text_embedding_per_document, cross_encoding_scores)
-        most_relevant_text_embedding_per_document = sorted(most_relevant_text_embedding_per_document, key=lambda x: x[1], reverse=True)
+        seen_document_ids = set()
+        ranked_results: list[SearchResult] = []
+        for row in image_retrieval_rows:
+            seen_document_ids.add(row.id)
+            ranked_results.append(
+                SearchResult(
+                    name=row.name,
+                    content_url=row.content_url,
+                    thumbnail_url=row.thumbnail_url,
+                    average_distance=float(row.average_distance),
+                    cross_encoding_score=None,
+                )
+            )
 
-        document_ids_in_list = set()
-        final_text_image_document_rankings = []
-        for image_document in most_relevant_image_embedding_per_document:
-            document_ids_in_list.add(image_document.id)
-            final_text_image_document_rankings.append([image_document, float(image_document.average_distance)])
+        text_only_rows = [row for row in text_rows if row.id not in seen_document_ids]
+        ranked_results.extend(self._cross_encode_text_rows(query, text_only_rows))
 
-        for text_document, cross_encoding_score in most_relevant_text_embedding_per_document:
-            if text_document.id not in document_ids_in_list:
-                document_ids_in_list.add(text_document.id)
-                final_text_image_document_rankings.append([text_document, float(cross_encoding_score)])
+        return ranked_results
 
-
-        return final_text_image_document_rankings
-
-        
