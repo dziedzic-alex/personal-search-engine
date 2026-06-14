@@ -9,6 +9,43 @@ from db.session import SessionLocal
 from workers.text_quality import PDF_TEXT_BLOCK_PROFILE, passes_text_quality_checks
 
 MIN_PAGE_TEXT_LENGTH = 200
+MIN_CHUNK_CHARS = 300
+MAX_CHUNK_CHARS = 1500
+MIN_INDEXABLE_CHARS = 50
+
+
+def merge_text_blocks_into_chunks(blocks: list[str]) -> list[str]:
+    chunks: list[str] = []
+    buffer = ""
+
+    for block in blocks:
+        block = block.strip()
+        if not block:
+            continue
+
+        buffer = f"{buffer} {block}".strip() if buffer else block
+
+        while len(buffer) >= MIN_CHUNK_CHARS:
+            if len(buffer) <= MAX_CHUNK_CHARS:
+                chunks.append(buffer)
+                buffer = ""
+                break
+
+            split_point = buffer.rfind(" ", MIN_CHUNK_CHARS, MAX_CHUNK_CHARS + 1)
+            if split_point == -1:
+                split_point = MAX_CHUNK_CHARS
+            chunks.append(buffer[:split_point].strip())
+            buffer = buffer[split_point:].strip()
+
+    if not buffer:
+        return chunks
+
+    if len(buffer) >= MIN_INDEXABLE_CHARS or not chunks:
+        chunks.append(buffer)
+    else:
+        chunks[-1] = f"{chunks[-1]} {buffer}".strip()
+
+    return chunks
 
 
 def is_text_block_usable(text_block: str) -> bool:

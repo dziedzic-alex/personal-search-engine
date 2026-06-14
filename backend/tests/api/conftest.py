@@ -45,7 +45,11 @@ def search_client(mocker):
         yield mock_session
 
     mocker.patch(
-        "api.routers.search.DocumentRepository.get_relevant_documents",
+        "api.routers.search.DocumentRepository.get_relevant_text_documents",
+        return_value=[],
+    )
+    mocker.patch(
+        "api.routers.search.DocumentRepository.get_relevant_image_documents",
         return_value=[],
     )
 

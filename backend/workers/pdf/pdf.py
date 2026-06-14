@@ -11,6 +11,7 @@ from workers.image.image import ImageIndexContext, index_image
 from workers.pdf.pdf_utils import (
     extract_pdf_metadata,
     is_text_block_usable,
+    merge_text_blocks_into_chunks,
     should_fallback_to_image,
 )
 from workers.text_quality import sanitize_text
@@ -30,14 +31,14 @@ def index_pdf(document_id: int, document: fitz.Document):
     chunks: list[str] = []
     processed_image_xrefs: set[int] = set()
     for page in document:
-        page_chunks: list[str] = []
+        page_blocks: list[str] = []
         for text_block in page.get_text_blocks():
             if not is_text_block_usable(text_block[4]):
                 continue
 
-            page_chunks.append(sanitize_text(text_block[4]))
+            page_blocks.append(sanitize_text(text_block[4]))
 
-        page_text = " ".join(page_chunks)
+        page_text = " ".join(page_blocks)
         images = page.get_images()
 
         page_image_indexed = False
@@ -71,7 +72,7 @@ def index_pdf(document_id: int, document: fitz.Document):
             index_image(document_id, image, context=ImageIndexContext.PDF_PAGE)
 
         if not should_fallback:
-            chunks.extend(page_chunks)
+            chunks.extend(merge_text_blocks_into_chunks(page_blocks))
 
     document.close()
 

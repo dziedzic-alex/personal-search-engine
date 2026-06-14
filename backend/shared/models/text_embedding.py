@@ -1,6 +1,6 @@
 from sentence_transformers import SentenceTransformer
 
-MODEL_NAME = "all-MiniLM-L6-v2"
+MODEL_NAME = "BAAI/bge-base-en-v1.5"
 model: SentenceTransformer | None = None
 
 

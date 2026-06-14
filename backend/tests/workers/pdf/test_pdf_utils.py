@@ -5,6 +5,7 @@ from sqlalchemy.dialects import postgresql
 from workers.pdf.pdf_utils import (
     extract_pdf_metadata,
     is_text_block_usable,
+    merge_text_blocks_into_chunks,
     should_fallback_to_image,
 )
 
@@ -45,6 +46,50 @@ def test_is_text_block_usable_rejects_whitespace_only():
 
 def test_is_text_block_usable_rejects_too_few_alphanumeric_characters():
     assert not is_text_block_usable("!!")
+
+
+def test_merge_text_blocks_combines_small_blocks_into_one_chunk():
+    blocks = ["Amount", "Federal tax", "Wages"] + ["extra word"] * 30
+    chunks = merge_text_blocks_into_chunks(blocks)
+
+    assert len(chunks) == 1
+    assert "Amount" in chunks[0]
+    assert "Federal tax" in chunks[0]
+    assert len(chunks[0]) >= 300
+
+
+def test_merge_text_blocks_skips_empty_and_whitespace_only_blocks():
+    blocks = ["", "   ", "\n\t", "Amount", "Federal tax"] + ["extra word"] * 30
+    chunks = merge_text_blocks_into_chunks(blocks)
+
+    assert len(chunks) == 1
+    assert chunks[0].startswith("Amount")
+    assert "Federal tax" in chunks[0]
+    assert len(chunks[0]) >= 300
+
+
+def test_merge_text_blocks_appends_short_remainder_to_previous_chunk():
+    blocks = ["A" * 320, "tail"]
+    chunks = merge_text_blocks_into_chunks(blocks)
+
+    assert len(chunks) == 1
+    assert chunks[0].endswith("tail")
+
+
+def test_merge_text_blocks_appends_tail_as_single_chunk():
+    blocks = ["A" * 250]
+    chunks = merge_text_blocks_into_chunks(blocks)
+
+    assert len(chunks) == 1
+    assert len(chunks[0]) == 250
+
+
+def test_merge_text_blocks_splits_oversized_text():
+    blocks = ["A" * 1600]
+    chunks = merge_text_blocks_into_chunks(blocks)
+
+    assert len(chunks) >= 2
+    assert all(len(chunk) <= 1500 for chunk in chunks)
 
 
 def test_should_fallback_to_image_when_page_text_is_short():
