@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from db.session import get_session
-from db.models import User
+from db.models.user import User
 from pydantic import EmailStr, Field
 from typing import Annotated
 from argon2 import PasswordHasher
