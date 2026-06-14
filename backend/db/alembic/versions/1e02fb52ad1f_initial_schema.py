@@ -25,16 +25,42 @@ def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
 
     op.create_table(
-        "documents",
+        "users",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("first_name", sa.String(length=255), nullable=False),
+        sa.Column("last_name", sa.String(length=255), nullable=False),
+        sa.Column("email", sa.String(length=255), nullable=False),
+        sa.Column("password", sa.String(length=255), nullable=False),
         sa.Column(
-            "status",
+            "plan",
             sa.Enum(
                 "pending", "processing", "completed", "failed", name="document_status"
             ),
             nullable=False,
             server_default=sa.text("'pending'"),
+        ),
+        sa.Column(
+            "created_time",
+            sa.DateTime(),
+            nullable=False,
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+        ),
+        sa.PrimaryKeyConstraint("id", name="pk_users"),
+        sa.UniqueConstraint("email", name="uq_users_email"),
+    )
+
+    op.create_table(
+        "documents",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum(
+                "free", "basic", "pro", "ultra", name="plan_type"
+            ),
+            nullable=False,
+            server_default=sa.text("'free'"),
         ),
         sa.Column("error", sa.Text(), nullable=True),
         sa.Column("content_url", sa.String(length=255), nullable=False),
@@ -54,6 +80,11 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.PrimaryKeyConstraint("id", name="pk_documents"),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["users.id"],
+            name="fk_documents_user_id_users",
+        ),
     )
     op.create_table(
         "document_embeddings",
