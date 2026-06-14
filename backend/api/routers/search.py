@@ -11,16 +11,22 @@ router = APIRouter(prefix="/search", tags=["search"])
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
+
 class SearchMode(enum.StrEnum):
     TEXT = "text"
     IMAGE = "image"
 
+
 @router.get("/")
 def search(query: str, search_mode: SearchMode, session: SessionDep):
     if search_mode == SearchMode.TEXT:
-        relevant_documents = DocumentRepository(session).get_relevant_text_documents(query)
+        relevant_documents = DocumentRepository(session).get_relevant_text_documents(
+            query
+        )
     elif search_mode == SearchMode.IMAGE:
-        relevant_documents = DocumentRepository(session).get_relevant_image_documents(query)
+        relevant_documents = DocumentRepository(session).get_relevant_image_documents(
+            query
+        )
 
     response = []
     for result in relevant_documents:

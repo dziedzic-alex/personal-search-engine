@@ -33,7 +33,7 @@ class DocumentRepository:
         score_offset = 0
         for row in text_rows:
             chunk_count = len(row.contents)
-            chunk_ce_scores = reranker_scores[score_offset:score_offset + chunk_count]
+            chunk_ce_scores = reranker_scores[score_offset : score_offset + chunk_count]
             average_cross_encoding_score = float(sum(chunk_ce_scores) / chunk_count)
 
             ranked_results.append(
@@ -47,7 +47,9 @@ class DocumentRepository:
             )
             score_offset += chunk_count
 
-        ranked_results.sort(key=lambda result: result.cross_encoding_score, reverse=True)
+        ranked_results.sort(
+            key=lambda result: result.cross_encoding_score, reverse=True
+        )
         return ranked_results
 
     def get_relevant_text_documents(self, query: str) -> list[SearchResult]:
@@ -57,7 +59,7 @@ class DocumentRepository:
 
         text_embedding_search_result = self.session.execute(
             text(
-            """
+                """
             WITH topk_per_document AS (
                 SELECT document_embeddings.document_id,
                 document_embeddings.content,
@@ -101,7 +103,7 @@ class DocumentRepository:
 
         image_embedding_search_result = self.session.execute(
             text(
-            """
+                """
             WITH topk_per_document AS (
                 SELECT document_embeddings.document_id,
                 document_embeddings.image_embedding <=> :query_image_embedding as distance,
@@ -164,7 +166,7 @@ class DocumentRepository:
 
         image_embedding_search_result = self.session.execute(
             text(
-            """
+                """
             WITH topk_per_document AS (
                 SELECT document_embeddings.document_id,
                 document_embeddings.image_embedding <=> :query_image_embedding as distance,
@@ -206,7 +208,7 @@ class DocumentRepository:
 
         text_embedding_search_result = self.session.execute(
             text(
-            """
+                """
             WITH topk_per_document AS (
                 SELECT document_embeddings.document_id,
                 document_embeddings.content,
@@ -267,4 +269,3 @@ class DocumentRepository:
         ranked_results.extend(self._cross_encode_text_rows(query, text_only_rows))
 
         return ranked_results
-

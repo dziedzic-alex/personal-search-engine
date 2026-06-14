@@ -9,7 +9,7 @@ from shared.redis_client import get_redis_client
 
 get_text_embedding_model()
 get_image_embedding_model()
-get_cross_encoding_model()  
+get_cross_encoding_model()
 get_redis_client()
 
 app = FastAPI()
