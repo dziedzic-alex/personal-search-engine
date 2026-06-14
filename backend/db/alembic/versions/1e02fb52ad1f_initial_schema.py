@@ -34,10 +34,10 @@ def upgrade() -> None:
         sa.Column(
             "plan",
             sa.Enum(
-                "pending", "processing", "completed", "failed", name="document_status"
+                "free", "basic", "pro", "ultra", name="plan_type"
             ),
             nullable=False,
-            server_default=sa.text("'pending'"),
+            server_default=sa.text("'free'"),
         ),
         sa.Column(
             "created_time",
@@ -57,10 +57,10 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "free", "basic", "pro", "ultra", name="plan_type"
+                "pending", "processing", "completed", "failed", name="document_status"
             ),
             nullable=False,
-            server_default=sa.text("'free'"),
+            server_default=sa.text("'pending'"),
         ),
         sa.Column("error", sa.Text(), nullable=True),
         sa.Column("content_url", sa.String(length=255), nullable=False),
