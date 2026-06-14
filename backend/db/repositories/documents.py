@@ -43,11 +43,12 @@ class DocumentRepository:
                 documents.content_url,
                 documents.thumbnail_url,
                 doc_scores.average_distance,
-                topk_per_document.content
+                array_agg(topk_per_document.content) as contents
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
-                    INNER JOIN topk_per_document ON documents.id = topk_per_document.document_id AND topk_per_document.rank = 1
+                    INNER JOIN topk_per_document ON documents.id = topk_per_document.document_id AND topk_per_document.rank <= 3
                 WHERE documents.content_type = 'pdf'
+                GROUP BY documents.id, doc_scores.average_distance
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
             """
@@ -56,7 +57,7 @@ class DocumentRepository:
                 "query_text_embedding": query_text_embedding,
             },
         )
-        most_relevant_text_embedding_per_document = text_embedding_search_result.all()
+        most_relevant_text_documents = text_embedding_search_result.all()
 
         image_embedding_search_result = self.session.execute(
             text(
@@ -100,22 +101,32 @@ class DocumentRepository:
         most_relevant_image_embedding_per_document = image_embedding_search_result.all()
 
 
-        cross_encoding_scores = get_cross_encoding_model().predict([[query, f"{text_document.name}\n{text_document.content}"] for text_document in most_relevant_text_embedding_per_document])
-        most_relevant_text_embedding_per_document = zip(most_relevant_text_embedding_per_document, cross_encoding_scores)
-        most_relevant_text_embedding_per_document = sorted(most_relevant_text_embedding_per_document, key=lambda x: x[1], reverse=True)
+        cross_encoding_pairs = [[query, f"{document.name}\n{content}"] for document in most_relevant_text_documents for content in document.contents]
+        cross_encoding_scores = get_cross_encoding_model().predict(cross_encoding_pairs)
 
-        document_ids_in_list = set()
-        final_text_image_document_rankings = []
-        for text_document, cross_encoding_score in most_relevant_text_embedding_per_document:
-            document_ids_in_list.add(text_document.id)
-            final_text_image_document_rankings.append([text_document, float(cross_encoding_score)])
+        seen_document_ids = set()
+        most_relevant_documents = []
+        offset = 0
+        for document in most_relevant_text_documents:
+            document_id, name, content_url, thumbnail_url, average_distance, contents = document
+            num_embeddings_for_document = len(contents)
+            seen_document_ids.add(document_id)
+           
+            cross_encoding_scores_for_document = cross_encoding_scores[offset:offset + num_embeddings_for_document]
+            average_cross_encoding_score = sum(cross_encoding_scores_for_document) / len(cross_encoding_scores_for_document)
+
+            relevant_document = [document_id, name, content_url, thumbnail_url, average_distance, float(average_cross_encoding_score)]
+            most_relevant_documents.append(relevant_document)
+
+            offset += num_embeddings_for_document
+
+        most_relevant_documents = sorted(most_relevant_documents, key=lambda x: x[5], reverse=True)
 
         for image_document in most_relevant_image_embedding_per_document:
-            if image_document.id not in document_ids_in_list:
-                document_ids_in_list.add(image_document.id)
-                final_text_image_document_rankings.append([image_document, float(image_document.average_distance)])
+            if image_document.id not in seen_document_ids:
+                most_relevant_documents.append([image_document.id, image_document.name, image_document.content_url, image_document.thumbnail_url, float(image_document.average_distance), 'no cross encoding image'])
 
-        return final_text_image_document_rankings
+        return most_relevant_documents
 
     def get_relevant_image_documents(self, query: str) -> list[Row]:
         query_prefix = "Represent this sentence for searching relevant passages: "
