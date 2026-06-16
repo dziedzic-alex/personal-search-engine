@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 import enum
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Environment(enum.StrEnum):

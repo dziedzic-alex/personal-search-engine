@@ -3,8 +3,8 @@ from typing import NamedTuple
 from sqlalchemy import bindparam, text
 from sqlalchemy.orm import Session
 
-from shared.content_type import ContentType, IMAGE_CONTENT_TYPE_VALUES
 from db.models.document import DocumentStatus
+from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model

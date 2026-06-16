@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy import select
 
+from api.routers.auth.auth_utils import get_current_user
 from api.routers.upload.upload_utils import (
     is_allowed_content_type,
     sanitize_content_type,
@@ -15,7 +16,6 @@ from db.models.user import User
 from db.session import SessionLocal
 from shared.content_type import ContentType
 from shared.redis_client import get_redis_client
-from api.routers.auth.auth_utils import get_current_user
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 

@@ -1,16 +1,17 @@
-from datetime import datetime, timedelta, timezone
-from shared.settings import settings, Environment
+import secrets
+from datetime import UTC, datetime, timedelta
+
 import jwt
 from fastapi import Depends, HTTPException
-from sqlalchemy.orm import Session
-from db.session import get_session
-from db.models.user import User
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-import secrets
-from shared.redis_client import get_redis_client
 from fastapi.responses import Response
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
+
 from api.schemas.camel_model import CamelModel
-from db.models.user import UserPlan
+from db.models.user import User, UserPlan
+from db.session import get_session
+from shared.redis_client import get_redis_client
+from shared.settings import Environment, settings
 
 security = HTTPBearer()
 
@@ -19,7 +20,7 @@ REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
 
 def create_access_token(user_id: int):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     payload = {
         "sub": str(user_id),

@@ -1,5 +1,6 @@
-from datetime import datetime
 import enum
+from datetime import datetime
+
 from sqlalchemy import DateTime, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column
 

@@ -4,10 +4,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from api.routers.auth.auth_utils import get_current_user
+from db.models import User
 from db.repositories.documents import DocumentRepository
 from db.session import get_session
-from db.models import User
-from api.routers.auth.auth_utils import get_current_user
 
 router = APIRouter(prefix="/search", tags=["search"])
 

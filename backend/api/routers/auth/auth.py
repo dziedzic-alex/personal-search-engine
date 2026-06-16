@@ -1,23 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from typing import Annotated
+
+from argon2 import PasswordHasher
+from fastapi import APIRouter, Cookie, Depends, HTTPException
+from fastapi.responses import Response
+from pydantic import EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from db.session import get_session
-from db.models.user import User
-from pydantic import EmailStr, Field
-from typing import Annotated
-from argon2 import PasswordHasher
-from api.schemas.camel_model import CamelModel
-from api.routers.auth.auth_utils import (
-    get_refresh_token_user_id,
-    clear_refresh_token,
-    issue_auth_response,
-    AuthResponse,
-    clear_refresh_token_cookie,
-)
-from fastapi import Cookie
-from fastapi.responses import Response
+from sqlalchemy.orm import Session
 
+from api.routers.auth.auth_utils import (
+    AuthResponse,
+    clear_refresh_token,
+    clear_refresh_token_cookie,
+    get_refresh_token_user_id,
+    issue_auth_response,
+)
+from api.schemas.camel_model import CamelModel
+from db.models.user import User
+from db.session import get_session
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 ph = PasswordHasher()
