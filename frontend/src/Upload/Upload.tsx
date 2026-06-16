@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiFetch } from "../ApiClient";
 
 import { ALLOWED_FILE_TYPES, isFileAllowed } from "./Upload.utils";
 
@@ -44,19 +45,24 @@ function Upload() {
       formData.append("files", file);
     });
 
-    const response: Response = await fetch("/api/upload/", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response: Response = await apiFetch("/api/upload/", {
+        method: "POST",
+        body: formData,
+      });
 
-    if (!response.ok) {
-      setError("Failed to process the files");
-      return;
+      if (!response.ok) {
+        throw new Error("Failed to process the files");
+      }
+
+      const responseJson: UploadResponse =
+        (await response.json()) as UploadResponse;
+      setResponseData(JSON.stringify(responseJson));
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to process the files",
+      );
     }
-
-    const responseJson: UploadResponse =
-      (await response.json()) as UploadResponse;
-    setResponseData(JSON.stringify(responseJson));
   };
 
   return (
