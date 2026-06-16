@@ -1,9 +1,14 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import enum
 
+class Environment(enum.StrEnum):
+    DEVELOPMENT = "development"
+    PRODUCTION = "production"
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
+    environment: Environment = Environment.DEVELOPMENT
     database_url: str
     redis_url: str
     jwt_secret: str
