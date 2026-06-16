@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import "./Signup.css";
+import { useAuth } from "./AuthContext";
 
 function Signup() {
+  const { user, signup } = useAuth();
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState<string>("");
@@ -15,38 +17,23 @@ function Signup() {
 
   const [error, setError] = useState<string | null>(null);
 
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response: Response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          password,
-        }),
-      });
-
-      if (response.status === 201) {
-        void navigate("/login", {
-          state: { message: "Signup successful! Please login to continue." },
-        });
-        return;
-      } else if (response.status === 409) {
-        setError("Email already in use");
-      } else {
-        setError(
-          "Failed to signup (You might be stupid, or the server is down)",
-        );
-      }
-    } catch {
-      setError("Failed to signup (You might be stupid, or the server is down)");
+      await signup(firstName, lastName, email, password);
+      void navigate("/", { replace: true });
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to signup (You might be stupid, or the server is down)",
+      );
     } finally {
       setIsSubmitting(false);
     }
