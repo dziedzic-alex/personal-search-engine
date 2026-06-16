@@ -7,4 +7,4 @@ interface User {
   plan: UserPlan;
 }
 
-export type { User };
+export type { User, UserPlan };
