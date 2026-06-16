@@ -1,4 +1,21 @@
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from api.routers import search
 from db.repositories.documents import SearchResult
+
+
+def test_search_requires_auth():
+    app = FastAPI()
+    app.include_router(search.router)
+
+    client = TestClient(app)
+    response = client.get(
+        "/search/",
+        params={"query": "test", "search_mode": "text"},
+    )
+
+    assert response.status_code == 401
 
 
 def test_text_search_returns_matching_documents(search_client, mocker):
@@ -18,7 +35,7 @@ def test_text_search_returns_matching_documents(search_client, mocker):
             cross_encoding_score=0.00026,
         ),
     ]
-    mocker.patch(
+    mock_get_text = mocker.patch(
         "api.routers.search.DocumentRepository.get_relevant_text_documents",
         return_value=mock_results,
     )
@@ -41,6 +58,7 @@ def test_text_search_returns_matching_documents(search_client, mocker):
             "cross_encoding_score": 0.00026,
         },
     ]
+    mock_get_text.assert_called_once_with("laid off", 1)
 
 
 def test_image_search_returns_matching_documents(search_client, mocker):
@@ -60,7 +78,7 @@ def test_image_search_returns_matching_documents(search_client, mocker):
             cross_encoding_score=0.0008,
         ),
     ]
-    mocker.patch(
+    mock_get_image = mocker.patch(
         "api.routers.search.DocumentRepository.get_relevant_image_documents",
         return_value=mock_results,
     )
@@ -83,6 +101,7 @@ def test_image_search_returns_matching_documents(search_client, mocker):
             "cross_encoding_score": 0.0008,
         },
     ]
+    mock_get_image.assert_called_once_with("person eating a burger", 1)
 
 
 def test_search_returns_empty_list_when_no_matches(search_client):
