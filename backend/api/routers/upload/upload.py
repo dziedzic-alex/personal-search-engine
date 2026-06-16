@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy import select
 
 from api.routers.upload.upload_utils import (
@@ -11,9 +11,11 @@ from api.routers.upload.upload_utils import (
     sanitize_content_type,
 )
 from db.models import Document
+from db.models.user import User
 from db.session import SessionLocal
 from shared.content_type import ContentType
 from shared.redis_client import get_redis_client
+from api.routers.auth.auth_utils import get_current_user
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
@@ -22,9 +24,10 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 UploadFiles = Annotated[list[UploadFile], File(...)]
 
+UserDep = Annotated[User, Depends(get_current_user)]
 
 @router.post("/")
-def upload_files(files: UploadFiles):
+def upload_files(files: UploadFiles, user: UserDep):
     files_being_processed: list[dict] = []
 
     redis_client = get_redis_client()
@@ -46,7 +49,7 @@ def upload_files(files: UploadFiles):
                 continue
 
             existing_document = session.scalars(
-                select(Document).where(Document.name == filename)
+                select(Document).where(Document.user_id == user.id).where(Document.name == filename)
             ).first()
 
             if existing_document is not None:
@@ -65,6 +68,7 @@ def upload_files(files: UploadFiles):
                 shutil.copyfileobj(file.file, f)
 
             document = Document(
+                user_id=user.id,
                 name=filename,
                 content_url=str(destination),
                 content_type=ContentType(sanitized_content_type).value,
