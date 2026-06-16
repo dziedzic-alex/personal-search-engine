@@ -53,10 +53,7 @@ describe("Login", () => {
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
 
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith(
-        "test@example.com",
-        "password123",
-      );
+      expect(mockLogin).toHaveBeenCalledWith("test@example.com", "password123");
     });
   });
 

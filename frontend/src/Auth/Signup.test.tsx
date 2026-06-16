@@ -5,14 +5,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Signup from "./Signup";
 import { mockUser } from "../test/authTestUtils";
 
-const mockSignup = vi.fn<
-  (
-    firstName: string,
-    lastName: string,
-    email: string,
-    password: string,
-  ) => Promise<void>
->();
+const mockSignup =
+  vi.fn<
+    (
+      firstName: string,
+      lastName: string,
+      email: string,
+      password: string,
+    ) => Promise<void>
+  >();
 const mockUseAuth = vi.fn();
 
 vi.mock("./AuthContext", () => ({
@@ -98,7 +99,9 @@ describe("Signup", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Signup" }));
 
-    expect(await screen.findByText("Passwords do not match")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Passwords do not match"),
+    ).toBeInTheDocument();
     expect(mockSignup).not.toHaveBeenCalled();
   });
 
