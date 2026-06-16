@@ -3,7 +3,8 @@ from typing import NamedTuple
 from sqlalchemy import bindparam, text
 from sqlalchemy.orm import Session
 
-from shared.content_type import IMAGE_CONTENT_TYPE_VALUES
+from shared.content_type import ContentType, IMAGE_CONTENT_TYPE_VALUES
+from shared.models import DocumentStatus
 from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
@@ -52,7 +53,7 @@ class DocumentRepository:
         )
         return ranked_results
 
-    def get_relevant_text_documents(self, query: str) -> list[SearchResult]:
+    def get_relevant_text_documents(self, query: str, user_id: int) -> list[SearchResult]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -89,7 +90,9 @@ class DocumentRepository:
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
                     INNER JOIN topk_per_document ON documents.id = topk_per_document.document_id AND topk_per_document.rank <= 3
-                WHERE documents.content_type = 'pdf'
+                WHERE documents.user_id = :user_id
+                AND documents.status = :completed_status
+                AND documents.content_type = :pdf_content_type
                 GROUP BY documents.id, doc_scores.average_distance
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
@@ -97,6 +100,9 @@ class DocumentRepository:
             ),
             {
                 "query_text_embedding": query_text_embedding,
+                "user_id": user_id,
+                "completed_status": DocumentStatus.COMPLETED.value,
+                "pdf_content_type": ContentType.PDF.value,
             },
         )
         text_rows = text_embedding_search_result.all()
@@ -130,13 +136,18 @@ class DocumentRepository:
                 doc_scores.average_distance
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
-                WHERE documents.content_type = 'pdf'
+                WHERE documents.user_id = :user_id
+                AND documents.status = :completed_status
+                AND documents.content_type = :pdf_content_type
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
             """
             ),
             {
                 "query_image_embedding": query_image_embedding,
+                "user_id": user_id,
+                "completed_status": DocumentStatus.COMPLETED.value,
+                "pdf_content_type": ContentType.PDF.value,
             },
         )
 
@@ -159,7 +170,7 @@ class DocumentRepository:
 
         return ranked_results
 
-    def get_relevant_image_documents(self, query: str) -> list[SearchResult]:
+    def get_relevant_image_documents(self, query: str, user_id: int) -> list[SearchResult]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -193,13 +204,17 @@ class DocumentRepository:
                 doc_scores.average_distance
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
-                WHERE documents.content_type IN :content_types
+                WHERE documents.user_id = :user_id
+                AND documents.status = :completed_status
+                AND documents.content_type IN :content_types
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
             """
             ).bindparams(bindparam("content_types", expanding=True)),
             {
                 "query_image_embedding": query_image_embedding,
+                "user_id": user_id,
+                "completed_status": DocumentStatus.COMPLETED.value,
                 "content_types": list(IMAGE_CONTENT_TYPE_VALUES),
             },
         )
@@ -238,7 +253,9 @@ class DocumentRepository:
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
                     INNER JOIN topk_per_document ON documents.id = topk_per_document.document_id AND topk_per_document.rank <= 3
-                WHERE documents.content_type IN :content_types
+                WHERE documents.user_id = :user_id
+                AND documents.status = :completed_status
+                AND documents.content_type IN :content_types
                 GROUP BY documents.id, doc_scores.average_distance
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
@@ -246,6 +263,8 @@ class DocumentRepository:
             ).bindparams(bindparam("content_types", expanding=True)),
             {
                 "query_text_embedding": query_text_embedding,
+                "user_id": user_id,
+                "completed_status": DocumentStatus.COMPLETED.value,
                 "content_types": list(IMAGE_CONTENT_TYPE_VALUES),
             },
         )
