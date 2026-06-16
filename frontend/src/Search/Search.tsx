@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiFetch } from "../ApiClient";
 
 import "./Search.css";
 
@@ -20,27 +21,31 @@ function Search() {
     setError(null);
     setResponseData(null);
 
-    const response: Response = await fetch(
-      `/api/search/?query=${query}&search_mode=${searchMode}`,
-      {
-        method: "GET",
-      },
-    );
+    try {
+      const response: Response = await apiFetch(
+        `/api/search/?query=${query}&search_mode=${searchMode}`,
+        {
+          method: "GET",
+        },
+      );
 
-    if (!response.ok) {
-      setError("Failed to search");
-      return;
+      if (!response.ok) {
+        throw new Error("Failed to search");
+      }
+
+      const responseJson: SearchResponse =
+        (await response.json()) as SearchResponse;
+
+      setResponseData(JSON.stringify(responseJson));
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to search");
     }
-
-    const responseJson: SearchResponse =
-      (await response.json()) as SearchResponse;
-
-    setResponseData(JSON.stringify(responseJson));
   };
 
   return (
     <div className="search">
       <textarea
+        name="search-query-input"
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -53,6 +58,7 @@ function Search() {
         }}
       />
       <select
+        name="search-mode-select"
         value={searchMode}
         onChange={(e) => {
           setSearchMode(e.target.value as SearchMode);
