@@ -55,6 +55,7 @@ function Login() {
         }}
       >
         <input
+          name="email"
           type="email"
           required
           autoComplete="email"
@@ -65,6 +66,7 @@ function Login() {
           }}
         />
         <input
+          name="password"
           type="password"
           required
           autoComplete="current-password"

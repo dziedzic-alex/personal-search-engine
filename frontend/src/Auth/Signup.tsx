@@ -90,6 +90,7 @@ function Signup() {
         }}
       >
         <input
+          name="first-name"
           type="text"
           required
           autoComplete="given-name"
@@ -100,6 +101,7 @@ function Signup() {
           }}
         />
         <input
+          name="last-name"
           type="text"
           required
           autoComplete="family-name"
@@ -110,6 +112,7 @@ function Signup() {
           }}
         />
         <input
+          name="email"
           type="email"
           required
           autoComplete="email"
@@ -120,6 +123,7 @@ function Signup() {
           }}
         />
         <input
+          name="password"
           type="password"
           required
           autoComplete="new-password"
@@ -131,6 +135,7 @@ function Signup() {
           }}
         />
         <input
+          name="confirm-password"
           type="password"
           required
           autoComplete="new-password"
