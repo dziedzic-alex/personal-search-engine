@@ -1,16 +1,10 @@
 import { useState } from "react";
 import "./Login.css";
 import { useAuth } from "./AuthContext.tsx";
-import { Link, Navigate, useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 function Login() {
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const signUpSuccessMessage = (
-    location.state as { message: string } | undefined
-  )?.message;
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -20,7 +14,7 @@ function Login() {
   const { user, login } = useAuth();
 
   if (user) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
   const handleLogin = async () => {
@@ -29,7 +23,7 @@ function Login() {
 
     try {
       await login(email, password);
-      void navigate("/");
+      void navigate("/", { replace: true });
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -45,7 +39,6 @@ function Login() {
 
   return (
     <div className="login">
-      {signUpSuccessMessage && <p>{signUpSuccessMessage}</p>}
       <h1>Login</h1>
       <form
         onSubmit={(e) => {
