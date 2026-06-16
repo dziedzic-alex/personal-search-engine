@@ -15,8 +15,8 @@ def auth_client(mocker):
 
     redis_store: dict[str, str] = {}
     mock_redis = mocker.MagicMock()
-    mock_redis.set.side_effect = (
-        lambda key, value, ex=None: redis_store.__setitem__(key, str(value))
+    mock_redis.set.side_effect = lambda key, value, ex=None: redis_store.__setitem__(
+        key, str(value)
     )
     mock_redis.get.side_effect = lambda key: redis_store.get(key)
     mock_redis.delete.side_effect = lambda key: redis_store.pop(key, None)

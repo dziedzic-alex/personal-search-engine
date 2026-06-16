@@ -15,6 +15,7 @@ def test_signup_success(auth_client, mocker):
     mock_scalars = mocker.MagicMock()
     mock_scalars.first.return_value = None
     mock_session.scalars.return_value = mock_scalars
+
     def assign_user_fields(user):
         user.id = 1
         if user.plan is None:
@@ -163,7 +164,9 @@ def test_refresh_user_not_found(auth_client, mocker):
     response = client.post("/auth/refresh")
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "User associated with the refresh token not found"
+    assert (
+        response.json()["detail"] == "User associated with the refresh token not found"
+    )
 
 
 def test_logout_revokes_refresh_token(auth_client, mocker):

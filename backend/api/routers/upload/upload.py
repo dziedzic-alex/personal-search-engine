@@ -26,6 +26,7 @@ UploadFiles = Annotated[list[UploadFile], File(...)]
 
 UserDep = Annotated[User, Depends(get_current_user)]
 
+
 @router.post("/")
 def upload_files(files: UploadFiles, user: UserDep):
     files_being_processed: list[dict] = []
@@ -49,7 +50,9 @@ def upload_files(files: UploadFiles, user: UserDep):
                 continue
 
             existing_document = session.scalars(
-                select(Document).where(Document.user_id == user.id).where(Document.name == filename)
+                select(Document)
+                .where(Document.user_id == user.id)
+                .where(Document.name == filename)
             ).first()
 
             if existing_document is not None:

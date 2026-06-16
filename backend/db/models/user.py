@@ -5,11 +5,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base
 
+
 class UserPlan(enum.StrEnum):
     FREE = "free"
     BASIC = "basic"
     PRO = "pro"
     ULTRA = "ultra"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -29,4 +31,6 @@ class User(Base):
         ),
         insert_default=UserPlan.FREE,
     )
-    created_time: Mapped[datetime] = mapped_column(DateTime, insert_default=datetime.now)
+    created_time: Mapped[datetime] = mapped_column(
+        DateTime, insert_default=datetime.now
+    )

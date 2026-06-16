@@ -8,7 +8,13 @@ from pydantic import EmailStr, Field
 from typing import Annotated
 from argon2 import PasswordHasher
 from api.schemas.camel_model import CamelModel
-from api.routers.auth.auth_utils import get_refresh_token_user_id, clear_refresh_token, issue_auth_response, AuthResponse, clear_refresh_token_cookie
+from api.routers.auth.auth_utils import (
+    get_refresh_token_user_id,
+    clear_refresh_token,
+    issue_auth_response,
+    AuthResponse,
+    clear_refresh_token_cookie,
+)
 from fastapi import Cookie
 from fastapi.responses import Response
 
@@ -18,16 +24,22 @@ ph = PasswordHasher()
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
+
 class SignupRequest(CamelModel):
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
     email: EmailStr
     password: str = Field(min_length=8)
 
+
 @router.post("/signup", status_code=201)
-def signup(request: SignupRequest, response: Response, session: SessionDep) -> AuthResponse:
+def signup(
+    request: SignupRequest, response: Response, session: SessionDep
+) -> AuthResponse:
     sanitized_email = request.email.strip().lower()
-    existing_user = session.scalars(select(User).where(User.email == sanitized_email)).first()
+    existing_user = session.scalars(
+        select(User).where(User.email == sanitized_email)
+    ).first()
     if existing_user is not None:
         raise HTTPException(status_code=409, detail="User already exists")
 
@@ -53,8 +65,11 @@ class LoginRequest(CamelModel):
     email: EmailStr
     password: str
 
+
 @router.post("/login", status_code=200)
-def login(request: LoginRequest, response: Response, session: SessionDep) -> AuthResponse:
+def login(
+    request: LoginRequest, response: Response, session: SessionDep
+) -> AuthResponse:
     sanitized_email = request.email.strip().lower()
 
     user = session.scalars(select(User).where(User.email == sanitized_email)).first()
@@ -68,8 +83,13 @@ def login(request: LoginRequest, response: Response, session: SessionDep) -> Aut
 
     return issue_auth_response(user, response)
 
+
 @router.post("/refresh")
-def refresh(response: Response, session: SessionDep, refresh_token: str | None = Cookie(default=None, alias="refresh_token")) -> AuthResponse:
+def refresh(
+    response: Response,
+    session: SessionDep,
+    refresh_token: str | None = Cookie(default=None, alias="refresh_token"),
+) -> AuthResponse:
     if refresh_token is None:
         raise HTTPException(status_code=401, detail="No refresh token provided")
 
@@ -82,26 +102,21 @@ def refresh(response: Response, session: SessionDep, refresh_token: str | None =
     user = session.get(User, refresh_token_user_id)
     if user is None:
         clear_refresh_token_cookie(response)
-        raise HTTPException(status_code=401, detail="User associated with the refresh token not found")
+        raise HTTPException(
+            status_code=401, detail="User associated with the refresh token not found"
+        )
 
     return issue_auth_response(user, response)
 
+
 @router.post("/logout")
-def logout(response: Response, refresh_token: str | None = Cookie(default=None, alias="refresh_token")):
+def logout(
+    response: Response,
+    refresh_token: str | None = Cookie(default=None, alias="refresh_token"),
+):
     if refresh_token is None:
         return
 
     clear_refresh_token(refresh_token)
 
     clear_refresh_token_cookie(response)
-
-
-
-
-    
-
-
-
-
-
-    

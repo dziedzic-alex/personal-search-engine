@@ -17,36 +17,46 @@ security = HTTPBearer()
 REDIS_REFRESH_TOKEN_KEY_PREFIX = "refresh:"
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
+
 def create_access_token(user_id: int):
     now = datetime.now(timezone.utc)
 
     payload = {
         "sub": str(user_id),
         "iat": now,
-        "exp": now + timedelta(minutes=settings.access_token_expires_in_minutes)
+        "exp": now + timedelta(minutes=settings.access_token_expires_in_minutes),
     }
 
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
+
 def create_refresh_token() -> str:
     return secrets.token_urlsafe(32)
 
+
 def persist_refresh_token(refresh_token: str, user_id: int):
     redis_client = get_redis_client()
-    redis_client.set(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}", user_id, ex=settings.refresh_token_expires_in_days * 24 * 60 * 60)
+    redis_client.set(
+        f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}",
+        user_id,
+        ex=settings.refresh_token_expires_in_days * 24 * 60 * 60,
+    )
+
 
 def clear_refresh_token(refresh_token: str):
     redis_client = get_redis_client()
     redis_client.delete(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}")
 
+
 def get_refresh_token_user_id(refresh_token: str) -> int | None:
     redis_client = get_redis_client()
-    user_id =redis_client.get(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}")
+    user_id = redis_client.get(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}")
 
     if user_id is None:
         return None
-    
+
     return int(user_id)
+
 
 def set_refresh_token_cookie(response: Response, refresh_token: str):
     response.set_cookie(
@@ -61,8 +71,10 @@ def set_refresh_token_cookie(response: Response, refresh_token: str):
 
     return response
 
+
 def clear_refresh_token_cookie(response: Response):
     response.delete_cookie(key=REFRESH_TOKEN_COOKIE_NAME, path="/")
+
 
 class AuthResponse(CamelModel):
     id: int
@@ -70,6 +82,7 @@ class AuthResponse(CamelModel):
     email: str
     plan: UserPlan
     access_token: str
+
 
 def issue_auth_response(user: User, response: Response) -> AuthResponse:
     refresh_token = create_refresh_token()
@@ -85,14 +98,22 @@ def issue_auth_response(user: User, response: Response) -> AuthResponse:
         access_token=create_access_token(user.id),
     )
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), session: Session = Depends(get_session)) -> User:
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    session: Session = Depends(get_session),
+) -> User:
     try:
-        payload = jwt.decode(credentials.credentials, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.jwt_secret,
+            algorithms=[settings.jwt_algorithm],
+        )
 
         user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
+
         user_id = int(user_id)
         user = session.get(User, user_id)
         if user is None:
@@ -103,4 +124,3 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
-

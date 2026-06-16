@@ -33,9 +33,7 @@ def upgrade() -> None:
         sa.Column("password", sa.String(length=255), nullable=False),
         sa.Column(
             "plan",
-            sa.Enum(
-                "free", "basic", "pro", "ultra", name="plan_type"
-            ),
+            sa.Enum("free", "basic", "pro", "ultra", name="plan_type"),
             nullable=False,
             server_default=sa.text("'free'"),
         ),
