@@ -41,6 +41,7 @@ pydantic-extra-types==2.11.1
 pydantic-settings==2.14.1
 pydantic_core==2.46.4
 Pygments==2.20.0
+pyJWT==2.13.0
 PyMuPDF==1.27.2.3
 pytesseract==0.3.13
 python-dotenv==1.2.2
