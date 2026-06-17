@@ -1,12 +1,9 @@
-from typing import Annotated
-
 from argon2 import PasswordHasher
-from fastapi import APIRouter, Cookie, Depends, HTTPException
+from fastapi import APIRouter, Cookie, HTTPException
 from fastapi.responses import Response
 from pydantic import EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 from api.routers.auth.auth_utils import (
     AuthResponse,
@@ -15,14 +12,12 @@ from api.routers.auth.auth_utils import (
     get_refresh_token_user_id,
     issue_auth_response,
 )
+from api.dependencies import SessionDep
 from api.schemas.camel_model import CamelModel
 from db.models.user import User
-from db.session import get_session
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 ph = PasswordHasher()
-
-SessionDep = Annotated[Session, Depends(get_session)]
 
 
 class SignupRequest(CamelModel):
@@ -58,7 +53,7 @@ def signup(
         return issue_auth_response(user, response)
     except IntegrityError:
         session.rollback()
-        raise HTTPException(status_code=409, detail="User already exists")
+        raise HTTPException(status_code=409, detail="User already exists") from None
 
 
 class LoginRequest(CamelModel):
@@ -79,7 +74,7 @@ def login(
     try:
         ph.verify(user.password, request.password)
     except Exception:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid credentials") from None
 
     return issue_auth_response(user, response)
 

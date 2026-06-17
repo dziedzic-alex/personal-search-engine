@@ -1,18 +1,11 @@
 import enum
-from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
-from api.routers.auth.auth_utils import get_current_user
-from db.models import User
+from api.dependencies import SessionDep, UserDep
 from db.repositories.documents import DocumentRepository
-from db.session import get_session
 
 router = APIRouter(prefix="/search", tags=["search"])
-
-SessionDep = Annotated[Session, Depends(get_session)]
-UserDep = Annotated[User, Depends(get_current_user)]
 
 
 class SearchMode(enum.StrEnum):

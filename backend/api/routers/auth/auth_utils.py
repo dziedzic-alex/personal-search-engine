@@ -1,19 +1,17 @@
 import secrets
+from typing import Annotated
 from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import Depends, HTTPException
 from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.orm import Session
 
+from api.dependencies.db import SessionDep
 from api.schemas.camel_model import CamelModel
 from db.models.user import User, UserPlan
-from db.session import get_session
 from shared.redis_client import get_redis_client
 from shared.settings import Environment, settings
-
-security = HTTPBearer()
 
 REDIS_REFRESH_TOKEN_KEY_PREFIX = "refresh:"
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
@@ -100,9 +98,13 @@ def issue_auth_response(user: User, response: Response) -> AuthResponse:
     )
 
 
+security = HTTPBearer()
+SecurityDep = Annotated[HTTPAuthorizationCredentials, Depends(security)]
+
+
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    session: Session = Depends(get_session),
+    credentials: SecurityDep,
+    session: SessionDep,
 ) -> User:
     try:
         payload = jwt.decode(
@@ -122,6 +124,6 @@ def get_current_user(
 
         return user
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
+        raise HTTPException(status_code=401, detail="Token has expired") from None
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid token") from None
