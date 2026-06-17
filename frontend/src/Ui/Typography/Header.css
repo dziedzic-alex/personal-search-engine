@@ -1,0 +1,19 @@
+.header-level-1,
+.header-level-2,
+.header-level-3 {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.header-level-1 {
+  font-size: 1.75rem;
+}
+
+.header-level-2 {
+  font-size: 1.375rem;
+}
+
+.header-level-3 {
+  font-size: 1.125rem;
+}
