@@ -53,16 +53,16 @@ def upload_client(mocker, tmp_path, mock_user):
     mock_scalars = mocker.MagicMock()
     mock_scalars.first.return_value = None
     mock_session.scalars.return_value = mock_scalars
-    mock_session.__enter__ = mocker.Mock(return_value=mock_session)
-    mock_session.__exit__ = mocker.Mock(return_value=False)
 
-    mocker.patch("api.routers.upload.upload.SessionLocal", return_value=mock_session)
+    def override_get_session():
+        yield mock_session
 
     mock_redis = mocker.MagicMock()
     mocker.patch("api.routers.upload.upload.get_redis_client", return_value=mock_redis)
 
     app = FastAPI()
     app.include_router(upload_router)
+    app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_current_user] = lambda: mock_user
 
     return TestClient(app), mock_session, mock_redis

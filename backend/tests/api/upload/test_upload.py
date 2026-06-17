@@ -8,7 +8,6 @@ from api.routers.upload.upload import router as upload_router
 
 def test_upload_requires_auth(mocker, tmp_path):
     mocker.patch("api.routers.upload.upload.UPLOAD_DIR", tmp_path)
-    mocker.patch("api.routers.upload.upload.SessionLocal")
     mocker.patch("api.routers.upload.upload.get_redis_client")
 
     app = FastAPI()
