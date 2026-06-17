@@ -1,3 +1,13 @@
+.navbar-brand {
+  display: flex;
+  gap: 10px;
+}
+
+.navbar-logo {
+  width: 28px;
+  height: 28px;
+}
+
 .navbar {
   position: fixed;
   top: 0;
