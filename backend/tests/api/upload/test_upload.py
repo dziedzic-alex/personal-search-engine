@@ -41,7 +41,7 @@ def test_upload_returns_files_being_processed(upload_client):
     )
 
 
-def test_upload_saves_file_to_upload_dir(upload_client, tmp_path):
+def test_upload_saves_file_to_upload_dir(upload_client, tmp_path, mock_user):
     client, _, _ = upload_client
 
     client.post(
@@ -49,10 +49,10 @@ def test_upload_saves_file_to_upload_dir(upload_client, tmp_path):
         files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
     )
 
-    assert (tmp_path / "test.pdf").read_bytes() == b"pdf content"
+    assert (tmp_path / str(mock_user.id) / "test.pdf").read_bytes() == b"pdf content"
 
 
-def test_upload_processes_only_supported_files_in_batch(upload_client, tmp_path):
+def test_upload_processes_only_supported_files_in_batch(upload_client, tmp_path, mock_user):
     client, mock_session, mock_redis = upload_client
 
     response = client.post(
@@ -79,8 +79,8 @@ def test_upload_processes_only_supported_files_in_batch(upload_client, tmp_path)
     mock_redis.lpush.assert_called_once_with(
         "jobs:upload", json.dumps({"document_id": 1})
     )
-    assert (tmp_path / "doc.pdf").read_bytes() == b"pdf content"
-    assert not (tmp_path / "notes.txt").exists()
+    assert (tmp_path / str(mock_user.id) / "doc.pdf").read_bytes() == b"pdf content"
+    assert not (tmp_path / str(mock_user.id) / "notes.txt").exists()
 
 
 def test_upload_skips_duplicate_filename(upload_client, mocker):
