@@ -29,7 +29,8 @@
 }
 
 .navbar-logo {
-  width: 28px;
-  height: 28px;
+  display: block;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
 }
