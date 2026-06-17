@@ -7,7 +7,6 @@ import { AuthContext } from "./AuthContext";
 
 import type { User, UserPlan } from "./User";
 
-
 interface AuthResponse {
   id: number;
   firstName: string;

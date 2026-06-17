@@ -45,9 +45,7 @@ export function renderProtectedRoute(
   }>,
 ) {
   return render(
-    <AuthContext
-      value={createMockAuthContext(auth)}
-    >
+    <AuthContext value={createMockAuthContext(auth)}>
       <MemoryRouter initialEntries={["/"]}>
         <Routes>
           <Route element={<ProtectedRoute />}>
