@@ -1,5 +1,26 @@
 import json
 
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from api.routers.upload.upload import router as upload_router
+
+
+def test_upload_requires_auth(mocker, tmp_path):
+    mocker.patch("api.routers.upload.upload.UPLOAD_DIR", tmp_path)
+    mocker.patch("api.routers.upload.upload.get_redis_client")
+
+    app = FastAPI()
+    app.include_router(upload_router)
+    client = TestClient(app)
+
+    response = client.post(
+        "/upload/",
+        files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
+    )
+
+    assert response.status_code == 401
+
 
 def test_upload_returns_files_being_processed(upload_client):
     client, mock_session, mock_redis = upload_client

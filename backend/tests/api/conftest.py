@@ -1,14 +1,44 @@
 import pytest
+from argon2 import PasswordHasher
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.routers import search
+from api.routers.auth.auth_utils import get_current_user
 from api.routers.upload.upload import router as upload_router
+from db.models.user import User, UserPlan
 from db.session import get_session
+
+ph = PasswordHasher()
 
 
 @pytest.fixture
-def upload_client(mocker, tmp_path):
+def mock_user() -> User:
+    return User(
+        id=1,
+        first_name="Test",
+        last_name="User",
+        email="test@example.com",
+        password="hashed",
+        plan=UserPlan.FREE,
+    )
+
+
+def make_user(**kwargs) -> User:
+    defaults = {
+        "id": 1,
+        "first_name": "Test",
+        "last_name": "User",
+        "email": "test@example.com",
+        "password": ph.hash("password123"),
+        "plan": UserPlan.FREE,
+    }
+    defaults.update(kwargs)
+    return User(**defaults)
+
+
+@pytest.fixture
+def upload_client(mocker, tmp_path, mock_user):
     mocker.patch("api.routers.upload.upload.UPLOAD_DIR", tmp_path)
 
     mock_session = mocker.MagicMock()
@@ -23,22 +53,23 @@ def upload_client(mocker, tmp_path):
     mock_scalars = mocker.MagicMock()
     mock_scalars.first.return_value = None
     mock_session.scalars.return_value = mock_scalars
-    mock_session.__enter__ = mocker.Mock(return_value=mock_session)
-    mock_session.__exit__ = mocker.Mock(return_value=False)
 
-    mocker.patch("api.routers.upload.upload.SessionLocal", return_value=mock_session)
+    def override_get_session():
+        yield mock_session
 
     mock_redis = mocker.MagicMock()
     mocker.patch("api.routers.upload.upload.get_redis_client", return_value=mock_redis)
 
     app = FastAPI()
     app.include_router(upload_router)
+    app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_current_user] = lambda: mock_user
 
     return TestClient(app), mock_session, mock_redis
 
 
 @pytest.fixture
-def search_client(mocker):
+def search_client(mocker, mock_user):
     mock_session = mocker.MagicMock()
 
     def override_get_session():
@@ -56,5 +87,6 @@ def search_client(mocker):
     app = FastAPI()
     app.include_router(search.router)
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_current_user] = lambda: mock_user
 
     return TestClient(app)

@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, Integer, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -22,6 +22,7 @@ class Document(Base):
     __tablename__ = "documents"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     name: Mapped[str] = mapped_column(String(255))
     status: Mapped[DocumentStatus] = mapped_column(
         Enum(
@@ -37,7 +38,7 @@ class Document(Base):
     content_url: Mapped[str] = mapped_column(String(255))
     thumbnail_url: Mapped[str] = mapped_column(String(255), insert_default="")
     content_type: Mapped[str] = mapped_column(String(255))
-    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer)
     source_created_time: Mapped[datetime | None] = mapped_column(DateTime)
     created_time: Mapped[datetime] = mapped_column(
         DateTime, insert_default=datetime.now

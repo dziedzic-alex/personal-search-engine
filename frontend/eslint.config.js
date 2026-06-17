@@ -13,6 +13,36 @@ export default defineConfig([
   globalIgnores(["dist"]),
   {
     files: ["**/*.{ts,tsx}"],
+    settings: {
+      "import-x/resolver": {
+        typescript: {
+          project: ["./tsconfig.node.json", "./tsconfig.app.json"],
+        },
+      },
+    },
+    rules: {
+      "import-x/order": [
+        "error",
+        {
+          groups: [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "index",
+            "type",
+          ],
+          "newlines-between": "always",
+          alphabetize: {
+            order: "asc",
+            caseInsensitive: true,
+          },
+        },
+      ],
+      "import-x/first": "error",
+      "import-x/newline-after-import": "error",
+    },
     extends: [
       js.configs.recommended,
       tseslint.configs.strictTypeChecked,

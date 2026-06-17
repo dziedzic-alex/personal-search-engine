@@ -1,15 +1,11 @@
 import enum
-from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
+from api.dependencies import SessionDep, UserDep
 from db.repositories.documents import DocumentRepository
-from db.session import get_session
 
 router = APIRouter(prefix="/search", tags=["search"])
-
-SessionDep = Annotated[Session, Depends(get_session)]
 
 
 class SearchMode(enum.StrEnum):
@@ -18,14 +14,14 @@ class SearchMode(enum.StrEnum):
 
 
 @router.get("/")
-def search(query: str, search_mode: SearchMode, session: SessionDep):
+def search(query: str, search_mode: SearchMode, session: SessionDep, user: UserDep):
     if search_mode == SearchMode.TEXT:
         relevant_documents = DocumentRepository(session).get_relevant_text_documents(
-            query
+            query, user.id
         )
     elif search_mode == SearchMode.IMAGE:
         relevant_documents = DocumentRepository(session).get_relevant_image_documents(
-            query
+            query, user.id
         )
 
     response = []
