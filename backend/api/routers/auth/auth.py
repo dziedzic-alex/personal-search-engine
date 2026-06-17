@@ -5,6 +5,7 @@ from pydantic import EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from api.dependencies import SessionDep
 from api.routers.auth.auth_utils import (
     AuthResponse,
     clear_refresh_token,
@@ -12,7 +13,6 @@ from api.routers.auth.auth_utils import (
     get_refresh_token_user_id,
     issue_auth_response,
 )
-from api.dependencies import SessionDep
 from api.schemas.camel_model import CamelModel
 from db.models.user import User
 
