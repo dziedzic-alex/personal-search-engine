@@ -1,8 +1,11 @@
 import { useState } from "react";
 
 import { useAuth } from "../Auth/AuthContext";
-
-import "./Home.css";
+import Button from "../Ui/Button";
+import Card from "../Ui/Card";
+import Page from "../Ui/Layout/Page";
+import Body from "../Ui/Typography/Body";
+import Header from "../Ui/Typography/Header";
 
 function Home() {
   const { logout } = useAuth();
@@ -16,25 +19,25 @@ function Home() {
   };
 
   return (
-    <div className="home">
-      <h1 className="home-title">Home</h1>
-      <p className="home-description">
+    <Page>
+      <Header>Home</Header>
+      <Body variant="muted">
         Search across your personal documents and photos.
-      </p>
-      <div className="home-card">
-        <p className="home-card-text">
+      </Body>
+      <Card>
+        <Body variant="muted">
           Upload files to index them, then search by natural language from the
           Search page.
-        </p>
-        <button
-          className="home-logout-button"
+        </Body>
+        <Button
           onClick={() => void handleLogout()}
-          disabled={isLoggingOut}
+          isLoading={isLoggingOut}
+          loadingText="Logging out..."
         >
-          {isLoggingOut ? "Logging out..." : "Log out"}
-        </button>
-      </div>
-    </div>
+          Log out
+        </Button>
+      </Card>
+    </Page>
   );
 }
 
