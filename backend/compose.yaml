@@ -28,7 +28,6 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
-      JWT_SECRET: test-jwt-secret-that-is-long-enough
     volumes:
       - .:/backend
     depends_on:
@@ -43,7 +42,6 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
-      JWT_SECRET: test-jwt-secret-that-is-long-enough
     volumes:
       - .:/backend
       - uploads:/backend/uploads
@@ -59,7 +57,6 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
-      JWT_SECRET: test-jwt-secret-that-is-long-enough
     volumes:
       - .:/backend
       - uploads:/backend/uploads
