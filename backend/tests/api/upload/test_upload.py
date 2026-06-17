@@ -52,7 +52,9 @@ def test_upload_saves_file_to_upload_dir(upload_client, tmp_path, mock_user):
     assert (tmp_path / str(mock_user.id) / "test.pdf").read_bytes() == b"pdf content"
 
 
-def test_upload_processes_only_supported_files_in_batch(upload_client, tmp_path, mock_user):
+def test_upload_processes_only_supported_files_in_batch(
+    upload_client, tmp_path, mock_user
+):
     client, mock_session, mock_redis = upload_client
 
     response = client.post(
