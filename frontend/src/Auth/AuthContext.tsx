@@ -1,7 +1,8 @@
 import { createContext, use } from "react";
+
 import type { User } from "./User";
 
-interface AuthContextValue {
+export interface AuthContextValue {
   user: User | null;
   getAccessToken: () => string | null;
   refreshAccessToken: () => Promise<void>;

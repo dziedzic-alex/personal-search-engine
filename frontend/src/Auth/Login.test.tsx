@@ -2,14 +2,17 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createMockAuthContext, mockUser } from "../test/authTestUtils";
+
 import Login from "./Login";
-import { mockUser } from "../test/authTestUtils";
+
+import type { AuthContextValue } from "./AuthContext";
 
 const mockLogin = vi.fn<(email: string, password: string) => Promise<void>>();
-const mockUseAuth = vi.fn();
+const mockUseAuth = vi.fn<() => AuthContextValue>();
 
 vi.mock("./AuthContext.tsx", () => ({
-  useAuth: () => mockUseAuth(),
+  useAuth: (): AuthContextValue => mockUseAuth(),
 }));
 
 function renderLogin(initialPath = "/login") {
@@ -26,10 +29,9 @@ function renderLogin(initialPath = "/login") {
 describe("Login", () => {
   beforeEach(() => {
     mockLogin.mockReset();
-    mockUseAuth.mockReturnValue({
-      user: null,
-      login: mockLogin,
-    });
+    mockUseAuth.mockReturnValue(
+      createMockAuthContext({ user: null, login: mockLogin }),
+    );
   });
 
   it("renders the login form", () => {
@@ -75,10 +77,9 @@ describe("Login", () => {
   });
 
   it("redirects to home when user is already authenticated", () => {
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
-      login: mockLogin,
-    });
+    mockUseAuth.mockReturnValue(
+      createMockAuthContext({ user: mockUser, login: mockLogin }),
+    );
 
     renderLogin();
 

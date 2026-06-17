@@ -1,9 +1,12 @@
 import { render } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { vi } from "vitest";
 
 import { AuthContext } from "../Auth/AuthContext";
-import type { User } from "../Auth/User";
 import ProtectedRoute from "../ProtectedRoute";
+
+import type { AuthContextValue } from "../Auth/AuthContext";
+import type { User } from "../Auth/User";
 
 export const mockUser: User = {
   id: 1,
@@ -12,14 +15,28 @@ export const mockUser: User = {
   plan: "free",
 };
 
-const baseAuthContext = {
-  getAccessToken: () => null,
-  refreshAccessToken: async () => {},
-  signup: async () => {},
-  login: async () => {},
-  logout: async () => {},
-  clearSession: () => {},
+const baseAuthContext: Omit<
+  AuthContextValue,
+  "user" | "isRefreshingAccessToken"
+> = {
+  getAccessToken: vi.fn<() => string | null>(() => null),
+  refreshAccessToken: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+  signup: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+  login: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+  logout: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+  clearSession: vi.fn<() => void>(() => undefined),
 };
+
+export function createMockAuthContext(
+  overrides: Partial<AuthContextValue> = {},
+): AuthContextValue {
+  return {
+    user: null,
+    isRefreshingAccessToken: false,
+    ...baseAuthContext,
+    ...overrides,
+  };
+}
 
 export function renderProtectedRoute(
   auth: Partial<{
@@ -29,12 +46,7 @@ export function renderProtectedRoute(
 ) {
   return render(
     <AuthContext
-      value={{
-        user: null,
-        isRefreshingAccessToken: false,
-        ...baseAuthContext,
-        ...auth,
-      }}
+      value={createMockAuthContext(auth)}
     >
       <MemoryRouter initialEntries={["/"]}>
         <Routes>

@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import type { User, UserPlan } from "./User";
-import { AuthContext } from "./AuthContext";
-import { configureApiClient } from "../ApiClient";
 import { useNavigate } from "react-router-dom";
+
+import { configureApiClient } from "../ApiClient";
+
+import { AuthContext } from "./AuthContext";
+
+import type { User, UserPlan } from "./User";
+
 
 interface AuthResponse {
   id: number;

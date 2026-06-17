@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-import Navbar from "./Navbar/Navbar.tsx";
 import { useAuth } from "./Auth/AuthContext.tsx";
+import Navbar from "./Navbar/Navbar.tsx";
 
 function ProtectedRoute() {
   const { user, isRefreshingAccessToken } = useAuth();

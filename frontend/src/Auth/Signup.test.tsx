@@ -2,8 +2,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createMockAuthContext, mockUser } from "../test/authTestUtils";
+
 import Signup from "./Signup";
-import { mockUser } from "../test/authTestUtils";
+
+import type { AuthContextValue } from "./AuthContext";
 
 const mockSignup =
   vi.fn<
@@ -14,10 +17,10 @@ const mockSignup =
       password: string,
     ) => Promise<void>
   >();
-const mockUseAuth = vi.fn();
+const mockUseAuth = vi.fn<() => AuthContextValue>();
 
 vi.mock("./AuthContext", () => ({
-  useAuth: () => mockUseAuth(),
+  useAuth: (): AuthContextValue => mockUseAuth(),
 }));
 
 function renderSignup(initialPath = "/signup") {
@@ -52,10 +55,9 @@ function fillSignupForm() {
 describe("Signup", () => {
   beforeEach(() => {
     mockSignup.mockReset();
-    mockUseAuth.mockReturnValue({
-      user: null,
-      signup: mockSignup,
-    });
+    mockUseAuth.mockReturnValue(
+      createMockAuthContext({ user: null, signup: mockSignup }),
+    );
   });
 
   it("renders the signup form", () => {
@@ -106,10 +108,9 @@ describe("Signup", () => {
   });
 
   it("redirects to home when user is already authenticated", () => {
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
-      signup: mockSignup,
-    });
+    mockUseAuth.mockReturnValue(
+      createMockAuthContext({ user: mockUser, signup: mockSignup }),
+    );
 
     renderSignup();
 
