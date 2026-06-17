@@ -14,7 +14,7 @@ describe("ProtectedRoute", () => {
       isRefreshingAccessToken: true,
     });
 
-    expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
   it("redirects to login when unauthenticated", () => {
