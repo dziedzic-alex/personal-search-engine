@@ -1,12 +1,13 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 import "./Navlinks.css";
 
 function Navlinks() {
   return (
     <div className="navlinks">
-      <Link to="/search"> Search </Link>
-      <Link to="/upload"> Upload </Link>
+      <NavLink to="/search">Search</NavLink>
+      <NavLink to="/upload">Upload</NavLink>
+      <NavLink to="/profile">Profile</NavLink>
     </div>
   );
 }

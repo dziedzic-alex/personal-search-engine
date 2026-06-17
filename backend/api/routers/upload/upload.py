@@ -61,7 +61,9 @@ def upload_files(files: UploadFiles, user: UserDep, session: SessionDep):
             )
             continue
 
-        destination = UPLOAD_DIR / filename
+        destination_dir = UPLOAD_DIR / str(user.id)
+        destination_dir.mkdir(parents=True, exist_ok=True)
+        destination = destination_dir / filename
         with open(destination, "wb") as f:
             shutil.copyfileobj(file.file, f)
 
