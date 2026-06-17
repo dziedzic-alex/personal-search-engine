@@ -1,12 +1,12 @@
 import { useState } from "react";
 
 import { useAuth } from "../Auth/AuthContext";
+import Button from "../Ui/Button";
 import Card from "../Ui/Card";
 import Page from "../Ui/Layout/Page";
 import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
-import Button from "../Ui/Button";
 
 function Home() {
   const { logout } = useAuth();
