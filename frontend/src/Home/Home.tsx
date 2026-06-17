@@ -7,7 +7,6 @@ import Page from "../Ui/Layout/Page";
 import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
-
 function Home() {
   const { logout } = useAuth();
 
