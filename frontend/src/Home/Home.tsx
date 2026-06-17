@@ -6,7 +6,7 @@ import Page from "../Ui/Layout/Page";
 import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
-import "./Home.css";
+import Button from "../Ui/Button";
 
 function Home() {
   const { logout } = useAuth();
@@ -30,13 +30,13 @@ function Home() {
           Upload files to index them, then search by natural language from the
           Search page.
         </Body>
-        <button
-          className="home-logout-button"
+        <Button
           onClick={() => void handleLogout()}
-          disabled={isLoggingOut}
+          isLoading={isLoggingOut}
+          loadingText="Logging out..."
         >
-          {isLoggingOut ? "Logging out..." : "Log out"}
-        </button>
+          Log out
+        </Button>
       </Card>
     </Page>
   );
