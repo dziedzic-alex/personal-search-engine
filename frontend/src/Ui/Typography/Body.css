@@ -1,0 +1,12 @@
+.body-default,
+.body-muted {
+  margin: 0 0 1.5rem;
+}
+
+.body-default {
+  color: var(--color-text);
+}
+
+.body-muted {
+  color: var(--color-text-muted);
+}
