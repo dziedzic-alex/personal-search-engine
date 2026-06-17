@@ -7,6 +7,7 @@ function Navlinks() {
     <div className="navlinks">
       <NavLink to="/search">Search</NavLink>
       <NavLink to="/upload">Upload</NavLink>
+      <NavLink to="/profile">Profile</NavLink>
     </div>
   );
 }
