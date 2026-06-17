@@ -1,10 +1,33 @@
 :root {
-  --navbar-height: 100px;
+  --navbar-height: 68px;
+
+  --color-brand: #857777;
+  --color-brand-dark: #6b5f5f;
+  --color-bg: #faf9f7;
+  --color-surface: #ffffff;
+  --color-border: #e8e4e0;
+  --color-text: #1f1c1a;
+  --color-text-muted: #6f6762;
+  --color-text-on-brand: #ffffff;
+  --color-accent: #4a6b6b;
+  --color-accent-hover: #3d5858;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --shadow-sm: 0 1px 3px rgba(31, 28, 26, 0.08);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
 }
 
 #root {
