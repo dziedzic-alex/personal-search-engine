@@ -2,15 +2,15 @@ import { useState } from "react";
 
 import { apiFetch } from "../ApiClient";
 
-import { ALLOWED_FILE_TYPES, isFileAllowed } from "./Upload.utils";
+import { ALLOWED_FILE_TYPES, isFileAllowed } from "./Files.utils";
 
-import "./Upload.css";
+import "./Files.css";
 
 interface UploadResponse {
   files: string[];
 }
 
-function Upload() {
+function Files() {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [responseData, setResponseData] = useState<string | null>(null);
@@ -88,4 +88,4 @@ function Upload() {
   );
 }
 
-export default Upload;
+export default Files;
