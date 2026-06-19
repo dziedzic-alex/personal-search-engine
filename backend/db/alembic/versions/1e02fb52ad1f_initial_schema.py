@@ -55,7 +55,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "pending", "processing", "completed", "failed", name="document_status"
+                "pending", "processing", "processed", "failed", name="document_status"
             ),
             nullable=False,
             server_default=sa.text("'pending'"),

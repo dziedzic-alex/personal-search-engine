@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class DocumentStatus(enum.StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
-    COMPLETED = "completed"
+    PROCESSED = "processed"
     FAILED = "failed"
 
 
