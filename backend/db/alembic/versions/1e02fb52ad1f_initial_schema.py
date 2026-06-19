@@ -82,6 +82,7 @@ def upgrade() -> None:
             ["user_id"],
             ["users.id"],
             name="fk_documents_user_id_users",
+            ondelete="CASCADE",
         ),
     )
     op.create_table(
@@ -105,6 +106,7 @@ def upgrade() -> None:
             ["document_id"],
             ["documents.id"],
             name="fk_document_embeddings_document_id_documents",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name="pk_document_embeddings"),
     )

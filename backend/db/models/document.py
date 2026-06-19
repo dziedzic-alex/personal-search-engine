@@ -23,7 +23,7 @@ class Document(Base):
     __tablename__ = "documents"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(255))
     status: Mapped[DocumentStatus] = mapped_column(
         Enum(
@@ -46,5 +46,5 @@ class Document(Base):
     )
 
     document_embeddings: Mapped[list[DocumentEmbedding]] = relationship(
-        "DocumentEmbedding", back_populates="document"
+        "DocumentEmbedding", back_populates="document", passive_deletes=True
     )
