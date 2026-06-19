@@ -3,7 +3,7 @@ import "./Stack.css";
 interface Props {
   children: React.ReactNode;
   direction?: "vertical" | "horizontal";
-  spacing?: "sm" | "md" | "lg";
+  spacing?: "xs" | "sm" | "md" | "lg";
   align?: "start" | "center" | "end" | "stretch";
   className?: string;
 }
