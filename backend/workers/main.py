@@ -55,7 +55,7 @@ def main():
 
             with SessionLocal(expire_on_commit=False) as session:
                 document = session.get(Document, job_data["document_id"])
-                document.status = DocumentStatus.COMPLETED
+                document.status = DocumentStatus.PROCESSED
                 document.error = None
                 session.commit()
 
