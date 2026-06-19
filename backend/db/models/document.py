@@ -17,6 +17,7 @@ class DocumentStatus(enum.StrEnum):
     PROCESSED = "processed"
     FAILED = "failed"
 
+MAX_NUM_ATTEMPTS = 3
 
 class Document(Base):
     __tablename__ = "documents"
@@ -34,6 +35,7 @@ class Document(Base):
         ),
         insert_default=DocumentStatus.PENDING,
     )
+    num_attempts: Mapped[int] = mapped_column(Integer, insert_default=0)
     content_url: Mapped[str] = mapped_column(String(255))
     thumbnail_url: Mapped[str] = mapped_column(String(255), insert_default="")
     content_type: Mapped[str] = mapped_column(String(255))
