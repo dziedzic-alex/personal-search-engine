@@ -4,6 +4,7 @@ interface Props {
   children: React.ReactNode;
   direction?: "vertical" | "horizontal";
   spacing?: "xs" | "sm" | "md" | "lg";
+  justify?: "start" | "center" | "end";
   align?: "start" | "center" | "end" | "stretch";
   className?: string;
 }
@@ -13,6 +14,7 @@ function Stack(props: Props) {
     children,
     direction = "vertical",
     spacing = "md",
+    justify,
     align,
     className,
   } = props;
@@ -21,6 +23,7 @@ function Stack(props: Props) {
     "stack",
     `stack-${direction}`,
     `stack-spacing-${spacing}`,
+    justify ? `stack-justify-${justify}` : "",
     align ? `stack-align-${align}` : "",
     className,
   ]
