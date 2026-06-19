@@ -34,7 +34,6 @@ class Document(Base):
         ),
         insert_default=DocumentStatus.PENDING,
     )
-    error: Mapped[str | None] = mapped_column(Text)
     content_url: Mapped[str] = mapped_column(String(255))
     thumbnail_url: Mapped[str] = mapped_column(String(255), insert_default="")
     content_type: Mapped[str] = mapped_column(String(255))
