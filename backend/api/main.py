@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from api.routers import search, documents
+from api.routers import documents, search
 from api.routers.auth.auth import router as auth_router
 from api.routers.upload.upload import router as upload_router
 from shared.models.cross_encoding import get_cross_encoding_model

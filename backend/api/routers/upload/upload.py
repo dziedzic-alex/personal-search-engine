@@ -7,17 +7,17 @@ from fastapi import APIRouter, File, UploadFile
 from sqlalchemy import select
 
 from api.dependencies import SessionDep, UserDep
+from api.routers.documents import ApiDocument
 from api.routers.upload.upload_utils import (
     is_allowed_content_type,
     sanitize_content_type,
 )
-from db.models import Document
-from shared.content_type import ContentType
-from shared.redis_client import get_redis_client
-from api.routers.documents import ApiDocument
 from api.schemas.camel_model import CamelModel
+from db.models import Document
 from db.models.document import DocumentStatus
 from shared.content_category import content_type_to_category
+from shared.content_type import ContentType
+from shared.redis_client import get_redis_client
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 

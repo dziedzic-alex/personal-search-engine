@@ -1,16 +1,14 @@
+import json
 from datetime import datetime
 
-from fastapi import APIRouter
-from sqlalchemy import select
+from fastapi import APIRouter, HTTPException
 
 from api.dependencies import SessionDep, UserDep
 from api.schemas.camel_model import CamelModel
-from db.models.document import Document, DocumentStatus, MAX_NUM_ATTEMPTS
-from shared.content_category import ContentCategory, content_type_to_category
-from fastapi import HTTPException
-import json
-from shared.redis_client import get_redis_client
+from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
 from db.repositories.documents import DocumentRepository
+from shared.content_category import ContentCategory, content_type_to_category
+from shared.redis_client import get_redis_client
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 

@@ -2,7 +2,7 @@ import json
 
 from pillow_heif import register_heif_opener
 
-from db.models.document import Document, DocumentStatus, MAX_NUM_ATTEMPTS
+from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
 from db.session import SessionLocal
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model

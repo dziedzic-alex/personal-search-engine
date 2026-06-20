@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from api.routers.auth.auth_utils import get_current_user
 from api.routers.documents import router as documents_router
-from db.models.document import Document, DocumentStatus, MAX_NUM_ATTEMPTS
+from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
 from db.session import get_session
 
 
