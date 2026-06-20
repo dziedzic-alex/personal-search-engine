@@ -26,6 +26,10 @@ function FilesTableRenameModal(props: Props) {
   const [isSavingRename, setIsSavingRename] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const trimmedNewName = renameModalNewName.trim();
+  const cantSave =
+    trimmedNewName === "" || trimmedNewName === file.name || isSavingRename;
+
   const handleRename = () => {
     setIsSavingRename(true);
     setError(null);
@@ -34,7 +38,7 @@ function FilesTableRenameModal(props: Props) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name: renameModalNewName }),
+      body: JSON.stringify({ name: trimmedNewName }),
     })
       .then((response: Response) => {
         if (!response.ok) {
@@ -65,9 +69,16 @@ function FilesTableRenameModal(props: Props) {
         <Header level={2}>Rename</Header>
         <TextInput
           value={renameModalNewName}
-          onChange={(value) => {
+          onChange={(value: string) => {
             setRenameModalNewName(value);
             setError(null);
+          }}
+          onEnter={() => {
+            if (cantSave) {
+              return;
+            }
+
+            handleRename();
           }}
           name="renameModalNameInput"
           placeholder="Enter new name"
@@ -80,10 +91,7 @@ function FilesTableRenameModal(props: Props) {
           </Button>
           <Button
             variant="primary"
-            isDisabled={
-              renameModalNewName.trim() === "" ||
-              renameModalNewName === file.name
-            }
+            isDisabled={cantSave}
             isLoading={isSavingRename}
             loadingText="Saving..."
             onClick={handleRename}
