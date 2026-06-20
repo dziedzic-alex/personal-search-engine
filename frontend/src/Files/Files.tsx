@@ -1,91 +1,88 @@
-import { useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { apiFetch } from "../ApiClient";
+import ErrorState from "../Ui/ErrorState/ErrorState";
+import Page from "../Ui/Layout/Page";
+import Stack from "../Ui/Layout/Stack";
+import LoadingPage from "../Ui/LoadingPage/LoadingPage";
 
-import { ALLOWED_FILE_TYPES, isFileAllowed } from "./Files.utils";
+import MyFilesCard from "./MyFilesCard";
 
-import "./Files.css";
-
-interface UploadResponse {
-  files: string[];
-}
+import type { Document } from "../Types/Document";
 
 function Files() {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<Document[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [responseData, setResponseData] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFiles = e.target.files ? Array.from(e.target.files) : [];
+  useEffect(() => {
+    void loadFilesIntoState(setFiles, setError, setIsLoading);
+  }, []);
 
-    const hasInvalidFile = newFiles.some((file) => {
-      if (!isFileAllowed(file)) {
-        setError(
-          `Only ${ALLOWED_FILE_TYPES.join(", ")} files are supported currently`,
-        );
-        e.target.value = "";
-        return true;
-      }
-      return false;
-    });
-
-    if (hasInvalidFile) {
-      return;
-    }
-
-    setFiles(newFiles);
-  };
-
-  const handleUpload = async () => {
+  const handleRetry = () => {
+    setIsLoading(true);
     setError(null);
-    setResponseData(null);
-
-    const formData = new FormData();
-
-    files.forEach((file) => {
-      formData.append("files", file);
-    });
-
-    try {
-      const response: Response = await apiFetch("/api/upload/", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to process the files");
-      }
-
-      const responseJson: UploadResponse =
-        (await response.json()) as UploadResponse;
-      setResponseData(JSON.stringify(responseJson));
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to process the files",
-      );
-    }
+    void loadFilesIntoState(setFiles, setError, setIsLoading);
   };
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Couldn't load your files"
+        description={error}
+        onRetry={handleRetry}
+        fullHeight
+      />
+    );
+  }
 
   return (
-    <>
-      <input
-        type="file"
-        multiple
-        accept={ALLOWED_FILE_TYPES.join(",")}
-        onChange={handleFileChange}
-        onClick={() => {
-          setError(null);
-          setResponseData(null);
-        }}
-        aria-label="Upload files"
-      />
-      <button disabled={files.length === 0} onClick={() => void handleUpload()}>
-        Submit for processing
-      </button>
-      {error && <p>{error}</p>}
-      {responseData && <p>{responseData}</p>}
-    </>
+    <Page>
+      <Stack spacing="md">
+        <input type="search" placeholder="Search files" />
+        <MyFilesCard files={files} setFiles={setFiles} />
+      </Stack>
+    </Page>
   );
 }
 
 export default Files;
+
+async function loadFilesIntoState(
+  setFiles: Dispatch<SetStateAction<Document[]>>,
+  setError: Dispatch<SetStateAction<string | null>>,
+  setIsLoading: Dispatch<SetStateAction<boolean>>,
+): Promise<void> {
+  try {
+    const files: Document[] = await fetchFiles();
+    setFiles(files);
+  } catch (error: unknown) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Failed to get your files. Please try again later.",
+    );
+  } finally {
+    setIsLoading(false);
+  }
+}
+
+async function fetchFiles(): Promise<Document[]> {
+  const response: Response = await apiFetch("/api/documents/", {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to get your files. Please try again.");
+  }
+
+  const responseJson: { documents: Document[] } = (await response.json()) as {
+    documents: Document[];
+  };
+
+  return responseJson.documents;
+}
