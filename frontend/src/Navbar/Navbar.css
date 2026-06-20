@@ -13,7 +13,6 @@
   padding: 0 1.5rem;
   font-size: 1.25rem;
   font-weight: 700;
-  box-sizing: border-box;
   box-shadow: var(--shadow-sm);
 }
 
