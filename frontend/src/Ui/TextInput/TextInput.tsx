@@ -48,7 +48,7 @@ function TextInput(props: Props) {
       disabled={isDisabled}
       autoFocus={autoFocus}
       onKeyDown={(event) => {
-        if (event.key === "Enter" && onEnter) {
+        if (event.key === "Enter" && onEnter && !isDisabled) {
           event.preventDefault();
           onEnter();
         }
