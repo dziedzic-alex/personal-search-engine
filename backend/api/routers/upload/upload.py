@@ -14,6 +14,10 @@ from api.routers.upload.upload_utils import (
 from db.models import Document
 from shared.content_type import ContentType
 from shared.redis_client import get_redis_client
+from api.routers.documents import ApiDocument
+from api.schemas.camel_model import CamelModel
+from db.models.document import DocumentStatus
+from shared.content_category import content_type_to_category
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
@@ -23,9 +27,13 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 UploadFiles = Annotated[list[UploadFile], File(...)]
 
 
+class UploadFilesResponse(CamelModel):
+    files_being_processed: list[ApiDocument]
+    errors: list[str]
+
 @router.post("/")
-def upload_files(files: UploadFiles, user: UserDep, session: SessionDep):
-    files_being_processed: list[dict] = []
+def upload_files(files: UploadFiles, user: UserDep, session: SessionDep) -> UploadFilesResponse:
+    uploaded_files: UploadFilesResponse = UploadFilesResponse(files_being_processed=[], errors=[])
 
     redis_client = get_redis_client()
 
@@ -34,14 +42,8 @@ def upload_files(files: UploadFiles, user: UserDep, session: SessionDep):
 
         sanitized_content_type = sanitize_content_type(file.content_type, filename)
 
-        if not is_allowed_content_type(sanitized_content_type):
-            files_being_processed.append(
-                {
-                    "filename": filename,
-                    "status": "skipped",
-                    "error": "Content type not allowed",
-                }
-            )
+        if not is_allowed_content_type(sanitized_content_type) and "Content type not allowed" not in uploaded_files.errors:
+            uploaded_files.errors.append("Content type not allowed")
             continue
 
         existing_document = session.scalars(
@@ -50,15 +52,9 @@ def upload_files(files: UploadFiles, user: UserDep, session: SessionDep):
             .where(Document.name == filename)
         ).first()
 
-        if existing_document is not None:
+        if existing_document is not None and "Document already exists" not in uploaded_files.errors:
             print(f"Document {filename} already exists. Skipping...")
-            files_being_processed.append(
-                {
-                    "filename": filename,
-                    "status": "skipped",
-                    "error": "already exists",
-                }
-            )
+            uploaded_files.errors.append("Document already exists")
             continue
 
         destination_dir = UPLOAD_DIR / str(user.id)
@@ -79,6 +75,17 @@ def upload_files(files: UploadFiles, user: UserDep, session: SessionDep):
         session.commit()
 
         redis_client.lpush("jobs:upload", json.dumps({"document_id": document.id}))
-        files_being_processed.append({"filename": file.filename, "status": "pending"})
+        uploaded_files.files_being_processed.append(ApiDocument(
+            id=document.id,
+            name=document.name,
+            content_category=content_type_to_category(document.content_type),
+            status=DocumentStatus(document.status),
+            num_attempts=document.num_attempts,
+            content_url=document.content_url,
+            thumbnail_url=document.thumbnail_url,
+            size=document.size_bytes,
+            source_created_time=document.source_created_time,
+            uploaded_time=document.created_time,
+        ))
 
-    return {"files_being_processed": files_being_processed}
+    return uploaded_files
