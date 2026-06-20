@@ -73,7 +73,7 @@ function UploadButton(props: Props) {
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = null;
+        fileInputRef.current.value = "";
       }
     }
   };
