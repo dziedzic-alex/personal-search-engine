@@ -10,3 +10,8 @@
 .body-muted {
   color: var(--color-text-muted);
 }
+
+.body-error {
+  margin: 0;
+  color: #8b4a42;
+}
