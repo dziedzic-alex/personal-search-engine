@@ -13,6 +13,7 @@ interface Props {
   id?: string;
   isDisabled?: boolean;
   autoFocus?: boolean;
+  onEnter?: () => void;
 }
 
 function TextInput(props: Props) {
@@ -29,6 +30,7 @@ function TextInput(props: Props) {
     id,
     isDisabled = false,
     autoFocus,
+    onEnter,
   } = props;
 
   return (
@@ -45,6 +47,12 @@ function TextInput(props: Props) {
       id={id}
       disabled={isDisabled}
       autoFocus={autoFocus}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" && onEnter) {
+          event.preventDefault();
+          onEnter();
+        }
+      }}
       onChange={(event) => {
         onChange(event.target.value);
       }}
