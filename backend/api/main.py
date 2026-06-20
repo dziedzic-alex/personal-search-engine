@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from api.routers import search
+from api.routers import search, documents
 from api.routers.auth.auth import router as auth_router
 from api.routers.upload.upload import router as upload_router
 from shared.models.cross_encoding import get_cross_encoding_model
@@ -18,6 +18,7 @@ app = FastAPI()
 app.include_router(auth_router)
 app.include_router(upload_router)
 app.include_router(search.router)
+app.include_router(documents.router)
 
 
 @app.get("/")
