@@ -5,6 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import FilesTableRenameModal from "./FilesTableRenameModal";
 import { makeDocument } from "./filesTest.utils";
 
+import type { Document } from "../Types/Document";
+import type { Dispatch, SetStateAction } from "react";
+
 const mockApiFetch =
   vi.fn<(url: string, options?: RequestInit) => Promise<Response>>();
 
@@ -15,8 +18,7 @@ vi.mock("../ApiClient", () => ({
 describe("FilesTableRenameModal", () => {
   const file = makeDocument({ id: 42, name: "report.pdf" });
   const onClose = vi.fn<() => void>();
-  const setFiles =
-    vi.fn<(updater: (files: (typeof file)[]) => (typeof file)[]) => void>();
+  const setFiles = vi.fn<Dispatch<SetStateAction<Document[]>>>();
 
   beforeEach(() => {
     mockApiFetch.mockReset();
