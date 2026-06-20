@@ -1,6 +1,7 @@
+from datetime import datetime
+
 import pytest
 from argon2 import PasswordHasher
-from datetime import datetime
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
