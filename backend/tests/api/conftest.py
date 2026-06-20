@@ -1,11 +1,13 @@
 import pytest
 from argon2 import PasswordHasher
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.routers import search
 from api.routers.auth.auth_utils import get_current_user
 from api.routers.upload.upload import router as upload_router
+from db.models.document import DocumentStatus
 from db.models.user import User, UserPlan
 from db.session import get_session
 
@@ -47,6 +49,14 @@ def upload_client(mocker, tmp_path, mock_user):
     def assign_document_id(document):
         nonlocal next_document_id
         document.id = next_document_id
+        if document.status is None:
+            document.status = DocumentStatus.PENDING
+        if document.num_attempts is None:
+            document.num_attempts = 0
+        if document.thumbnail_url is None:
+            document.thumbnail_url = ""
+        if document.created_time is None:
+            document.created_time = datetime(2025, 6, 17)
         next_document_id += 1
 
     mock_session.add.side_effect = assign_document_id
