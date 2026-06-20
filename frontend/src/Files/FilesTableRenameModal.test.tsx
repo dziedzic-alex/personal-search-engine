@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import FilesTableRenameModal from "./FilesTableRenameModal";
 import { makeDocument } from "./filesTest.utils";
 
-const mockApiFetch = vi.fn<(url: string, options?: RequestInit) => Promise<Response>>();
+const mockApiFetch =
+  vi.fn<(url: string, options?: RequestInit) => Promise<Response>>();
 
 vi.mock("../ApiClient", () => ({
   apiFetch: (url: string, options?: RequestInit) => mockApiFetch(url, options),
@@ -14,7 +15,8 @@ vi.mock("../ApiClient", () => ({
 describe("FilesTableRenameModal", () => {
   const file = makeDocument({ id: 42, name: "report.pdf" });
   const onClose = vi.fn<() => void>();
-  const setFiles = vi.fn<(updater: (files: typeof file[]) => typeof file[]) => void>();
+  const setFiles =
+    vi.fn<(updater: (files: (typeof file)[]) => (typeof file)[]) => void>();
 
   beforeEach(() => {
     mockApiFetch.mockReset();
@@ -30,7 +32,11 @@ describe("FilesTableRenameModal", () => {
     } as Response);
 
     render(
-      <FilesTableRenameModal file={file} onClose={onClose} setFiles={setFiles} />,
+      <FilesTableRenameModal
+        file={file}
+        onClose={onClose}
+        setFiles={setFiles}
+      />,
     );
 
     await userEvent.clear(screen.getByPlaceholderText("Enter new name"));
@@ -60,15 +66,24 @@ describe("FilesTableRenameModal", () => {
     } as Response);
 
     render(
-      <FilesTableRenameModal file={file} onClose={onClose} setFiles={setFiles} />,
+      <FilesTableRenameModal
+        file={file}
+        onClose={onClose}
+        setFiles={setFiles}
+      />,
     );
 
     await userEvent.clear(screen.getByPlaceholderText("Enter new name"));
-    await userEvent.type(screen.getByPlaceholderText("Enter new name"), "new.pdf");
+    await userEvent.type(
+      screen.getByPlaceholderText("Enter new name"),
+      "new.pdf",
+    );
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
     expect(
-      await screen.findByText("Failed to rename the file. Please try again later."),
+      await screen.findByText(
+        "Failed to rename the file. Please try again later.",
+      ),
     ).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
   });

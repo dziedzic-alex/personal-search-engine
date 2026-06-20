@@ -33,9 +33,7 @@ describe("passesDateFilter", () => {
     expect(passesDateFilter("thisYear", "2024-12-31T23:59:00", now)).toBe(
       false,
     );
-    expect(passesDateFilter("lastYear", "2024-06-17T10:00:00", now)).toBe(
-      true,
-    );
+    expect(passesDateFilter("lastYear", "2024-06-17T10:00:00", now)).toBe(true);
     expect(passesDateFilter("lastYear", "2023-12-31T23:59:00", now)).toBe(
       false,
     );

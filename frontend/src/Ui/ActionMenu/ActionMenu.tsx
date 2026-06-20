@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import type { ActionMenuOption } from "./ActionMenuOption";
@@ -61,10 +55,7 @@ function computePanelPosition(
   return { top, left };
 }
 
-function applyPanelPosition(
-  panel: HTMLUListElement,
-  position: PanelPosition,
-) {
+function applyPanelPosition(panel: HTMLUListElement, position: PanelPosition) {
   panel.style.top = String(position.top) + "px";
   panel.style.left = String(position.left) + "px";
   panel.style.visibility = "visible";

@@ -20,16 +20,10 @@ function getVariantIcon(variant: NotificationVariant) {
   switch (variant) {
     case "success":
       return (
-        <CircleCheck
-          size={VARIANT_ICON_SIZE}
-          color="#3d6b4a"
-          aria-hidden
-        />
+        <CircleCheck size={VARIANT_ICON_SIZE} color="#3d6b4a" aria-hidden />
       );
     case "error":
-      return (
-        <CircleX size={VARIANT_ICON_SIZE} color="#8b4a42" aria-hidden />
-      );
+      return <CircleX size={VARIANT_ICON_SIZE} color="#8b4a42" aria-hidden />;
     case "info":
       return (
         <Info

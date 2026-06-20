@@ -115,9 +115,7 @@ function Dropdown(props: Props) {
                       <option.icon
                         size={ICON_SIZE}
                         aria-hidden
-                        color={
-                          option.iconColor ?? "var(--color-text-muted)"
-                        }
+                        color={option.iconColor ?? "var(--color-text-muted)"}
                       />
                     </span>
                   ) : null}

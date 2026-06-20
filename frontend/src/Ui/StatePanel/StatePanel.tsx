@@ -18,8 +18,13 @@ interface Props {
 }
 
 function StatePanel(props: Props) {
-  const { illustration, title, description, action, fullHeight = false } =
-    props;
+  const {
+    illustration,
+    title,
+    description,
+    action,
+    fullHeight = false,
+  } = props;
 
   return (
     <CenteredPanel fullHeight={fullHeight}>
