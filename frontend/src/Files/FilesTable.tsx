@@ -31,10 +31,11 @@ interface Props {
   files: Document[];
   setFiles: Dispatch<SetStateAction<Document[]>>;
   filterConfig: FilterConfig;
+  onClearFilters: () => void;
 }
 
 function FilesTable(props: Props) {
-  const { files, setFiles, filterConfig } = props;
+  const { files, setFiles, filterConfig, onClearFilters } = props;
 
   const [sortColumnDirection, setSortColumnDirection] =
     useState<SortColumnDirection | null>(null);
@@ -66,6 +67,7 @@ function FilesTable(props: Props) {
       <EmptyState
         title="No matching files"
         description="Try adjusting your filters."
+        action={{ label: "Clear filters", onClick: onClearFilters }}
       />
     );
   }

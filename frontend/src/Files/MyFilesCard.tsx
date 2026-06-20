@@ -46,6 +46,13 @@ function MyFilesCard(props: Props) {
     ],
   );
 
+  const clearFilters = () => {
+    setTypeFilterValue(null);
+    setStatusFilterValue(null);
+    setDateUploadedFilterValue(null);
+    setDateCreatedFilterValue(null);
+  };
+
   return (
     <Card>
       <Stack spacing="md">
@@ -67,6 +74,7 @@ function MyFilesCard(props: Props) {
           files={files}
           setFiles={setFiles}
           filterConfig={filterConfig}
+          onClearFilters={clearFilters}
         />
       </Stack>
     </Card>
