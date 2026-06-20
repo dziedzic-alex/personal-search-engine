@@ -1,8 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import Upload from "./Upload";
-import { isFileAllowed } from "./Upload.utils";
+import { isFileAllowed } from "./uploadButton.utils";
 
 function makeFile(name: string, type: string): File {
   return new File(["content"], name, { type });
@@ -29,20 +27,5 @@ describe("isFileAllowed", () => {
 
   it("rejects unsupported file types", () => {
     expect(isFileAllowed(makeFile("notes.txt", "text/plain"))).toBe(false);
-  });
-});
-
-describe("Upload", () => {
-  it("shows an error for unsupported files", () => {
-    render(<Upload />);
-
-    const input = screen.getByLabelText("Upload files");
-    const file = new File(["hello"], "notes.txt", { type: "text/plain" });
-
-    fireEvent.change(input, { target: { files: [file] } });
-
-    expect(
-      screen.getByText(/files are supported currently/i),
-    ).toBeInTheDocument();
   });
 });

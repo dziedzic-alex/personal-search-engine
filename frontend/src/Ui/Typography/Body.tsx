@@ -2,7 +2,7 @@ import "./Body.css";
 
 interface Props {
   children: string;
-  variant?: "default" | "muted";
+  variant?: "default" | "muted" | "error";
 }
 
 function Body(props: Props) {

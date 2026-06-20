@@ -55,12 +55,14 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "pending", "processing", "completed", "failed", name="document_status"
+                "pending", "processing", "processed", "failed", name="document_status"
             ),
             nullable=False,
             server_default=sa.text("'pending'"),
         ),
-        sa.Column("error", sa.Text(), nullable=True),
+        sa.Column(
+            "num_attempts", sa.Integer(), nullable=False, server_default=sa.text("0")
+        ),
         sa.Column("content_url", sa.String(length=255), nullable=False),
         sa.Column(
             "thumbnail_url",
@@ -82,6 +84,7 @@ def upgrade() -> None:
             ["user_id"],
             ["users.id"],
             name="fk_documents_user_id_users",
+            ondelete="CASCADE",
         ),
     )
     op.create_table(
@@ -105,6 +108,7 @@ def upgrade() -> None:
             ["document_id"],
             ["documents.id"],
             name="fk_document_embeddings_document_id_documents",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name="pk_document_embeddings"),
     )

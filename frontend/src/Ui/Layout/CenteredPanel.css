@@ -1,0 +1,14 @@
+.centered-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.centered-panel-full-height {
+  height: calc(100vh - var(--navbar-height));
+}
+
+.centered-panel-inline {
+  padding: 3rem 1rem;
+}

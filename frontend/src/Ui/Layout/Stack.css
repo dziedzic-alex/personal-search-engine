@@ -1,0 +1,55 @@
+.stack {
+  display: flex;
+}
+
+.stack-vertical {
+  flex-direction: column;
+}
+
+.stack-horizontal {
+  flex-direction: row;
+}
+
+.stack-spacing-xs {
+  gap: 0.25rem;
+}
+
+.stack-spacing-sm {
+  gap: 0.75rem;
+}
+
+.stack-spacing-md {
+  gap: 1rem;
+}
+
+.stack-spacing-lg {
+  gap: 1.5rem;
+}
+
+.stack-align-start {
+  align-items: flex-start;
+}
+
+.stack-align-center {
+  align-items: center;
+}
+
+.stack-align-end {
+  align-items: flex-end;
+}
+
+.stack-align-stretch {
+  align-items: stretch;
+}
+
+.stack-justify-start {
+  justify-content: flex-start;
+}
+
+.stack-justify-center {
+  justify-content: center;
+}
+
+.stack-justify-end {
+  justify-content: flex-end;
+}

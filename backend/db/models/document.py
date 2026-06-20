@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -14,15 +14,18 @@ if TYPE_CHECKING:
 class DocumentStatus(enum.StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
-    COMPLETED = "completed"
+    PROCESSED = "processed"
     FAILED = "failed"
+
+
+MAX_NUM_ATTEMPTS = 3
 
 
 class Document(Base):
     __tablename__ = "documents"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(255))
     status: Mapped[DocumentStatus] = mapped_column(
         Enum(
@@ -34,7 +37,7 @@ class Document(Base):
         ),
         insert_default=DocumentStatus.PENDING,
     )
-    error: Mapped[str | None] = mapped_column(Text)
+    num_attempts: Mapped[int] = mapped_column(Integer, insert_default=0)
     content_url: Mapped[str] = mapped_column(String(255))
     thumbnail_url: Mapped[str] = mapped_column(String(255), insert_default="")
     content_type: Mapped[str] = mapped_column(String(255))
@@ -45,5 +48,5 @@ class Document(Base):
     )
 
     document_embeddings: Mapped[list[DocumentEmbedding]] = relationship(
-        "DocumentEmbedding", back_populates="document"
+        "DocumentEmbedding", back_populates="document", passive_deletes=True
     )

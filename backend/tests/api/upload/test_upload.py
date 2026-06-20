@@ -31,9 +31,22 @@ def test_upload_returns_files_being_processed(upload_client):
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "files_being_processed": [{"filename": "test.pdf", "status": "pending"}]
-    }
+    payload = response.json()
+    assert payload["errors"] == []
+    assert len(payload["filesBeingProcessed"]) == 1
+
+    uploaded = payload["filesBeingProcessed"][0]
+    assert uploaded["id"] == 1
+    assert uploaded["name"] == "test.pdf"
+    assert uploaded["contentCategory"] == "pdf"
+    assert uploaded["status"] == "pending"
+    assert uploaded["numAttempts"] == 0
+    assert uploaded["size"] == len(b"pdf content")
+    assert uploaded["thumbnailUrl"] == ""
+    assert uploaded["sourceCreatedTime"] is None
+    assert "uploadedTime" in uploaded
+    assert uploaded["contentUrl"].endswith("/1/test.pdf")
+
     mock_session.add.assert_called_once()
     mock_session.commit.assert_called_once()
     mock_redis.lpush.assert_called_once_with(
@@ -66,16 +79,12 @@ def test_upload_processes_only_supported_files_in_batch(
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "files_being_processed": [
-            {"filename": "doc.pdf", "status": "pending"},
-            {
-                "filename": "notes.txt",
-                "status": "skipped",
-                "error": "Content type not allowed",
-            },
-        ]
-    }
+    payload = response.json()
+    assert payload["errors"] == ["Content type not allowed"]
+    assert len(payload["filesBeingProcessed"]) == 1
+    assert payload["filesBeingProcessed"][0]["name"] == "doc.pdf"
+    assert payload["filesBeingProcessed"][0]["status"] == "pending"
+
     mock_session.add.assert_called_once()
     mock_session.commit.assert_called_once()
     mock_redis.lpush.assert_called_once_with(
@@ -99,13 +108,8 @@ def test_upload_skips_duplicate_filename(upload_client, mocker):
 
     assert response.status_code == 200
     assert response.json() == {
-        "files_being_processed": [
-            {
-                "filename": "test.pdf",
-                "status": "skipped",
-                "error": "already exists",
-            }
-        ]
+        "filesBeingProcessed": [],
+        "errors": ["Document already exists"],
     }
     mock_session.add.assert_not_called()
     mock_session.commit.assert_not_called()

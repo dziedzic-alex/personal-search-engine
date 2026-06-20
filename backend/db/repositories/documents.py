@@ -1,9 +1,9 @@
 from typing import NamedTuple
 
-from sqlalchemy import bindparam, text
+from sqlalchemy import bindparam, select, text
 from sqlalchemy.orm import Session
 
-from db.models.document import DocumentStatus
+from db.models.document import Document, DocumentStatus
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
@@ -292,3 +292,14 @@ class DocumentRepository:
         ranked_results.extend(self._cross_encode_text_rows(query, text_only_rows))
 
         return ranked_results
+
+    def get_documents(self, user_id: int, query: str | None = None) -> list[Document]:
+        db_query = select(Document).where(Document.user_id == user_id)
+
+        if query:
+            query = query.strip()
+
+        if query:
+            db_query = db_query.where(Document.name.ilike(f"%{query}%"))
+
+        return self.session.scalars(db_query).all()

@@ -1,0 +1,14 @@
+.state-panel-content {
+  max-width: 24rem;
+  text-align: center;
+}
+
+.state-panel-illustration {
+  color: var(--color-text-muted);
+  line-height: 0;
+}
+
+.state-panel-illustration svg {
+  width: 6rem;
+  height: 6rem;
+}

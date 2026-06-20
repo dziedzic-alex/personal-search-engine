@@ -2,7 +2,7 @@ import json
 
 from pillow_heif import register_heif_opener
 
-from db.models.document import Document, DocumentStatus
+from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
 from db.session import SessionLocal
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
@@ -36,12 +36,19 @@ def main():
         print(f"Processing job: {job_data}")
 
         with SessionLocal(expire_on_commit=False) as session:
-            document: Document = session.get(Document, job_data["document_id"])
+            document: Document | None = session.get(Document, job_data["document_id"])
 
             if document is None:
                 print(f"Document {job_data['document_id']} not found. Skipping...")
                 continue
 
+            if document.num_attempts >= MAX_NUM_ATTEMPTS:
+                print(
+                    f"Document {document.name} has reached the maximum number of processing attempts. Skipping..."
+                )
+                continue
+
+            document.num_attempts += 1
             document.status = DocumentStatus.PROCESSING
             session.commit()
 
@@ -55,8 +62,7 @@ def main():
 
             with SessionLocal(expire_on_commit=False) as session:
                 document = session.get(Document, job_data["document_id"])
-                document.status = DocumentStatus.COMPLETED
-                document.error = None
+                document.status = DocumentStatus.PROCESSED
                 session.commit()
 
             print(f"Document {document.name} successfully processed")
@@ -67,7 +73,6 @@ def main():
             with SessionLocal() as session:
                 document = session.get(Document, job_data["document_id"])
                 document.status = DocumentStatus.FAILED
-                document.error = str(e)
                 session.commit()
 
 
