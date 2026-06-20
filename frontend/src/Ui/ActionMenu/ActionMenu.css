@@ -1,13 +1,11 @@
 .action-menu {
-  position: relative;
   display: inline-flex;
 }
 
 .action-menu-panel {
-  position: absolute;
-  top: calc(100% + 0.25rem);
-  right: 100%;
-  z-index: 10;
+  position: fixed;
+  z-index: 100;
+  visibility: hidden;
   min-width: 15rem;
   margin: 0;
   padding: 0.25rem;
