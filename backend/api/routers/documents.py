@@ -27,29 +27,36 @@ class ApiDocument(CamelModel):
     source_created_time: datetime | None
     uploaded_time: datetime
 
+
 class DocumentsResponse(CamelModel):
     documents: list[ApiDocument]
 
+
 @router.get("/")
-def get_documents(session: SessionDep, user: UserDep, query: str | None = None) -> DocumentsResponse:
+def get_documents(
+    session: SessionDep, user: UserDep, query: str | None = None
+) -> DocumentsResponse:
     documents = DocumentRepository(session).get_documents(user.id, query)
-    
+
     response_documents = []
     for document in documents:
-        response_documents.append(ApiDocument(
-            id=document.id,
-            name=document.name,
-            content_category=content_type_to_category(document.content_type),
-            status=DocumentStatus(document.status),
-            num_attempts=document.num_attempts,
-            content_url=document.content_url,
-            thumbnail_url=document.thumbnail_url,
-            size=document.size_bytes,
-            source_created_time=document.source_created_time,
-            uploaded_time=document.created_time,
-        ))
+        response_documents.append(
+            ApiDocument(
+                id=document.id,
+                name=document.name,
+                content_category=content_type_to_category(document.content_type),
+                status=DocumentStatus(document.status),
+                num_attempts=document.num_attempts,
+                content_url=document.content_url,
+                thumbnail_url=document.thumbnail_url,
+                size=document.size_bytes,
+                source_created_time=document.source_created_time,
+                uploaded_time=document.created_time,
+            )
+        )
 
     return DocumentsResponse(documents=response_documents)
+
 
 @router.delete("/{document_id}", status_code=204)
 def delete_document(document_id: int, session: SessionDep, user: UserDep) -> None:
@@ -66,8 +73,11 @@ def delete_document(document_id: int, session: SessionDep, user: UserDep) -> Non
 class DocumentUpdateRequest(CamelModel):
     name: str
 
+
 @router.patch("/{document_id}")
-def update_document(document_id: int, request: DocumentUpdateRequest, session: SessionDep, user: UserDep) -> ApiDocument:
+def update_document(
+    document_id: int, request: DocumentUpdateRequest, session: SessionDep, user: UserDep
+) -> ApiDocument:
     document = session.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -90,6 +100,7 @@ def update_document(document_id: int, request: DocumentUpdateRequest, session: S
         uploaded_time=document.created_time,
     )
 
+
 @router.post("/{document_id}/retry")
 def retry_document(document_id: int, session: SessionDep, user: UserDep) -> ApiDocument:
     document = session.get(Document, document_id)
@@ -99,7 +110,10 @@ def retry_document(document_id: int, session: SessionDep, user: UserDep) -> ApiD
         raise HTTPException(status_code=403, detail="Forbidden")
 
     if document.num_attempts >= MAX_NUM_ATTEMPTS:
-        raise HTTPException(status_code=400, detail="Document has reached the maximum number of processing attempts")
+        raise HTTPException(
+            status_code=400,
+            detail="Document has reached the maximum number of processing attempts",
+        )
 
     document.status = DocumentStatus.PENDING
     session.commit()

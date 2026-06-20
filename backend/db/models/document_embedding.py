@@ -15,7 +15,9 @@ class DocumentEmbedding(Base):
     __tablename__ = "document_embeddings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    document_id: Mapped[int] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"))
+    document_id: Mapped[int] = mapped_column(
+        ForeignKey("documents.id", ondelete="CASCADE")
+    )
     content: Mapped[str | None] = mapped_column(Text)
     text_embedding: Mapped[list[float] | None] = mapped_column(Vector(768))
     image_embedding: Mapped[list[float] | None] = mapped_column(Vector(768))

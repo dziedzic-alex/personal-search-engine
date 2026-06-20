@@ -13,6 +13,7 @@ from workers.pdf.pdf import process_pdf_document
 
 register_heif_opener()
 
+
 def main():
     print("Worker is running")
 
@@ -42,7 +43,9 @@ def main():
                 continue
 
             if document.num_attempts >= MAX_NUM_ATTEMPTS:
-                print(f"Document {document.name} has reached the maximum number of processing attempts. Skipping...")
+                print(
+                    f"Document {document.name} has reached the maximum number of processing attempts. Skipping..."
+                )
                 continue
 
             document.num_attempts += 1

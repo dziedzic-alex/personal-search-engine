@@ -17,7 +17,9 @@ class DocumentStatus(enum.StrEnum):
     PROCESSED = "processed"
     FAILED = "failed"
 
+
 MAX_NUM_ATTEMPTS = 3
+
 
 class Document(Base):
     __tablename__ = "documents"

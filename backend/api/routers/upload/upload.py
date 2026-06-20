@@ -31,9 +31,14 @@ class UploadFilesResponse(CamelModel):
     files_being_processed: list[ApiDocument]
     errors: list[str]
 
+
 @router.post("/")
-def upload_files(files: UploadFiles, user: UserDep, session: SessionDep) -> UploadFilesResponse:
-    uploaded_files: UploadFilesResponse = UploadFilesResponse(files_being_processed=[], errors=[])
+def upload_files(
+    files: UploadFiles, user: UserDep, session: SessionDep
+) -> UploadFilesResponse:
+    uploaded_files: UploadFilesResponse = UploadFilesResponse(
+        files_being_processed=[], errors=[]
+    )
 
     redis_client = get_redis_client()
 
@@ -42,7 +47,10 @@ def upload_files(files: UploadFiles, user: UserDep, session: SessionDep) -> Uplo
 
         sanitized_content_type = sanitize_content_type(file.content_type, filename)
 
-        if not is_allowed_content_type(sanitized_content_type) and "Content type not allowed" not in uploaded_files.errors:
+        if (
+            not is_allowed_content_type(sanitized_content_type)
+            and "Content type not allowed" not in uploaded_files.errors
+        ):
             uploaded_files.errors.append("Content type not allowed")
             continue
 
@@ -52,7 +60,10 @@ def upload_files(files: UploadFiles, user: UserDep, session: SessionDep) -> Uplo
             .where(Document.name == filename)
         ).first()
 
-        if existing_document is not None and "Document already exists" not in uploaded_files.errors:
+        if (
+            existing_document is not None
+            and "Document already exists" not in uploaded_files.errors
+        ):
             print(f"Document {filename} already exists. Skipping...")
             uploaded_files.errors.append("Document already exists")
             continue
@@ -75,17 +86,19 @@ def upload_files(files: UploadFiles, user: UserDep, session: SessionDep) -> Uplo
         session.commit()
 
         redis_client.lpush("jobs:upload", json.dumps({"document_id": document.id}))
-        uploaded_files.files_being_processed.append(ApiDocument(
-            id=document.id,
-            name=document.name,
-            content_category=content_type_to_category(document.content_type),
-            status=DocumentStatus(document.status),
-            num_attempts=document.num_attempts,
-            content_url=document.content_url,
-            thumbnail_url=document.thumbnail_url,
-            size=document.size_bytes,
-            source_created_time=document.source_created_time,
-            uploaded_time=document.created_time,
-        ))
+        uploaded_files.files_being_processed.append(
+            ApiDocument(
+                id=document.id,
+                name=document.name,
+                content_category=content_type_to_category(document.content_type),
+                status=DocumentStatus(document.status),
+                num_attempts=document.num_attempts,
+                content_url=document.content_url,
+                thumbnail_url=document.thumbnail_url,
+                size=document.size_bytes,
+                source_created_time=document.source_created_time,
+                uploaded_time=document.created_time,
+            )
+        )
 
     return uploaded_files

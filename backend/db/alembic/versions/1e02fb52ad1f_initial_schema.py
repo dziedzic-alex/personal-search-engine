@@ -60,7 +60,9 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("'pending'"),
         ),
-        sa.Column("num_attempts", sa.Integer(), nullable=False, server_default=sa.text("0")),
+        sa.Column(
+            "num_attempts", sa.Integer(), nullable=False, server_default=sa.text("0")
+        ),
         sa.Column("content_url", sa.String(length=255), nullable=False),
         sa.Column(
             "thumbnail_url",
