@@ -9,7 +9,7 @@ import TableFilters from "./TableFilters";
 import UploadButton from "./UploadButton";
 
 import type { DateFilterOption } from "./dateFilter.utils";
-import type { FilterConfig } from "./TableFilters";
+import type { FilterConfig } from "./filesTable.utils";
 import type { ContentCategory } from "../Types/ContentCategory";
 import type { Document } from "../Types/Document";
 import type { DocumentStatus } from "../Types/DocumentStatus";
