@@ -10,6 +10,7 @@ from shared.content_category import ContentCategory, content_type_to_category
 from fastapi import HTTPException
 import json
 from shared.redis_client import get_redis_client
+from db.repositories.documents import DocumentRepository
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -30,8 +31,8 @@ class DocumentsResponse(CamelModel):
     documents: list[ApiDocument]
 
 @router.get("/")
-def get_documents(session: SessionDep, user: UserDep) -> DocumentsResponse:
-    documents = session.scalars(select(Document).where(Document.user_id == user.id)).all()
+def get_documents(session: SessionDep, user: UserDep, query: str | None = None) -> DocumentsResponse:
+    documents = DocumentRepository(session).get_documents(user.id, query)
     
     response_documents = []
     for document in documents:
