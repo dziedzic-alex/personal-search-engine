@@ -22,7 +22,7 @@ function UploadButton(props: Props) {
 
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const hasInvalidFile = (files: File[]) => {
     return files.some((file) => {
@@ -61,7 +61,7 @@ function UploadButton(props: Props) {
       setFiles((files) => [...files, ...responseJson.filesBeingProcessed]);
 
       if (responseJson.errors.length > 0) {
-        const errorMessage = `Only ${responseJson.filesBeingProcessed.length.toString()} of ${uploadedFiles.length.toString()} files were uploaded.\n Reasons: ${responseJson.errors.join(", ")}`;
+        const errorMessage = `Only ${responseJson.filesBeingProcessed.length.toString()} of ${uploadedFiles.length.toString()} files were uploaded. Reasons: ${responseJson.errors.join(", ")}`;
         notify({ message: errorMessage, variant: "error" });
       }
     } catch (error) {
@@ -72,6 +72,9 @@ function UploadButton(props: Props) {
       notify({ message: errorMessage, variant: "error" });
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null;
+      }
     }
   };
 
