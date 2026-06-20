@@ -1,0 +1,21 @@
+.table-header .table-cell {
+  background-color: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.table-header .table-cell-sortable .sort-icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  flex-shrink: 0;
+}
+
+.table-header .table-cell-sortable .sort-icon-slot svg {
+  display: block;
+}

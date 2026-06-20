@@ -1,0 +1,22 @@
+.table-cell {
+  padding: 0.875rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table-cell:last-child {
+  padding-right: 0;
+}
+
+.table-body .table-row:last-child .table-cell {
+  border-bottom: none;
+}
+
+.table-header .table-cell-sortable {
+  cursor: pointer;
+}
+
+.table-header .table-cell-sortable:hover {
+  background-color: var(--color-bg-hover);
+}
