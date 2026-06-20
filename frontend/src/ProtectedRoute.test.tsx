@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { mockUser, renderProtectedRoute } from "./test/authTestUtils";
+import { mockUser, renderProtectedRoute } from "./test/authTest.utils";
 
 vi.mock("./Navbar/Navbar.tsx", () => ({
   default: () => <nav>Navbar</nav>,

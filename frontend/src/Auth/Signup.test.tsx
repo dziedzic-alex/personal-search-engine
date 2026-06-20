@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockAuthContext, mockUser } from "../test/authTestUtils";
+import { createMockAuthContext, mockUser } from "../test/authTest.utils";
 
 import Signup from "./Signup";
 
