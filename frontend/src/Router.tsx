@@ -8,13 +8,16 @@ import Home from "./Home/Home.tsx";
 import Profile from "./Profile/Profile.tsx";
 import ProtectedRoute from "./ProtectedRoute.tsx";
 import Search from "./Search/Search.tsx";
+import NotificationProvider from "./Ui/Notification/NotificationProvider.tsx";
 
 const router = createBrowserRouter([
   {
     element: (
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
+      <NotificationProvider>
+        <AuthProvider>
+          <Outlet />
+        </AuthProvider>
+      </NotificationProvider>
     ),
     children: [
       { path: "/login", element: <Login /> },
