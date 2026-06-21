@@ -11,7 +11,7 @@ class Environment(enum.StrEnum):
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-    environment: Environment = Environment.DEVELOPMENT
+    environment: Environment
     database_url: str
     redis_url: str
     jwt_secret: str
