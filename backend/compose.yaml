@@ -40,11 +40,12 @@ services:
     ports:
       - "8000:8000"
     environment:
+      AWS_PROFILE: default
       REDIS_URL: redis://redis:6379/0
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
     volumes:
       - .:/backend
-      - uploads:/backend/uploads
+      - ~/.aws:/root/.aws
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -55,11 +56,12 @@ services:
     build: .
     command: python -m workers.main
     environment:
+      AWS_PROFILE: default
       REDIS_URL: redis://redis:6379/0
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
     volumes:
       - .:/backend
-      - uploads:/backend/uploads
+      - ~/.aws:/root/.aws
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -78,5 +80,4 @@ services:
 
 volumes:
   redis_data:
-  uploads:
   db_data:
