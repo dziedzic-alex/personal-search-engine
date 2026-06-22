@@ -63,12 +63,11 @@ def upgrade() -> None:
         sa.Column(
             "num_attempts", sa.Integer(), nullable=False, server_default=sa.text("0")
         ),
-        sa.Column("content_url", sa.String(length=255), nullable=False),
+        sa.Column("s3_content_key", sa.String(length=255), nullable=False),
         sa.Column(
-            "thumbnail_url",
+            "s3_thumbnail_key",
             sa.String(length=255),
             nullable=False,
-            server_default=sa.text("''"),
         ),
         sa.Column("content_type", sa.String(length=255), nullable=False),
         sa.Column("size_bytes", sa.Integer(), nullable=False),

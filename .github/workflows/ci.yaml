@@ -49,9 +49,12 @@ jobs:
         working-directory: backend
 
     env:
+      ENVIRONMENT: development
       REDIS_URL: redis://localhost:6379/0
       DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/vector_db
       JWT_SECRET: test-jwt-secret-that-is-long-enough
+      S3_FILES_THUMBNAILS_BUCKET_NAME: dummy
+      S3_FILES_THUMBNAILS_BUCKET_REGION: dummy
 
     steps:
       - name: Checkout code

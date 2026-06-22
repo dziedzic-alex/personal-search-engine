@@ -1,6 +1,6 @@
-variable "bucket_prefix" {
+variable "bucket_name" {
   type        = string
-  description = "The prefix for the S3 bucket"
+  description = "The name for the S3 bucket"
 }
 
 variable "region" {

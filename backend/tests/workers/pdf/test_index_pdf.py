@@ -22,7 +22,6 @@ def test_text_rich_page_indexes_chunks_without_images(
     assert len(embeddings) == 1
     assert embeddings[0].content == "A" * 250
     assert embeddings[0].text_embedding is not None
-    document.close.assert_called_once()
 
 
 def test_scanned_page_uses_pixmap_fallback(

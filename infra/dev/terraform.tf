@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "personal-search-tf-state-433851229368-us-east-1-an"
+    bucket  = "pse-tf-state-433851229368-us-east-1-an"
     key     = "dev/terraform.tfstate"
     region  = "us-east-1"
     encrypt = true

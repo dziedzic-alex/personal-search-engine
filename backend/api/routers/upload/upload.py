@@ -1,28 +1,22 @@
 import json
-import shutil
-from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile
 from sqlalchemy import select
 
-from api.dependencies import SessionDep, UserDep
-from api.routers.documents import ApiDocument
+from api.dependencies import S3ClientDep, SessionDep, UserDep
+from api.routers.documents import ApiDocument, to_api_document
 from api.routers.upload.upload_utils import (
     is_allowed_content_type,
+    persist_file,
     sanitize_content_type,
 )
 from api.schemas.camel_model import CamelModel
 from db.models import Document
-from db.models.document import DocumentStatus
-from shared.content_category import content_type_to_category
 from shared.content_type import ContentType
 from shared.redis_client import get_redis_client
 
 router = APIRouter(prefix="/upload", tags=["upload"])
-
-UPLOAD_DIR = Path(__file__).parents[3] / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
 
 UploadFiles = Annotated[list[UploadFile], File(...)]
 
@@ -34,7 +28,7 @@ class UploadFilesResponse(CamelModel):
 
 @router.post("/")
 def upload_files(
-    files: UploadFiles, user: UserDep, session: SessionDep
+    files: UploadFiles, user: UserDep, session: SessionDep, s3_client: S3ClientDep
 ) -> UploadFilesResponse:
     uploaded_files: UploadFilesResponse = UploadFilesResponse(
         files_being_processed=[], errors=[]
@@ -45,13 +39,20 @@ def upload_files(
     for file in files:
         filename = file.filename
 
+        if not filename:
+            uploaded_files.errors.append("Missing filename")
+            continue
+
         sanitized_content_type = sanitize_content_type(file.content_type, filename)
 
-        if (
-            not is_allowed_content_type(sanitized_content_type)
-            and "Content type not allowed" not in uploaded_files.errors
-        ):
-            uploaded_files.errors.append("Content type not allowed")
+        if not is_allowed_content_type(sanitized_content_type):
+            if (
+                f"Content type {file.content_type} not allowed"
+                not in uploaded_files.errors
+            ):
+                uploaded_files.errors.append(
+                    f"Content type {file.content_type} not allowed"
+                )
             continue
 
         existing_document = session.scalars(
@@ -60,45 +61,40 @@ def upload_files(
             .where(Document.name == filename)
         ).first()
 
-        if (
-            existing_document is not None
-            and "Document already exists" not in uploaded_files.errors
-        ):
+        if existing_document is not None:
             print(f"Document {filename} already exists. Skipping...")
-            uploaded_files.errors.append("Document already exists")
+            uploaded_files.errors.append(f"Document {filename} already exists")
             continue
 
-        destination_dir = UPLOAD_DIR / str(user.id)
-        destination_dir.mkdir(parents=True, exist_ok=True)
-        destination = destination_dir / filename
-        with open(destination, "wb") as f:
-            shutil.copyfileobj(file.file, f)
-
-        document = Document(
-            user_id=user.id,
-            name=filename,
-            content_url=str(destination),
-            content_type=ContentType(sanitized_content_type).value,
-            size_bytes=destination.stat().st_size,
+        file_data = file.file.read()
+        content_type = ContentType(sanitized_content_type)
+        persisted_file_object_keys = persist_file(
+            s3_client, filename, file_data, user.id, content_type
         )
 
-        session.add(document)
-        session.commit()
+        try:
+            document = Document(
+                user_id=user.id,
+                name=filename,
+                s3_content_key=persisted_file_object_keys.content_key,
+                s3_thumbnail_key=persisted_file_object_keys.thumbnail_key,
+                content_type=content_type.value,
+                size_bytes=len(file_data),
+            )
+
+            session.add(document)
+            session.commit()
+        except Exception as e:
+            print(f"Error saving document {filename}: {e}")
+            session.rollback()
+            s3_client.delete_file(persisted_file_object_keys.content_key)
+            s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
+            uploaded_files.errors.append(f"Error saving document {filename}")
+            continue
 
         redis_client.lpush("jobs:upload", json.dumps({"document_id": document.id}))
         uploaded_files.files_being_processed.append(
-            ApiDocument(
-                id=document.id,
-                name=document.name,
-                content_category=content_type_to_category(document.content_type),
-                status=DocumentStatus(document.status),
-                num_attempts=document.num_attempts,
-                content_url=document.content_url,
-                thumbnail_url=document.thumbnail_url,
-                size=document.size_bytes,
-                source_created_time=document.source_created_time,
-                uploaded_time=document.created_time,
-            )
+            to_api_document(document, s3_client)
         )
 
     return uploaded_files

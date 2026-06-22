@@ -8,11 +8,24 @@ from fastapi.testclient import TestClient
 from api.routers import search
 from api.routers.auth.auth_utils import get_current_user
 from api.routers.upload.upload import router as upload_router
+from api.routers.upload.upload_utils import PersistedFileObjectKeys
 from db.models.document import DocumentStatus
 from db.models.user import User, UserPlan
 from db.session import get_session
+from shared.s3_client import get_s3_client
 
 ph = PasswordHasher()
+
+
+@pytest.fixture
+def mock_s3_client(mocker):
+    client = mocker.MagicMock()
+    client.generate_presigned_url.side_effect = lambda object_key, expires_in=3600: (
+        f"https://presigned.example/{object_key}"
+    )
+    client.delete_file = mocker.MagicMock()
+    client.get_file = mocker.MagicMock(return_value=b"")
+    return client
 
 
 @pytest.fixture
@@ -41,9 +54,20 @@ def make_user(**kwargs) -> User:
 
 
 @pytest.fixture
-def upload_client(mocker, tmp_path, mock_user):
-    mocker.patch("api.routers.upload.upload.UPLOAD_DIR", tmp_path)
+def mock_persist_file(mocker):
+    return mocker.patch(
+        "api.routers.upload.upload.persist_file",
+        side_effect=lambda s3_client, filename, file_data, user_id, content_type: (
+            PersistedFileObjectKeys(
+                content_key=f"{user_id}/{filename}",
+                thumbnail_key=f"{user_id}/thumbnail_{filename.rsplit('.', 1)[0]}.jpg",
+            )
+        ),
+    )
 
+
+@pytest.fixture
+def upload_client(mocker, mock_user, mock_s3_client, mock_persist_file):
     mock_session = mocker.MagicMock()
     next_document_id = 1
 
@@ -54,8 +78,6 @@ def upload_client(mocker, tmp_path, mock_user):
             document.status = DocumentStatus.PENDING
         if document.num_attempts is None:
             document.num_attempts = 0
-        if document.thumbnail_url is None:
-            document.thumbnail_url = ""
         if document.created_time is None:
             document.created_time = datetime(2025, 6, 17)
         next_document_id += 1
@@ -75,8 +97,9 @@ def upload_client(mocker, tmp_path, mock_user):
     app.include_router(upload_router)
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_s3_client] = lambda: mock_s3_client
 
-    return TestClient(app), mock_session, mock_redis
+    return TestClient(app), mock_session, mock_redis, mock_persist_file, mock_s3_client
 
 
 @pytest.fixture

@@ -6,8 +6,7 @@ from fastapi.testclient import TestClient
 from api.routers.upload.upload import router as upload_router
 
 
-def test_upload_requires_auth(mocker, tmp_path):
-    mocker.patch("api.routers.upload.upload.UPLOAD_DIR", tmp_path)
+def test_upload_requires_auth(mocker):
     mocker.patch("api.routers.upload.upload.get_redis_client")
 
     app = FastAPI()
@@ -23,7 +22,7 @@ def test_upload_requires_auth(mocker, tmp_path):
 
 
 def test_upload_returns_files_being_processed(upload_client):
-    client, mock_session, mock_redis = upload_client
+    client, mock_session, mock_redis, mock_persist_file, _ = upload_client
 
     response = client.post(
         "/upload/",
@@ -42,11 +41,12 @@ def test_upload_returns_files_being_processed(upload_client):
     assert uploaded["status"] == "pending"
     assert uploaded["numAttempts"] == 0
     assert uploaded["size"] == len(b"pdf content")
-    assert uploaded["thumbnailUrl"] == ""
+    assert uploaded["contentUrl"] == "https://presigned.example/1/test.pdf"
+    assert uploaded["thumbnailUrl"] == "https://presigned.example/1/thumbnail_test.jpg"
     assert uploaded["sourceCreatedTime"] is None
     assert "uploadedTime" in uploaded
-    assert uploaded["contentUrl"].endswith("/1/test.pdf")
 
+    mock_persist_file.assert_called_once()
     mock_session.add.assert_called_once()
     mock_session.commit.assert_called_once()
     mock_redis.lpush.assert_called_once_with(
@@ -54,21 +54,22 @@ def test_upload_returns_files_being_processed(upload_client):
     )
 
 
-def test_upload_saves_file_to_upload_dir(upload_client, tmp_path, mock_user):
-    client, _, _ = upload_client
+def test_upload_persists_files_to_s3(upload_client, mock_user):
+    client, _, _, mock_persist_file, _ = upload_client
 
     client.post(
         "/upload/",
         files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
     )
 
-    assert (tmp_path / str(mock_user.id) / "test.pdf").read_bytes() == b"pdf content"
+    args = mock_persist_file.call_args[0]
+    assert args[1] == "test.pdf"
+    assert args[2] == b"pdf content"
+    assert args[3] == mock_user.id
 
 
-def test_upload_processes_only_supported_files_in_batch(
-    upload_client, tmp_path, mock_user
-):
-    client, mock_session, mock_redis = upload_client
+def test_upload_processes_only_supported_files_in_batch(upload_client):
+    client, mock_session, mock_redis, mock_persist_file, _ = upload_client
 
     response = client.post(
         "/upload/",
@@ -80,22 +81,21 @@ def test_upload_processes_only_supported_files_in_batch(
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["errors"] == ["Content type not allowed"]
+    assert payload["errors"] == ["Content type text/plain not allowed"]
     assert len(payload["filesBeingProcessed"]) == 1
     assert payload["filesBeingProcessed"][0]["name"] == "doc.pdf"
     assert payload["filesBeingProcessed"][0]["status"] == "pending"
 
+    mock_persist_file.assert_called_once()
     mock_session.add.assert_called_once()
     mock_session.commit.assert_called_once()
     mock_redis.lpush.assert_called_once_with(
         "jobs:upload", json.dumps({"document_id": 1})
     )
-    assert (tmp_path / str(mock_user.id) / "doc.pdf").read_bytes() == b"pdf content"
-    assert not (tmp_path / str(mock_user.id) / "notes.txt").exists()
 
 
 def test_upload_skips_duplicate_filename(upload_client, mocker):
-    client, mock_session, mock_redis = upload_client
+    client, mock_session, mock_redis, mock_persist_file, _ = upload_client
 
     mock_scalars = mocker.MagicMock()
     mock_scalars.first.return_value = mocker.MagicMock()
@@ -109,8 +109,29 @@ def test_upload_skips_duplicate_filename(upload_client, mocker):
     assert response.status_code == 200
     assert response.json() == {
         "filesBeingProcessed": [],
-        "errors": ["Document already exists"],
+        "errors": ["Document test.pdf already exists"],
     }
+    mock_persist_file.assert_not_called()
     mock_session.add.assert_not_called()
     mock_session.commit.assert_not_called()
+    mock_redis.lpush.assert_not_called()
+
+
+def test_upload_rolls_back_s3_on_db_failure(upload_client, mocker):
+    client, mock_session, mock_redis, mock_persist_file, mock_s3_client = upload_client
+    mock_session.commit.side_effect = Exception("db error")
+
+    response = client.post(
+        "/upload/",
+        files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "filesBeingProcessed": [],
+        "errors": ["Error saving document test.pdf"],
+    }
+    mock_session.rollback.assert_called_once()
+    mock_s3_client.delete_file.assert_any_call("1/test.pdf")
+    mock_s3_client.delete_file.assert_any_call("1/thumbnail_test.jpg")
     mock_redis.lpush.assert_not_called()
