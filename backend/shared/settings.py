@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     redis_url: str
     jwt_secret: str
     s3_files_thumbnails_bucket_name: str
+    s3_files_thumbnails_bucket_region: str
     jwt_algorithm: str = "HS256"
     access_token_expires_in_minutes: int = 5
     refresh_token_expires_in_days: int = 7
