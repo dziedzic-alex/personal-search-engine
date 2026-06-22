@@ -8,8 +8,11 @@ from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 from shared.redis_client import get_redis_client
+from shared.s3_client import get_s3_client
 from workers.image.image import process_image_document
 from workers.pdf.pdf import process_pdf_document
+from sqlalchemy import delete
+from db.models.document_embedding import DocumentEmbedding
 
 register_heif_opener()
 
@@ -19,6 +22,7 @@ def main():
 
     get_text_embedding_model()
     get_image_embedding_model()
+    get_s3_client()
 
     redis_client = get_redis_client()
 
@@ -50,6 +54,7 @@ def main():
 
             document.num_attempts += 1
             document.status = DocumentStatus.PROCESSING
+            session.execute(delete(DocumentEmbedding).where(DocumentEmbedding.document_id == document.id))
             session.commit()
 
         try:
