@@ -38,8 +38,8 @@ class Document(Base):
         insert_default=DocumentStatus.PENDING,
     )
     num_attempts: Mapped[int] = mapped_column(Integer, insert_default=0)
-    content_url: Mapped[str] = mapped_column(String(255))
-    thumbnail_url: Mapped[str] = mapped_column(String(255), insert_default="")
+    s3_content_key: Mapped[str] = mapped_column(String(255))
+    s3_thumbnail_key: Mapped[str] = mapped_column(String(255))
     content_type: Mapped[str] = mapped_column(String(255))
     size_bytes: Mapped[int] = mapped_column(Integer)
     source_created_time: Mapped[datetime | None] = mapped_column(DateTime)
