@@ -15,16 +15,19 @@ from workers.pdf.pdf_utils import (
     should_fallback_to_image,
 )
 from workers.text_quality import sanitize_text
+from shared.s3_client import get_s3_client
 
 
-def _load_pdf_from_path(path: str) -> fitz.Document:
-    return fitz.open(path)
+def _load_pdf_data_from_s3(s3_content_key: str) -> bytes:
+    s3_client = get_s3_client()
+    return s3_client.get_file(s3_content_key)
 
 
 def process_pdf_document(db_document: Document):
-    pdf = _load_pdf_from_path(db_document.content_url)
-    extract_pdf_metadata(pdf, db_document.id)
-    index_pdf(db_document.id, pdf)
+    pdf_data = _load_pdf_data_from_s3(db_document.s3_content_key)
+    with fitz.open(stream=pdf_data, filetype="pdf") as pdf:
+        extract_pdf_metadata(pdf, db_document.id)
+        index_pdf(db_document.id, pdf)
 
 
 def index_pdf(document_id: int, document: fitz.Document):
@@ -73,8 +76,6 @@ def index_pdf(document_id: int, document: fitz.Document):
 
         if not should_fallback:
             chunks.extend(merge_text_blocks_into_chunks(page_blocks))
-
-    document.close()
 
     if not chunks:
         print(f"No text chunks found for document {document_id}")

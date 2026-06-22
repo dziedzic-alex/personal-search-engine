@@ -1,7 +1,8 @@
 import enum
+from io import BytesIO
 
 import pytesseract
-from PIL import Image, ImageOps
+from PIL import Image
 
 from db.models.document import Document
 from db.models.document_embedding import DocumentEmbedding
@@ -17,6 +18,8 @@ from workers.text_quality import (
     passes_text_quality_checks,
     sanitize_text,
 )
+from shared.s3_client import get_s3_client
+from shared.image_utils import normalize_image
 
 MIN_IMAGE_WIDTH = 64
 MIN_IMAGE_HEIGHT = 64
@@ -37,17 +40,16 @@ OCR_PROFILES: dict[ImageIndexContext, TextQualityProfile] = {
 }
 
 
-def _load_image_from_path(path: str) -> Image.Image:
-    image = Image.open(path)
-    image = ImageOps.exif_transpose(image)
-    if image.mode not in ["RGB", "L"]:
-        image = image.convert("RGB")
+def _load_image_from_s3(s3_content_key: str) -> Image.Image:
+    s3_client = get_s3_client()
+    image = Image.open(BytesIO(s3_client.get_file(s3_content_key)))
+    image = normalize_image(image)
 
     return image
 
 
 def process_image_document(document: Document):
-    image = _load_image_from_path(document.content_url)
+    image = _load_image_from_s3(document.s3_content_key)
     extract_image_metadata(image, document.id)
     index_image(document.id, image, context=ImageIndexContext.PHOTO)
 
