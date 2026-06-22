@@ -9,7 +9,6 @@ from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 
-
 class SearchResult(NamedTuple):
     name: str
     content_url: str
@@ -40,8 +39,8 @@ class DocumentRepository:
             ranked_results.append(
                 SearchResult(
                     name=row.name,
-                    content_url=row.content_url,
-                    thumbnail_url=row.thumbnail_url,
+                    content_url=row.s3_content_key,
+                    thumbnail_url=row.s3_thumbnail_key,
                     average_distance=float(row.average_distance),
                     cross_encoding_score=average_cross_encoding_score,
                 )
@@ -85,15 +84,15 @@ class DocumentRepository:
             SELECT
                 documents.id,
                 documents.name,
-                documents.content_url,
-                documents.thumbnail_url,
+                documents.s3_content_key,
+                documents.s3_thumbnail_key,
                 doc_scores.average_distance,
                 array_agg(topk_per_document.content) as contents
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
                     INNER JOIN topk_per_document ON documents.id = topk_per_document.document_id AND topk_per_document.rank <= 3
                 WHERE documents.user_id = :user_id
-                AND documents.status = :completed_status
+                AND documents.status = :status
                 AND documents.content_type = :pdf_content_type
                 GROUP BY documents.id, doc_scores.average_distance
                 ORDER BY doc_scores.average_distance ASC
@@ -103,7 +102,7 @@ class DocumentRepository:
             {
                 "query_text_embedding": query_text_embedding,
                 "user_id": user_id,
-                "completed_status": DocumentStatus.COMPLETED.value,
+                "status": DocumentStatus.PROCESSED.value,
                 "pdf_content_type": ContentType.PDF.value,
             },
         )
@@ -133,13 +132,13 @@ class DocumentRepository:
             SELECT
                 documents.id,
                 documents.name,
-                documents.content_url,
-                documents.thumbnail_url,
+                documents.s3_content_key,
+                documents.s3_thumbnail_key,
                 doc_scores.average_distance
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
                 WHERE documents.user_id = :user_id
-                AND documents.status = :completed_status
+                AND documents.status = :status
                 AND documents.content_type = :pdf_content_type
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
@@ -148,7 +147,7 @@ class DocumentRepository:
             {
                 "query_image_embedding": query_image_embedding,
                 "user_id": user_id,
-                "completed_status": DocumentStatus.COMPLETED.value,
+                "status": DocumentStatus.PROCESSED.value,
                 "pdf_content_type": ContentType.PDF.value,
             },
         )
@@ -163,8 +162,8 @@ class DocumentRepository:
                 ranked_results.append(
                     SearchResult(
                         name=row.name,
-                        content_url=row.content_url,
-                        thumbnail_url=row.thumbnail_url,
+                        content_url=row.s3_content_key,
+                        thumbnail_url=row.s3_thumbnail_key,
                         average_distance=float(row.average_distance),
                         cross_encoding_score=None,
                     )
@@ -203,13 +202,13 @@ class DocumentRepository:
             SELECT
                 documents.id,
                 documents.name,
-                documents.content_url,
-                documents.thumbnail_url,
+                documents.s3_content_key,
+                documents.s3_thumbnail_key,
                 doc_scores.average_distance
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
                 WHERE documents.user_id = :user_id
-                AND documents.status = :completed_status
+                AND documents.status = :status
                 AND documents.content_type IN :content_types
                 ORDER BY doc_scores.average_distance ASC
                 LIMIT 20
@@ -218,7 +217,7 @@ class DocumentRepository:
             {
                 "query_image_embedding": query_image_embedding,
                 "user_id": user_id,
-                "completed_status": DocumentStatus.COMPLETED.value,
+                "status": DocumentStatus.PROCESSED.value,
                 "content_types": list(IMAGE_CONTENT_TYPE_VALUES),
             },
         )
@@ -250,15 +249,15 @@ class DocumentRepository:
             SELECT
                 documents.id,
                 documents.name,
-                documents.content_url,
-                documents.thumbnail_url,
+                documents.s3_content_key,
+                documents.s3_thumbnail_key,
                 doc_scores.average_distance,
                 array_agg(topk_per_document.content) as contents
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
                     INNER JOIN topk_per_document ON documents.id = topk_per_document.document_id AND topk_per_document.rank <= 3
                 WHERE documents.user_id = :user_id
-                AND documents.status = :completed_status
+                AND documents.status = :status
                 AND documents.content_type IN :content_types
                 GROUP BY documents.id, doc_scores.average_distance
                 ORDER BY doc_scores.average_distance ASC
@@ -268,7 +267,7 @@ class DocumentRepository:
             {
                 "query_text_embedding": query_text_embedding,
                 "user_id": user_id,
-                "completed_status": DocumentStatus.COMPLETED.value,
+                "status": DocumentStatus.PROCESSED.value,
                 "content_types": list(IMAGE_CONTENT_TYPE_VALUES),
             },
         )
@@ -281,8 +280,8 @@ class DocumentRepository:
             ranked_results.append(
                 SearchResult(
                     name=row.name,
-                    content_url=row.content_url,
-                    thumbnail_url=row.thumbnail_url,
+                    content_url=row.s3_content_key,
+                    thumbnail_url=row.s3_thumbnail_key,
                     average_distance=float(row.average_distance),
                     cross_encoding_score=None,
                 )
