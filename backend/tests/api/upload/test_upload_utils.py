@@ -2,8 +2,8 @@ import pytest
 
 from api.routers.upload.upload_utils import (
     PersistedFileObjectKeys,
-    sanitize_content_type,
     persist_file,
+    sanitize_content_type,
 )
 from shared.content_type import ContentType
 

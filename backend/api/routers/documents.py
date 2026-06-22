@@ -3,7 +3,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
 
-from api.dependencies import SessionDep, S3ClientDep, UserDep
+from api.dependencies import S3ClientDep, SessionDep, UserDep
 from api.schemas.camel_model import CamelModel
 from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
 from db.repositories.documents import DocumentRepository

@@ -1,8 +1,10 @@
 import json
 
 from pillow_heif import register_heif_opener
+from sqlalchemy import delete
 
 from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
+from db.models.document_embedding import DocumentEmbedding
 from db.session import SessionLocal
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
@@ -11,8 +13,6 @@ from shared.redis_client import get_redis_client
 from shared.s3_client import get_s3_client
 from workers.image.image import process_image_document
 from workers.pdf.pdf import process_pdf_document
-from sqlalchemy import delete
-from db.models.document_embedding import DocumentEmbedding
 
 register_heif_opener()
 

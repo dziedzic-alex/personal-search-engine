@@ -1,11 +1,13 @@
-from shared.content_type import ContentType
-from shared.content_category import ContentCategory, content_type_to_category
-from PIL import Image
-from shared.image_utils import normalize_image
-from io import BytesIO
-import fitz
-from shared.s3_client import S3Client
 from dataclasses import dataclass
+from io import BytesIO
+
+import fitz
+from PIL import Image
+
+from shared.content_category import ContentCategory, content_type_to_category
+from shared.content_type import ContentType
+from shared.image_utils import normalize_image
+from shared.s3_client import S3Client
 
 THUMBNAIL_PREFIX = "thumbnail_"
 THUMBNAIL_WIDTH = 200

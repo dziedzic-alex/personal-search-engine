@@ -1,8 +1,8 @@
 import boto3
-
-from shared.settings import settings
 from botocore.config import Config
+
 from shared.content_type import ContentType, content_type_to_mime_type
+from shared.settings import settings
 
 s3_client: S3Client | None = None
 

@@ -7,8 +7,10 @@ from PIL import Image
 from db.models.document import Document
 from db.models.document_embedding import DocumentEmbedding
 from db.session import SessionLocal
+from shared.image_utils import normalize_image
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
+from shared.s3_client import get_s3_client
 from workers.image.image_utils import extract_image_metadata
 from workers.text_quality import (
     OCR_PDF_EMBEDDED_PROFILE,
@@ -18,8 +20,6 @@ from workers.text_quality import (
     passes_text_quality_checks,
     sanitize_text,
 )
-from shared.s3_client import get_s3_client
-from shared.image_utils import normalize_image
 
 MIN_IMAGE_WIDTH = 64
 MIN_IMAGE_HEIGHT = 64

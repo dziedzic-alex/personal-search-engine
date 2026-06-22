@@ -7,6 +7,7 @@ from db.models.document import Document
 from db.models.document_embedding import DocumentEmbedding
 from db.session import SessionLocal
 from shared.models.text_embedding import get_text_embedding_model
+from shared.s3_client import get_s3_client
 from workers.image.image import ImageIndexContext, index_image
 from workers.pdf.pdf_utils import (
     extract_pdf_metadata,
@@ -15,7 +16,6 @@ from workers.pdf.pdf_utils import (
     should_fallback_to_image,
 )
 from workers.text_quality import sanitize_text
-from shared.s3_client import get_s3_client
 
 
 def _load_pdf_data_from_s3(s3_content_key: str) -> bytes:

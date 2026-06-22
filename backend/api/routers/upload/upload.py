@@ -4,12 +4,12 @@ from typing import Annotated
 from fastapi import APIRouter, File, UploadFile
 from sqlalchemy import select
 
-from api.dependencies import SessionDep, S3ClientDep, UserDep
+from api.dependencies import S3ClientDep, SessionDep, UserDep
 from api.routers.documents import ApiDocument, to_api_document
 from api.routers.upload.upload_utils import (
     is_allowed_content_type,
-    sanitize_content_type,
     persist_file,
+    sanitize_content_type,
 )
 from api.schemas.camel_model import CamelModel
 from db.models import Document
