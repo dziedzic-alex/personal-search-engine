@@ -45,11 +45,14 @@ def upload_files(
 
         sanitized_content_type = sanitize_content_type(file.content_type, filename)
 
-        if (
-            not is_allowed_content_type(sanitized_content_type)
-        ):
-            if f"Content type {file.content_type} not allowed" not in uploaded_files.errors:
-                uploaded_files.errors.append(f"Content type {file.content_type} not allowed")
+        if not is_allowed_content_type(sanitized_content_type):
+            if (
+                f"Content type {file.content_type} not allowed"
+                not in uploaded_files.errors
+            ):
+                uploaded_files.errors.append(
+                    f"Content type {file.content_type} not allowed"
+                )
             continue
 
         existing_document = session.scalars(
@@ -58,9 +61,7 @@ def upload_files(
             .where(Document.name == filename)
         ).first()
 
-        if (
-            existing_document is not None
-        ):
+        if existing_document is not None:
             print(f"Document {filename} already exists. Skipping...")
             uploaded_files.errors.append(f"Document {filename} already exists")
             continue

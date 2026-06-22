@@ -20,8 +20,8 @@ ph = PasswordHasher()
 @pytest.fixture
 def mock_s3_client(mocker):
     client = mocker.MagicMock()
-    client.generate_presigned_url.side_effect = (
-        lambda object_key, expires_in=3600: f"https://presigned.example/{object_key}"
+    client.generate_presigned_url.side_effect = lambda object_key, expires_in=3600: (
+        f"https://presigned.example/{object_key}"
     )
     client.delete_file = mocker.MagicMock()
     client.get_file = mocker.MagicMock(return_value=b"")
@@ -57,9 +57,11 @@ def make_user(**kwargs) -> User:
 def mock_persist_file(mocker):
     return mocker.patch(
         "api.routers.upload.upload.persist_file",
-        side_effect=lambda s3_client, filename, file_data, user_id, content_type: PersistedFileObjectKeys(
-            content_key=f"{user_id}/{filename}",
-            thumbnail_key=f"{user_id}/thumbnail_{filename.rsplit('.', 1)[0]}.jpg",
+        side_effect=lambda s3_client, filename, file_data, user_id, content_type: (
+            PersistedFileObjectKeys(
+                content_key=f"{user_id}/{filename}",
+                thumbnail_key=f"{user_id}/thumbnail_{filename.rsplit('.', 1)[0]}.jpg",
+            )
         ),
     )
 

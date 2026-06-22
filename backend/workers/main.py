@@ -54,7 +54,11 @@ def main():
 
             document.num_attempts += 1
             document.status = DocumentStatus.PROCESSING
-            session.execute(delete(DocumentEmbedding).where(DocumentEmbedding.document_id == document.id))
+            session.execute(
+                delete(DocumentEmbedding).where(
+                    DocumentEmbedding.document_id == document.id
+                )
+            )
             session.commit()
 
         try:

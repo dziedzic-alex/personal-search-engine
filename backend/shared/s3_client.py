@@ -6,13 +6,15 @@ from shared.content_type import ContentType, content_type_to_mime_type
 
 s3_client: S3Client | None = None
 
+
 def get_s3_client() -> S3Client:
     global s3_client
 
     if s3_client is None:
         s3_client = S3Client()
-    
+
     return s3_client
+
 
 class S3Client:
     def __init__(self):
@@ -30,12 +32,14 @@ class S3Client:
 
         return response["Body"].read()
 
-    def persist_file(self, filename: str, user_id: int, file_data: bytes, content_type: ContentType) -> str:
+    def persist_file(
+        self, filename: str, user_id: int, file_data: bytes, content_type: ContentType
+    ) -> str:
         object_key = f"{user_id}/{filename}"
 
         self.client.put_object(
             Bucket=settings.s3_files_thumbnails_bucket_name,
-            Key=object_key, 
+            Key=object_key,
             Body=file_data,
             ContentType=content_type_to_mime_type(content_type),
         )

@@ -9,6 +9,7 @@ from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 
+
 class SearchResult(NamedTuple):
     name: str
     content_url: str

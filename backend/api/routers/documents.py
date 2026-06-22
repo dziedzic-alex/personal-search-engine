@@ -58,7 +58,9 @@ def get_documents(
 
 
 @router.delete("/{document_id}", status_code=204)
-def delete_document(document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep) -> None:
+def delete_document(
+    document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep
+) -> None:
     document = session.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -78,7 +80,11 @@ class DocumentUpdateRequest(CamelModel):
 
 @router.patch("/{document_id}")
 def update_document(
-    document_id: int, request: DocumentUpdateRequest, session: SessionDep, user: UserDep, s3_client: S3ClientDep
+    document_id: int,
+    request: DocumentUpdateRequest,
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
 ) -> ApiDocument:
     document = session.get(Document, document_id)
     if document is None:
@@ -93,7 +99,9 @@ def update_document(
 
 
 @router.post("/{document_id}/retry")
-def retry_document(document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep) -> ApiDocument:
+def retry_document(
+    document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep
+) -> ApiDocument:
     document = session.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")

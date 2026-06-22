@@ -27,14 +27,19 @@ def is_allowed_content_type(content_type: str) -> bool:
     else:
         return True
 
+
 @dataclass
 class PersistedFileObjectKeys:
     content_key: str
     thumbnail_key: str
-    
+
 
 def persist_file(
-    s3_client: S3Client, filename: str, file_data: bytes, user_id: int, content_type: ContentType
+    s3_client: S3Client,
+    filename: str,
+    file_data: bytes,
+    user_id: int,
+    content_type: ContentType,
 ) -> PersistedFileObjectKeys:
     content_category = content_type_to_category(content_type)
     if content_category == ContentCategory.IMAGE:
@@ -44,7 +49,9 @@ def persist_file(
 
     thumbnail_filename = THUMBNAIL_PREFIX + filename.split(".")[0] + ".jpg"
 
-    thumbnail_key = s3_client.persist_file(thumbnail_filename, user_id, thumbnail, ContentType.JPEG)
+    thumbnail_key = s3_client.persist_file(
+        thumbnail_filename, user_id, thumbnail, ContentType.JPEG
+    )
     try:
         content_key = s3_client.persist_file(filename, user_id, file_data, content_type)
     except Exception as e:
@@ -70,7 +77,9 @@ def create_pdf_thumbnail(file_data: bytes) -> bytes:
     with fitz.open(stream=file_data, filetype="pdf") as pdf:
         pixel_map = pdf.load_page(0).get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
 
-    image = Image.frombytes("RGB", [pixel_map.width, pixel_map.height], pixel_map.samples)
+    image = Image.frombytes(
+        "RGB", [pixel_map.width, pixel_map.height], pixel_map.samples
+    )
     image.thumbnail((THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
     buffer = BytesIO()
     image.save(buffer, format="JPEG")
