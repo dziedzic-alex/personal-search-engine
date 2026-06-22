@@ -22,15 +22,15 @@ def test_text_search_returns_matching_documents(search_client, mocker):
     mock_results = [
         SearchResult(
             name="alex dziedzic PIIA.pdf",
-            content_url="/files/piia.pdf",
-            thumbnail_url="/thumbnails/piia.jpg",
+            content_url="https://s3.amazonaws.com/files-thumbnails-bucket/1/piia.pdf",
+            thumbnail_url="https://s3.amazonaws.com/files-thumbnails-bucket/1/thumbnail_piia.jpg",
             average_distance=0.502,
             cross_encoding_score=0.00103,
         ),
         SearchResult(
             name="Nutshell Exit Agreement - Alex Dziedzic (2).pdf",
-            content_url="/files/exit.pdf",
-            thumbnail_url="/thumbnails/exit.jpg",
+            content_url="https://s3.amazonaws.com/files-thumbnails-bucket/1/exit.pdf",
+            thumbnail_url="https://s3.amazonaws.com/files-thumbnails-bucket/1/thumbnail_exit.jpg",
             average_distance=0.477,
             cross_encoding_score=0.00026,
         ),
@@ -65,15 +65,15 @@ def test_image_search_returns_matching_documents(search_client, mocker):
     mock_results = [
         SearchResult(
             name="photo.jpg",
-            content_url="/files/photo.jpg",
-            thumbnail_url="/thumbnails/photo.jpg",
+            content_url="https://s3.amazonaws.com/files-thumbnails-bucket/1/photo.jpg",
+            thumbnail_url="https://s3.amazonaws.com/files-thumbnails-bucket/1/thumbnail_photo.jpg",
             average_distance=0.15,
             cross_encoding_score=None,
         ),
         SearchResult(
             name="scan.png",
-            content_url="/files/scan.png",
-            thumbnail_url="/thumbnails/scan.png",
+            content_url="https://s3.amazonaws.com/files-thumbnails-bucket/1/scan.png",
+            thumbnail_url="https://s3.amazonaws.com/files-thumbnails-bucket/1/thumbnail_scan.png",
             average_distance=0.42,
             cross_encoding_score=0.0008,
         ),

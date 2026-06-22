@@ -9,6 +9,7 @@ from api.routers.auth.auth_utils import get_current_user
 from api.routers.documents import router as documents_router
 from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
 from db.session import get_session
+from shared.s3_client import get_s3_client
 
 
 def make_document(**kwargs) -> Document:
@@ -18,8 +19,8 @@ def make_document(**kwargs) -> Document:
         "name": "report.pdf",
         "status": DocumentStatus.PROCESSED,
         "num_attempts": 0,
-        "content_url": "/uploads/1/report.pdf",
-        "thumbnail_url": "",
+        "s3_content_key": "1/report.pdf",
+        "s3_thumbnail_key": "1/thumbnail_report.jpg",
         "content_type": "pdf",
         "size_bytes": 1024,
         "source_created_time": None,
@@ -30,7 +31,7 @@ def make_document(**kwargs) -> Document:
 
 
 @pytest.fixture
-def documents_client(mocker, mock_user):
+def documents_client(mocker, mock_user, mock_s3_client):
     mock_session = mocker.MagicMock()
 
     def override_get_session():
@@ -43,12 +44,13 @@ def documents_client(mocker, mock_user):
     app.include_router(documents_router)
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_s3_client] = lambda: mock_s3_client
 
-    return TestClient(app), mock_session, mock_redis
+    return TestClient(app), mock_session, mock_redis, mock_s3_client
 
 
 def test_get_documents_returns_user_documents(documents_client, mocker):
-    client, mock_session, _ = documents_client
+    client, mock_session, _, _ = documents_client
     document = make_document()
 
     mock_scalars = mocker.MagicMock()
@@ -66,8 +68,8 @@ def test_get_documents_returns_user_documents(documents_client, mocker):
             "contentCategory": "pdf",
             "status": "processed",
             "numAttempts": 0,
-            "contentUrl": "/uploads/1/report.pdf",
-            "thumbnailUrl": "",
+            "contentUrl": "https://presigned.example/1/report.pdf",
+            "thumbnailUrl": "https://presigned.example/1/thumbnail_report.jpg",
             "size": 1024,
             "sourceCreatedTime": None,
             "uploadedTime": document.created_time.isoformat(),
@@ -76,7 +78,7 @@ def test_get_documents_returns_user_documents(documents_client, mocker):
 
 
 def test_update_document_renames_document(documents_client):
-    client, mock_session, _ = documents_client
+    client, mock_session, _, _ = documents_client
     document = make_document()
     mock_session.get.return_value = document
 
@@ -89,7 +91,7 @@ def test_update_document_renames_document(documents_client):
 
 
 def test_update_document_returns_404_when_missing(documents_client):
-    client, mock_session, _ = documents_client
+    client, mock_session, _, _ = documents_client
     mock_session.get.return_value = None
 
     response = client.patch("/documents/1", json={"name": "new.pdf"})
@@ -98,7 +100,7 @@ def test_update_document_returns_404_when_missing(documents_client):
 
 
 def test_update_document_returns_403_for_other_users_document(documents_client):
-    client, mock_session, _ = documents_client
+    client, mock_session, _, _ = documents_client
     mock_session.get.return_value = make_document(user_id=2)
 
     response = client.patch("/documents/1", json={"name": "new.pdf"})
@@ -106,8 +108,8 @@ def test_update_document_returns_403_for_other_users_document(documents_client):
     assert response.status_code == 403
 
 
-def test_delete_document_removes_document(documents_client):
-    client, mock_session, _ = documents_client
+def test_delete_document_removes_document_and_s3_objects(documents_client):
+    client, mock_session, _, mock_s3_client = documents_client
     document = make_document()
     mock_session.get.return_value = document
 
@@ -116,10 +118,12 @@ def test_delete_document_removes_document(documents_client):
     assert response.status_code == 204
     mock_session.delete.assert_called_once_with(document)
     mock_session.commit.assert_called_once()
+    mock_s3_client.delete_file.assert_any_call("1/report.pdf")
+    mock_s3_client.delete_file.assert_any_call("1/thumbnail_report.jpg")
 
 
 def test_retry_document_requeues_processing(documents_client):
-    client, mock_session, mock_redis = documents_client
+    client, mock_session, mock_redis, _ = documents_client
     document = make_document(status=DocumentStatus.FAILED, num_attempts=1)
     mock_session.get.return_value = document
 
@@ -135,7 +139,7 @@ def test_retry_document_requeues_processing(documents_client):
 
 
 def test_retry_document_returns_400_at_max_attempts(documents_client):
-    client, mock_session, _ = documents_client
+    client, mock_session, _, _ = documents_client
     mock_session.get.return_value = make_document(
         status=DocumentStatus.FAILED,
         num_attempts=MAX_NUM_ATTEMPTS,
