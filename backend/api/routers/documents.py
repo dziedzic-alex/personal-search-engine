@@ -3,12 +3,13 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
 
-from api.dependencies import SessionDep, UserDep
+from api.dependencies import SessionDep, S3ClientDep, UserDep
 from api.schemas.camel_model import CamelModel
 from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
 from db.repositories.documents import DocumentRepository
 from shared.content_category import ContentCategory, content_type_to_category
 from shared.redis_client import get_redis_client
+from shared.s3_client import S3Client
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -30,34 +31,34 @@ class DocumentsResponse(CamelModel):
     documents: list[ApiDocument]
 
 
+def to_api_document(document: Document, s3_client: S3Client) -> ApiDocument:
+    return ApiDocument(
+        id=document.id,
+        name=document.name,
+        content_category=content_type_to_category(document.content_type),
+        status=DocumentStatus(document.status),
+        num_attempts=document.num_attempts,
+        content_url=s3_client.generate_presigned_url(document.s3_content_key),
+        thumbnail_url=s3_client.generate_presigned_url(document.s3_thumbnail_key),
+        size=document.size_bytes,
+        source_created_time=document.source_created_time,
+        uploaded_time=document.created_time,
+    )
+
+
 @router.get("/")
 def get_documents(
-    session: SessionDep, user: UserDep, query: str | None = None
+    session: SessionDep, user: UserDep, s3_client: S3ClientDep, query: str | None = None
 ) -> DocumentsResponse:
     documents = DocumentRepository(session).get_documents(user.id, query)
 
-    response_documents = []
-    for document in documents:
-        response_documents.append(
-            ApiDocument(
-                id=document.id,
-                name=document.name,
-                content_category=content_type_to_category(document.content_type),
-                status=DocumentStatus(document.status),
-                num_attempts=document.num_attempts,
-                content_url=document.content_url,
-                thumbnail_url=document.thumbnail_url,
-                size=document.size_bytes,
-                source_created_time=document.source_created_time,
-                uploaded_time=document.created_time,
-            )
-        )
-
-    return DocumentsResponse(documents=response_documents)
+    return DocumentsResponse(
+        documents=[to_api_document(document, s3_client) for document in documents]
+    )
 
 
 @router.delete("/{document_id}", status_code=204)
-def delete_document(document_id: int, session: SessionDep, user: UserDep) -> None:
+def delete_document(document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep) -> None:
     document = session.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -67,6 +68,9 @@ def delete_document(document_id: int, session: SessionDep, user: UserDep) -> Non
     session.delete(document)
     session.commit()
 
+    s3_client.delete_file(document.s3_content_key)
+    s3_client.delete_file(document.s3_thumbnail_key)
+
 
 class DocumentUpdateRequest(CamelModel):
     name: str
@@ -74,7 +78,7 @@ class DocumentUpdateRequest(CamelModel):
 
 @router.patch("/{document_id}")
 def update_document(
-    document_id: int, request: DocumentUpdateRequest, session: SessionDep, user: UserDep
+    document_id: int, request: DocumentUpdateRequest, session: SessionDep, user: UserDep, s3_client: S3ClientDep
 ) -> ApiDocument:
     document = session.get(Document, document_id)
     if document is None:
@@ -85,22 +89,11 @@ def update_document(
     document.name = request.name
     session.commit()
 
-    return ApiDocument(
-        id=document.id,
-        name=document.name,
-        content_category=content_type_to_category(document.content_type),
-        status=DocumentStatus(document.status),
-        num_attempts=document.num_attempts,
-        content_url=document.content_url,
-        thumbnail_url=document.thumbnail_url,
-        size=document.size_bytes,
-        source_created_time=document.source_created_time,
-        uploaded_time=document.created_time,
-    )
+    return to_api_document(document, s3_client)
 
 
 @router.post("/{document_id}/retry")
-def retry_document(document_id: int, session: SessionDep, user: UserDep) -> ApiDocument:
+def retry_document(document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep) -> ApiDocument:
     document = session.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -117,15 +110,4 @@ def retry_document(document_id: int, session: SessionDep, user: UserDep) -> ApiD
     session.commit()
     get_redis_client().lpush("jobs:upload", json.dumps({"document_id": document.id}))
 
-    return ApiDocument(
-        id=document.id,
-        name=document.name,
-        content_category=content_type_to_category(document.content_type),
-        status=DocumentStatus(document.status),
-        num_attempts=document.num_attempts,
-        content_url=document.content_url,
-        thumbnail_url=document.thumbnail_url,
-        size=document.size_bytes,
-        source_created_time=document.source_created_time,
-        uploaded_time=document.created_time,
-    )
+    return to_api_document(document, s3_client)
