@@ -105,7 +105,7 @@ function FilesTableRowActionMenu(props: Props) {
             label: "View",
             icon: Eye,
             onClick: () => {
-              return;
+              window.open(file.contentUrl, "_blank");
             },
           },
           {
