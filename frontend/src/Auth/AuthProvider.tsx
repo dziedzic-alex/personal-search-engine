@@ -93,9 +93,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         if (response.status === 409) {
           throw new Error("Email already in use");
         } else if (response.status !== 201) {
-          throw new Error(
-            "Failed to signup (You might be stupid, or the server is down)",
-          );
+          throw new Error("Failed to signup. Please try again.");
         }
 
         const data: AuthResponse = (await response.json()) as AuthResponse;
@@ -132,9 +130,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         if (response.status == 401) {
           throw new Error("Invalid username or password");
         } else if (response.status !== 200) {
-          throw new Error(
-            "Failed to login (You might be stupid, or the server is down)",
-          );
+          throw new Error("Failed to login. Please try again.");
         }
 
         const data: AuthResponse = (await response.json()) as AuthResponse;
