@@ -63,7 +63,9 @@ describe("Signup", () => {
   it("renders the signup form", () => {
     renderSignup();
 
-    expect(screen.getByRole("heading", { name: "Sign up" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Sign up" }),
+    ).toBeInTheDocument();
     expect(screen.getByPlaceholderText("First Name")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Confirm Password")).toBeInTheDocument();
   });
