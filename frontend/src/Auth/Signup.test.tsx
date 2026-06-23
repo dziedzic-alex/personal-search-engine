@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockAuthContext, mockUser } from "../test/authTest.utils";
+import { createMockAuthContext } from "../test/authTest.utils";
 
 import Signup from "./Signup";
 
@@ -63,7 +63,7 @@ describe("Signup", () => {
   it("renders the signup form", () => {
     renderSignup();
 
-    expect(screen.getByRole("heading", { name: "Signup" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Sign up" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("First Name")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Confirm Password")).toBeInTheDocument();
   });
@@ -72,7 +72,7 @@ describe("Signup", () => {
     mockSignup.mockResolvedValue();
     renderSignup();
     fillSignupForm();
-    fireEvent.click(screen.getByRole("button", { name: "Signup" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
 
     await waitFor(() => {
       expect(mockSignup).toHaveBeenCalledWith(
@@ -88,7 +88,7 @@ describe("Signup", () => {
     mockSignup.mockRejectedValue(new Error("Email already in use"));
     renderSignup();
     fillSignupForm();
-    fireEvent.click(screen.getByRole("button", { name: "Signup" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
 
     expect(await screen.findByText("Email already in use")).toBeInTheDocument();
   });
@@ -99,21 +99,11 @@ describe("Signup", () => {
     fireEvent.change(screen.getByPlaceholderText("Confirm Password"), {
       target: { value: "different-password" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Signup" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
 
     expect(
       await screen.findByText("Passwords do not match"),
     ).toBeInTheDocument();
     expect(mockSignup).not.toHaveBeenCalled();
-  });
-
-  it("redirects to home when user is already authenticated", () => {
-    mockUseAuth.mockReturnValue(
-      createMockAuthContext({ user: mockUser, signup: mockSignup }),
-    );
-
-    renderSignup();
-
-    expect(screen.getByText("Home page")).toBeInTheDocument();
   });
 });

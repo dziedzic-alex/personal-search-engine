@@ -1,11 +1,20 @@
 import { useState } from "react";
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-import "./Signup.css";
+import Button from "../Ui/Button";
+import Card from "../Ui/Card";
+import FormField from "../Ui/FormField/FormField";
+import Stack from "../Ui/Layout/Stack";
+import TextInput from "../Ui/TextInput/TextInput";
+import Body from "../Ui/Typography/Body";
+import Header from "../Ui/Typography/Header";
+
 import { useAuth } from "./AuthContext";
 
+import "./AuthForm.css";
+
 function Signup() {
-  const { user, signup } = useAuth();
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState<string>("");
@@ -18,10 +27,6 @@ function Signup() {
 
   const [error, setError] = useState<string | null>(null);
 
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
-
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
@@ -33,7 +38,7 @@ function Signup() {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to signup (You might be stupid, or the server is down)",
+          : "Failed to signup. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -65,82 +70,93 @@ function Signup() {
   };
 
   return (
-    <div className="signup">
-      <h1>Signup</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
+    <div className="auth-form-container">
+      <Card className="auth-form-card">
+        <Header>Sign up</Header>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
 
-          if (!e.currentTarget.reportValidity()) return;
-          if (!customValidation()) return;
+            if (!e.currentTarget.reportValidity()) return;
+            if (!customValidation()) return;
 
-          void handleSubmit();
-        }}
-      >
-        <input
-          name="first-name"
-          type="text"
-          required
-          autoComplete="given-name"
-          placeholder="First Name"
-          value={firstName}
-          onChange={(e) => {
-            setFirstName(e.target.value);
+            void handleSubmit();
           }}
-        />
-        <input
-          name="last-name"
-          type="text"
-          required
-          autoComplete="family-name"
-          placeholder="Last Name"
-          value={lastName}
-          onChange={(e) => {
-            setLastName(e.target.value);
-          }}
-        />
-        <input
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
-        />
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="new-password"
-          minLength={8}
-          placeholder="Password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-        />
-        <input
-          name="confirm-password"
-          type="password"
-          required
-          autoComplete="new-password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => {
-            setConfirmPassword(e.target.value);
-          }}
-        />
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Signing up..." : "Signup"}
-        </button>
-      </form>
-      <p>
-        Already have an account? <Link to="/login">Login</Link>
-      </p>
-      {error && <p>{error}</p>}
+        >
+          <Stack>
+            <FormField label="First Name">
+              <TextInput
+                name="first-name"
+                type="text"
+                required
+                autoComplete="given-name"
+                placeholder="First Name"
+                value={firstName}
+                onChange={setFirstName}
+              />
+            </FormField>
+            <FormField label="Last Name">
+              <TextInput
+                name="last-name"
+                type="text"
+                required
+                autoComplete="family-name"
+                placeholder="Last Name"
+                value={lastName}
+                onChange={setLastName}
+              />
+            </FormField>
+            <FormField label="Email">
+              <TextInput
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="Email"
+                value={email}
+                onChange={setEmail}
+              />
+            </FormField>
+            <FormField label="Password">
+              <TextInput
+                name="password"
+                type="password"
+                required
+                autoComplete="new-password"
+                minLength={8}
+                placeholder="Password"
+                value={password}
+                onChange={setPassword}
+              />
+            </FormField>
+            <FormField label="Confirm Password">
+              <TextInput
+                name="confirm-password"
+                type="password"
+                required
+                autoComplete="new-password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+              />
+            </FormField>
+            {error && <Body variant="error">{error}</Body>}
+            <Button
+              type="submit"
+              isDisabled={isSubmitting}
+              isLoading={isSubmitting}
+              loadingText="Signing up..."
+            >
+              Sign up
+            </Button>
+            <div className="auth-form-footer">
+              <Body>
+                Already have an account? <Link to="/login">Log in</Link>
+              </Body>
+            </div>
+          </Stack>
+        </form>
+      </Card>
     </div>
   );
 }
