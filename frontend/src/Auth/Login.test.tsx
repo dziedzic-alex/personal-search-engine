@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockAuthContext, mockUser } from "../test/authTest.utils";
+import { createMockAuthContext } from "../test/authTest.utils";
 
 import Login from "./Login";
 
@@ -74,15 +74,5 @@ describe("Login", () => {
     expect(
       await screen.findByText("Invalid username or password"),
     ).toBeInTheDocument();
-  });
-
-  it("redirects to home when user is already authenticated", () => {
-    mockUseAuth.mockReturnValue(
-      createMockAuthContext({ user: mockUser, login: mockLogin }),
-    );
-
-    renderLogin();
-
-    expect(screen.getByText("Home page")).toBeInTheDocument();
   });
 });

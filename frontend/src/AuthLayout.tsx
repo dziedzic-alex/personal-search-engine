@@ -5,24 +5,26 @@ import Navbar from "./Navbar/Navbar.tsx";
 import AppShell from "./Ui/Layout/AppShell.tsx";
 import LoadingPage from "./Ui/LoadingPage/LoadingPage.tsx";
 
-function ProtectedRoute() {
+function AuthLayout() {
   const { user, isRefreshingAccessToken } = useAuth();
 
-  if (!user && isRefreshingAccessToken) {
+  if (isRefreshingAccessToken) {
     return (
-      <AppShell>
+      <AppShell navbar={<Navbar variant="notauthed" />}>
         <LoadingPage />
       </AppShell>
     );
-  } else if (!user && !isRefreshingAccessToken) {
-    return <Navigate to="/login" replace />;
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
   }
 
   return (
-    <AppShell navbar={<Navbar />}>
+    <AppShell navbar={<Navbar variant="notauthed" />}>
       <Outlet />
     </AppShell>
   );
 }
 
-export default ProtectedRoute;
+export default AuthLayout;

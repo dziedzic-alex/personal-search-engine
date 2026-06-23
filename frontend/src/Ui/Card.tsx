@@ -2,12 +2,15 @@ import "./Card.css";
 
 interface Props {
   children: React.ReactNode;
+  className?: string;
 }
 
 function Card(props: Props) {
-  const { children } = props;
+  const { children, className } = props;
 
-  return <div className="card-container">{children}</div>;
+  const classes = ["card-container", className].filter(Boolean).join(" ");
+
+  return <div className={classes}>{children}</div>;
 }
 
 export default Card;

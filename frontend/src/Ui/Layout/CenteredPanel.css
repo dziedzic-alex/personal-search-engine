@@ -6,7 +6,7 @@
 }
 
 .centered-panel-full-height {
-  height: calc(100vh - var(--navbar-height));
+  flex: 1;
 }
 
 .centered-panel-inline {

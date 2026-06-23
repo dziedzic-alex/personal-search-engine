@@ -1,9 +1,17 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import { useAuth } from "./AuthContext.tsx";
+import Button from "../Ui/Button";
+import Card from "../Ui/Card";
+import FormField from "../Ui/FormField/FormField";
+import Stack from "../Ui/Layout/Stack";
+import TextInput from "../Ui/TextInput/TextInput";
+import Body from "../Ui/Typography/Body";
+import Header from "../Ui/Typography/Header";
 
-import "./Login.css";
+import { useAuth } from "./AuthContext";
+
+import "./AuthForm.css";
 
 function Login() {
   const navigate = useNavigate();
@@ -13,11 +21,7 @@ function Login() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { user, login } = useAuth();
-
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     setIsSubmitting(true);
@@ -30,9 +34,7 @@ function Login() {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError(
-          "Failed to login (You might be stupid, or the server is down)",
-        );
+        setError("Failed to login. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -40,45 +42,56 @@ function Login() {
   };
 
   return (
-    <div className="login">
-      <h1>Login</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!e.currentTarget.reportValidity()) return;
-          void handleLogin();
-        }}
-      >
-        <input
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
+    <div className="auth-form-container">
+      <Card className="auth-form-card">
+        <Header>Login</Header>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!e.currentTarget.reportValidity()) return;
+            void handleLogin();
           }}
-        />
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-        />
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Logging in..." : "Login"}
-        </button>
-      </form>
-      <p>
-        Don't have an account? <Link to="/signup">Sign up</Link>
-      </p>
-      {error && <p>{error}</p>}
+        >
+          <Stack>
+            <FormField label="Email">
+              <TextInput
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="Email"
+                value={email}
+                onChange={setEmail}
+              />
+            </FormField>
+            <FormField label="Password">
+              <TextInput
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                placeholder="Password"
+                value={password}
+                onChange={setPassword}
+              />
+            </FormField>
+            {error && <Body variant="error">{error}</Body>}
+            <Button
+              type="submit"
+              isLoading={isSubmitting}
+              loadingText="Logging in..."
+              isDisabled={isSubmitting}
+            >
+              Login
+            </Button>
+            <div className="auth-form-footer">
+              <Body>
+                Don't have an account? <Link to="/signup">Sign up</Link>
+              </Body>
+            </div>
+          </Stack>
+        </form>
+      </Card>
     </div>
   );
 }

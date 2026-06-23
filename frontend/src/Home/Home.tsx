@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useAuth } from "../Auth/AuthContext";
 import Button from "../Ui/Button";
 import Card from "../Ui/Card";
-import Page from "../Ui/Layout/Page";
 import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
@@ -19,7 +18,7 @@ function Home() {
   };
 
   return (
-    <Page>
+    <>
       <Header>Home</Header>
       <Body variant="muted">
         Search across your personal documents and photos.
@@ -37,7 +36,7 @@ function Home() {
           Log out
         </Button>
       </Card>
-    </Page>
+    </>
   );
 }
 
