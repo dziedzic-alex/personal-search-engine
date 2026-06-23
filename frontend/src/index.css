@@ -40,10 +40,6 @@ body {
   width: 100%;
 }
 
-.app-content {
-  padding-top: var(--navbar-height);
-}
-
 a {
   text-decoration: none;
   color: inherit;
