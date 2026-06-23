@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createMockAuthContext } from "../test/authTest.utils";
 
+import Login from "./Login";
+
 import type { AuthContextValue } from "./AuthContext";
 
-import Login from "./Login";
 
 const mockLogin = vi.fn<(email: string, password: string) => Promise<void>>();
 const mockUseAuth = vi.fn<() => AuthContextValue>();
