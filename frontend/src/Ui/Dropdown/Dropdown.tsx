@@ -1,10 +1,9 @@
 import { Check, ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import "../Button.css";
-
 import type { DropdownOption } from "./DropdownOption";
 
+import "../Button.css";
 import "./Dropdown.css";
 
 const ICON_SIZE = 16;
