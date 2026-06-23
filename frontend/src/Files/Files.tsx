@@ -2,7 +2,6 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { apiFetch } from "../ApiClient";
 import ErrorState from "../Ui/ErrorState/ErrorState";
-import Page from "../Ui/Layout/Page";
 import Stack from "../Ui/Layout/Stack";
 import LoadingPage from "../Ui/LoadingPage/LoadingPage";
 
@@ -41,12 +40,10 @@ function Files() {
   }
 
   return (
-    <Page>
-      <Stack spacing="md">
-        <input type="search" placeholder="Search files" />
-        <MyFilesCard files={files} setFiles={setFiles} />
-      </Stack>
-    </Page>
+    <Stack spacing="md">
+      <input type="search" placeholder="Search files" />
+      <MyFilesCard files={files} setFiles={setFiles} />
+    </Stack>
   );
 }
 
