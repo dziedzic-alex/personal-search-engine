@@ -1,7 +1,7 @@
 import "./Body.css";
 
 interface Props {
-  children: string;
+  children: React.ReactNode;
   variant?: "default" | "muted" | "error";
 }
 
