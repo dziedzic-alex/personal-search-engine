@@ -8,7 +8,6 @@ import Login from "./Login";
 
 import type { AuthContextValue } from "./AuthContext";
 
-
 const mockLogin = vi.fn<(email: string, password: string) => Promise<void>>();
 const mockUseAuth = vi.fn<() => AuthContextValue>();
 
