@@ -1,0 +1,29 @@
+.auth-form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.auth-form-card {
+  width: min(500px, 100%);
+}
+
+.auth-form-footer {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.auth-form-footer .body-default {
+  margin-bottom: 0;
+}
+
+.auth-form-footer a {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.auth-form-footer a:hover {
+  color: var(--color-accent-hover);
+}
