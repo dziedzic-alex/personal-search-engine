@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { vi } from "vitest";
 
 import { AuthContext } from "../Auth/AuthContext";
+import AuthLayout from "../AuthLayout";
 import ProtectedRoute from "../ProtectedRoute";
 
 import type { AuthContextValue } from "../Auth/AuthContext";
@@ -52,6 +53,28 @@ export function renderProtectedRoute(
             <Route path="/" element={<div>Home content</div>} />
           </Route>
           <Route path="/login" element={<div>Login page</div>} />
+        </Routes>
+      </MemoryRouter>
+    </AuthContext>,
+  );
+}
+
+export function renderAuthLayout(
+  auth: Partial<{
+    user: User | null;
+    isRefreshingAccessToken: boolean;
+  }>,
+  initialPath = "/login",
+) {
+  return render(
+    <AuthContext value={createMockAuthContext(auth)}>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<div>Login page</div>} />
+            <Route path="/signup" element={<div>Signup page</div>} />
+          </Route>
+          <Route path="/" element={<div>Home page</div>} />
         </Routes>
       </MemoryRouter>
     </AuthContext>,
