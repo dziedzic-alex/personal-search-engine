@@ -4,8 +4,9 @@ import "./Button.css";
 
 interface Props {
   children: string;
+  type?: "button" | "submit";
   variant?: "primary" | "secondary";
-  onClick: () => void;
+  onClick?: () => void;
   isDisabled?: boolean;
   isLoading?: boolean;
   loadingText?: string;
@@ -15,6 +16,7 @@ interface Props {
 function Button(props: Props) {
   const {
     children,
+    type = "button",
     variant = "primary",
     onClick,
     isDisabled = false,
@@ -36,7 +38,7 @@ function Button(props: Props) {
 
   return (
     <button
-      type="button"
+      type={type}
       className={`button-${variant} button-size-${size}`}
       onClick={onClick}
       disabled={isDisabled || isLoading}
