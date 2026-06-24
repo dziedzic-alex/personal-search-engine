@@ -2,7 +2,7 @@ import type { SegmentedControlOption } from "./SegmentedControlOption";
 
 import "./SegmentedControl.css";
 
-const ICON_SIZE = 16;
+const ICON_SIZE = 14;
 
 interface Props {
   label: string;
