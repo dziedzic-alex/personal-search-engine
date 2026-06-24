@@ -24,9 +24,7 @@ function Dropdown(props: Props) {
   const listboxId = useId();
 
   const selectedOption = options.find((option) => option.id === value);
-  const triggerLabel = selectedOption
-    ? `${label}: ${selectedOption.label}`
-    : label;
+  const triggerLabel = selectedOption ? selectedOption.label : label;
 
   useEffect(() => {
     if (!isOpen) {
