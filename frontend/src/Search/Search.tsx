@@ -79,7 +79,7 @@ function Search() {
           onSearch={() => void handleSearch()}
           suffix={
             <SegmentedControl
-              label="Type"
+              ariaLabel="Type"
               value={searchMode}
               options={SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS}
               onChange={(id) => {

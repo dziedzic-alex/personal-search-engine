@@ -5,7 +5,7 @@ import "./SegmentedControl.css";
 const ICON_SIZE = 14;
 
 interface Props {
-  label: string;
+  ariaLabel: string;
   value: string;
   options: SegmentedControlOption[];
   onChange: (id: string) => void;
@@ -13,7 +13,7 @@ interface Props {
 }
 
 function SegmentedControl(props: Props) {
-  const { label, value, options, onChange, isDisabled = false } = props;
+  const { ariaLabel, value, options, onChange, isDisabled = false } = props;
 
   function handleSelect(option: SegmentedControlOption) {
     if (option.disabled || isDisabled) {
@@ -53,7 +53,7 @@ function SegmentedControl(props: Props) {
   }
 
   return (
-    <div className="segmented-control" role="radiogroup" aria-label={label}>
+    <div className="segmented-control" role="radiogroup" aria-label={ariaLabel}>
       {options.map((option, index) => {
         const isSelected = value === option.id;
 
