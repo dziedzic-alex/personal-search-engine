@@ -1,6 +1,13 @@
+import { FileText, Image } from "lucide-react";
 import { useState } from "react";
 
 import { apiFetch } from "../ApiClient";
+import SearchBar from "../Ui/SearchBar/SearchBar";
+import SegmentedControl from "../Ui/SegmentedControl/SegmentedControl";
+import Body from "../Ui/Typography/Body";
+import Header from "../Ui/Typography/Header";
+
+import type { SegmentedControlOption } from "../Ui/SegmentedControl/SegmentedControlOption";
 
 import "./Search.css";
 
@@ -12,13 +19,32 @@ interface SearchResponse {
   }[];
 }
 
+const SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS: SegmentedControlOption[] = [
+  { id: "text", label: "PDFs", icon: FileText },
+  { id: "image", label: "Images", icon: Image },
+];
+
 function Search() {
   const [query, setQuery] = useState<string>("");
   const [searchMode, setSearchMode] = useState<SearchMode>("text");
   const [responseData, setResponseData] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    if (error) {
+      setError(null);
+    }
+    if (responseData) {
+      setResponseData(null);
+    }
+  };
+
   const handleSearch = async () => {
+    if (query.length === 0) {
+      return;
+    }
+
     setError(null);
     setResponseData(null);
 
@@ -44,33 +70,25 @@ function Search() {
   };
 
   return (
-    <div className="search">
-      <textarea
-        name="search-query-input"
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          if (error) {
-            setError(null);
-          }
-          if (responseData) {
-            setResponseData(null);
-          }
-        }}
-      />
-      <select
-        name="search-mode-select"
-        value={searchMode}
-        onChange={(e) => {
-          setSearchMode(e.target.value as SearchMode);
-        }}
-      >
-        <option value="text">Text based documents</option>
-        <option value="image">Image based documents</option>
-      </select>
-      <button onClick={() => void handleSearch()}>Search</button>
-      {error && <p>{error}</p>}
-      {responseData && <p>{responseData}</p>}
+    <div className="search-container">
+      <Header>What are you looking for?</Header>
+      <div className="search-bar-container">
+        <SearchBar
+          value={query}
+          onChange={handleQueryChange}
+          onSearch={() => void handleSearch()}
+        />
+        <SegmentedControl
+          label="Type"
+          value={searchMode}
+          options={SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS}
+          onChange={(id) => {
+            setSearchMode(id as SearchMode);
+          }}
+        />
+      </div>
+      {error && <Body variant="error">{error}</Body>}
+      {responseData && <Body variant="muted">{responseData}</Body>}
     </div>
   );
 }
