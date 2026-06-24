@@ -14,6 +14,8 @@ import type { ContentCategory } from "../Types/ContentCategory";
 import type { Document } from "../Types/Document";
 import type { DocumentStatus } from "../Types/DocumentStatus";
 
+import "./MyFilesCard.css";
+
 interface Props {
   files: Document[];
   setFiles: Dispatch<SetStateAction<Document[]>>;
@@ -54,8 +56,8 @@ function MyFilesCard(props: Props) {
   };
 
   return (
-    <Card>
-      <Stack spacing="md">
+    <Card className="my-files-card">
+      <Stack spacing="md" fullWidth>
         <Stack direction="horizontal" spacing="md" align="center">
           <Header level={1}>My files</Header>
           <UploadButton setFiles={setFiles} />
