@@ -1,6 +1,6 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
-import Card from "../Ui/Card";
+import Card from "../Ui/Card/Card";
 import Stack from "../Ui/Layout/Stack";
 import Header from "../Ui/Typography/Header";
 
