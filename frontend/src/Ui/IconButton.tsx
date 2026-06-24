@@ -6,6 +6,7 @@ interface Props {
   onClick: () => void;
   isDisabled?: boolean;
   size?: "small" | "medium";
+  className?: string;
 }
 
 function IconButton(props: Props) {
@@ -15,12 +16,17 @@ function IconButton(props: Props) {
     onClick,
     isDisabled = false,
     size = "medium",
+    className,
   } = props;
+
+  const classes = ["icon-button", `icon-button-size-${size}`, className]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <button
       type="button"
-      className={`icon-button icon-button-size-${size}`}
+      className={classes}
       aria-label={ariaLabel}
       onClick={onClick}
       disabled={isDisabled}
