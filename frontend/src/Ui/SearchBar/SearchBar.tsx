@@ -1,6 +1,6 @@
 import { ScanSearch, X } from "lucide-react";
 
-import IconButton from "../IconButton";
+import IconButton from "../Buttons/IconButton";
 import TextInput from "../TextInput/TextInput";
 
 import type { ReactNode } from "react";

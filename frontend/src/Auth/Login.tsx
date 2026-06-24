@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import Button from "../Ui/Button";
-import Card from "../Ui/Card";
+import Button from "../Ui/Buttons/Button";
+import Card from "../Ui/Card/Card";
 import FormField from "../Ui/FormField/FormField";
 import Stack from "../Ui/Layout/Stack";
 import TextInput from "../Ui/TextInput/TextInput";

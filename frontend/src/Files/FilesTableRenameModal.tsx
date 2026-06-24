@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { apiFetch } from "../ApiClient";
-import Button from "../Ui/Button";
+import Button from "../Ui/Buttons/Button";
 import Stack from "../Ui/Layout/Stack";
 import Modal from "../Ui/Modal/Modal";
 import TextInput from "../Ui/TextInput/TextInput";

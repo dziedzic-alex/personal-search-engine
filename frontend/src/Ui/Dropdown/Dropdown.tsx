@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import type { DropdownOption } from "./DropdownOption";
 
-import "../Button.css";
+import "../Buttons/Button.css";
 import "./Dropdown.css";
 
 const ICON_SIZE = 16;

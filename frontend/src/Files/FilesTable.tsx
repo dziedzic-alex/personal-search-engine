@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp, FileText, Image } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import Badge from "../Ui/Badge";
+import Badge from "../Ui/Badge/Badge";
 import EmptyState from "../Ui/EmptyState/EmptyState";
 import Stack from "../Ui/Layout/Stack";
 import Table from "../Ui/Table/Table";

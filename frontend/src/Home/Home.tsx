@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import { useAuth } from "../Auth/AuthContext";
-import Button from "../Ui/Button";
-import Card from "../Ui/Card";
+import Button from "../Ui/Buttons/Button";
+import Card from "../Ui/Card/Card";
 import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 

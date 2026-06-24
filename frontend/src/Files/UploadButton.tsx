@@ -1,7 +1,7 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 
 import { apiFetch } from "../ApiClient";
-import Button from "../Ui/Button";
+import Button from "../Ui/Buttons/Button";
 import { notify } from "../Ui/Notification/notify";
 
 import { ALLOWED_FILE_TYPES, isFileAllowed } from "./uploadButton.utils";

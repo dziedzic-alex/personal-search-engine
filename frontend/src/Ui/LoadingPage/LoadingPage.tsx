@@ -1,5 +1,5 @@
 import CenteredPanel from "../Layout/CenteredPanel";
-import Spinner from "../Spinner";
+import Spinner from "../Spinner/Spinner";
 
 function LoadingPage() {
   return (

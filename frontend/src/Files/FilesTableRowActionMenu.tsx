@@ -4,7 +4,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import { apiFetch } from "../ApiClient";
 import { MAX_NUM_PROCESSING_ATTEMPTS } from "../Types/Document";
 import ActionMenu from "../Ui/ActionMenu/ActionMenu";
-import IconButton from "../Ui/IconButton";
+import IconButton from "../Ui/Buttons/IconButton";
 import { notify } from "../Ui/Notification/notify";
 
 import FilesTableRenameModal from "./FilesTableRenameModal";

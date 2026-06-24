@@ -1,4 +1,4 @@
-import Button from "../Button";
+import Button from "../Buttons/Button";
 import CenteredPanel from "../Layout/CenteredPanel";
 import Stack from "../Layout/Stack";
 import Body from "../Typography/Body";
