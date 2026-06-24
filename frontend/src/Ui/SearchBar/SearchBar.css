@@ -2,7 +2,6 @@
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: 800px;
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--color-border);
