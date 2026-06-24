@@ -32,7 +32,12 @@ function SearchBar(props: Props) {
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        onEnter={onSearch}
+        onEnter={() => {
+          if (value.length === 0) {
+            return;
+          }
+          onSearch();
+        }}
         inputMode="search"
         enterKeyHint="search"
       />
