@@ -77,14 +77,16 @@ function Search() {
           value={query}
           onChange={handleQueryChange}
           onSearch={() => void handleSearch()}
-        />
-        <SegmentedControl
-          label="Type"
-          value={searchMode}
-          options={SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS}
-          onChange={(id) => {
-            setSearchMode(id as SearchMode);
-          }}
+          suffix={
+            <SegmentedControl
+              label="Type"
+              value={searchMode}
+              options={SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS}
+              onChange={(id) => {
+                setSearchMode(id as SearchMode);
+              }}
+            />
+          }
         />
       </div>
       {error && <Body variant="error">{error}</Body>}
