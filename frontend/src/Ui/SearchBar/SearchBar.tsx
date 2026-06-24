@@ -3,6 +3,8 @@ import { ScanSearch, X } from "lucide-react";
 import IconButton from "../IconButton";
 import TextInput from "../TextInput/TextInput";
 
+import type { ReactNode } from "react";
+
 import "./SearchBar.css";
 
 interface Props {
@@ -10,10 +12,11 @@ interface Props {
   onChange: (value: string) => void;
   onSearch: () => void;
   placeholder?: string;
+  suffix?: ReactNode;
 }
 
 function SearchBar(props: Props) {
-  const { value, onChange, onSearch, placeholder = "Search" } = props;
+  const { value, onChange, onSearch, placeholder = "Search", suffix } = props;
 
   return (
     <div className="search-bar">
@@ -21,7 +24,6 @@ function SearchBar(props: Props) {
         className="search-bar-icon"
         ariaLabel="Search"
         onClick={onSearch}
-        size="small"
       >
         <ScanSearch />
       </IconButton>
@@ -34,18 +36,22 @@ function SearchBar(props: Props) {
         inputMode="search"
         enterKeyHint="search"
       />
-      {value.length > 0 && (
-        <IconButton
-          className="search-bar-clear"
-          ariaLabel="Clear search"
-          onClick={() => {
-            onChange("");
-          }}
-          size="small"
-        >
-          <X />
-        </IconButton>
-      )}
+      {suffix ? <div className="search-bar-suffix">{suffix}</div> : null}
+      <IconButton
+        className={[
+          "search-bar-clear",
+          value.length === 0 ? "search-bar-clear-hidden" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        ariaLabel="Clear search"
+        aria-hidden={value.length === 0}
+        onClick={() => {
+          onChange("");
+        }}
+      >
+        <X />
+      </IconButton>
     </div>
   );
 }
