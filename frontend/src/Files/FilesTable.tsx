@@ -58,6 +58,7 @@ function FilesTable(props: Props) {
       <EmptyState
         title="No files yet"
         description="Upload a file to get started."
+        fullHeight
       />
     );
   }
@@ -68,6 +69,7 @@ function FilesTable(props: Props) {
         title="No matching files"
         description="Try adjusting your filters."
         action={{ label: "Clear filters", onClick: onClearFilters }}
+        fullHeight
       />
     );
   }
