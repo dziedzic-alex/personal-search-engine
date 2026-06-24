@@ -1,0 +1,25 @@
+.search-bar {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+}
+
+.search-bar-input {
+  padding: 0.625rem 2.75rem;
+  border-radius: var(--radius-md);
+}
+
+.search-bar-icon,
+.search-bar-clear {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.search-bar-icon {
+  left: 0.5rem;
+}
+
+.search-bar-clear {
+  right: 0.5rem;
+}
