@@ -22,7 +22,9 @@
   cursor: pointer;
 }
 
-.segmented-control-segment:hover:not(:disabled):not(.segmented-control-segment-selected) {
+.segmented-control-segment:hover:not(:disabled):not(
+    .segmented-control-segment-selected
+  ) {
   background-color: var(--color-bg);
 }
 
