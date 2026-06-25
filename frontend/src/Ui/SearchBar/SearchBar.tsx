@@ -41,6 +41,7 @@ function SearchBar(props: Props) {
         value={value}
         onChange={onChange}
         onEnter={onSearch}
+        isDisabled={isDisabled}
         inputMode="search"
         enterKeyHint="search"
       />
