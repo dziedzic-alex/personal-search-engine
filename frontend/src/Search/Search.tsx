@@ -41,6 +41,10 @@ function Search() {
   };
 
   const handleSearch = async () => {
+    if (query.length === 0) {
+      return;
+    }
+
     setError(null);
     setResponseData(null);
 
