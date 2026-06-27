@@ -1,6 +1,5 @@
-from typing import NamedTuple
-
 from sqlalchemy import bindparam, select, text
+from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session
 
 from db.models.document import Document, DocumentStatus
@@ -10,19 +9,26 @@ from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 
 
-class SearchResult(NamedTuple):
-    name: str
-    content_url: str
-    thumbnail_url: str
-    average_distance: float
-    cross_encoding_score: float | None
-
-
 class DocumentRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def _cross_encode_text_rows(self, query: str, text_rows) -> list[SearchResult]:
+    def _to_document(self, row: Row) -> Document:
+        return Document(
+            id=row.id,
+            user_id=row.user_id,
+            name=row.name,
+            status=DocumentStatus(row.status),
+            num_attempts=row.num_attempts,
+            s3_content_key=row.s3_content_key,
+            s3_thumbnail_key=row.s3_thumbnail_key,
+            content_type=row.content_type,
+            size_bytes=row.size_bytes,
+            source_created_time=row.source_created_time,
+            created_time=row.created_time,
+        )
+
+    def _cross_encode_text_rows(self, query: str, text_rows) -> list[Document]:
         reranker_pairs = [
             [query, f"{row.name}\n{content}"]
             for row in text_rows
@@ -30,7 +36,7 @@ class DocumentRepository:
         ]
         reranker_scores = get_cross_encoding_model().predict(reranker_pairs)
 
-        ranked_results: list[SearchResult] = []
+        ranked_results = []
         score_offset = 0
         for row in text_rows:
             chunk_count = len(row.contents)
@@ -38,24 +44,21 @@ class DocumentRepository:
             average_cross_encoding_score = float(sum(chunk_ce_scores) / chunk_count)
 
             ranked_results.append(
-                SearchResult(
-                    name=row.name,
-                    content_url=row.s3_content_key,
-                    thumbnail_url=row.s3_thumbnail_key,
-                    average_distance=float(row.average_distance),
-                    cross_encoding_score=average_cross_encoding_score,
-                )
+                {
+                    "document": self._to_document(row),
+                    "cross_encoding_score": average_cross_encoding_score,
+                }
             )
             score_offset += chunk_count
 
         ranked_results.sort(
-            key=lambda result: result.cross_encoding_score, reverse=True
+            key=lambda result: result["cross_encoding_score"], reverse=True
         )
+
+        ranked_results = [result["document"] for result in ranked_results]
         return ranked_results
 
-    def get_relevant_text_documents(
-        self, query: str, user_id: int
-    ) -> list[SearchResult]:
+    def get_relevant_text_documents(self, query: str, user_id: int) -> list[Document]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -83,11 +86,7 @@ class DocumentRepository:
             )
 
             SELECT
-                documents.id,
-                documents.name,
-                documents.s3_content_key,
-                documents.s3_thumbnail_key,
-                doc_scores.average_distance,
+                documents.*,
                 array_agg(topk_per_document.content) as contents
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
@@ -131,11 +130,7 @@ class DocumentRepository:
             )
 
             SELECT
-                documents.id,
-                documents.name,
-                documents.s3_content_key,
-                documents.s3_thumbnail_key,
-                doc_scores.average_distance
+                documents.*
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
                 WHERE documents.user_id = :user_id
@@ -153,28 +148,20 @@ class DocumentRepository:
             },
         )
 
-        image_retrieval_rows = image_embedding_search_result.all()
+        image_retrieval_rows: list[Document] = [
+            self._to_document(row) for row in image_embedding_search_result.all()
+        ]
 
         ranked_results = self._cross_encode_text_rows(query, text_rows)
-        seen_document_ids = {row.id for row in text_rows}
+        seen_document_ids = set(row.id for row in text_rows)
 
-        for row in image_retrieval_rows:
-            if row.id not in seen_document_ids:
-                ranked_results.append(
-                    SearchResult(
-                        name=row.name,
-                        content_url=row.s3_content_key,
-                        thumbnail_url=row.s3_thumbnail_key,
-                        average_distance=float(row.average_distance),
-                        cross_encoding_score=None,
-                    )
-                )
+        for document in image_retrieval_rows:
+            if document.id not in seen_document_ids:
+                ranked_results.append(document)
 
         return ranked_results
 
-    def get_relevant_image_documents(
-        self, query: str, user_id: int
-    ) -> list[SearchResult]:
+    def get_relevant_image_documents(self, query: str, user_id: int) -> list[Document]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -201,11 +188,7 @@ class DocumentRepository:
             )
 
             SELECT
-                documents.id,
-                documents.name,
-                documents.s3_content_key,
-                documents.s3_thumbnail_key,
-                doc_scores.average_distance
+                documents.*
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
                 WHERE documents.user_id = :user_id
@@ -223,7 +206,9 @@ class DocumentRepository:
             },
         )
 
-        image_retrieval_rows = image_embedding_search_result.all()
+        ranked_results: list[Document] = [
+            self._to_document(row) for row in image_embedding_search_result.all()
+        ]
 
         text_embedding_search_result = self.session.execute(
             text(
@@ -248,11 +233,7 @@ class DocumentRepository:
             )
 
             SELECT
-                documents.id,
-                documents.name,
-                documents.s3_content_key,
-                documents.s3_thumbnail_key,
-                doc_scores.average_distance,
+                documents.*,
                 array_agg(topk_per_document.content) as contents
                 FROM documents
                     INNER JOIN doc_scores ON documents.id = doc_scores.document_id
@@ -274,19 +255,7 @@ class DocumentRepository:
         )
         text_rows = text_embedding_search_result.all()
 
-        seen_document_ids = set()
-        ranked_results: list[SearchResult] = []
-        for row in image_retrieval_rows:
-            seen_document_ids.add(row.id)
-            ranked_results.append(
-                SearchResult(
-                    name=row.name,
-                    content_url=row.s3_content_key,
-                    thumbnail_url=row.s3_thumbnail_key,
-                    average_distance=float(row.average_distance),
-                    cross_encoding_score=None,
-                )
-            )
+        seen_document_ids = set(row.id for row in ranked_results)
 
         text_only_rows = [row for row in text_rows if row.id not in seen_document_ids]
         ranked_results.extend(self._cross_encode_text_rows(query, text_only_rows))

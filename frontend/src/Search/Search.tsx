@@ -50,7 +50,7 @@ function Search() {
 
     try {
       const response: Response = await apiFetch(
-        `/api/search/?query=${query}&search_mode=${searchMode}`,
+        `/api/documents/search?query=${encodeURIComponent(query)}&search_mode=${searchMode}`,
         {
           method: "GET",
         },

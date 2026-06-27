@@ -92,7 +92,7 @@ async function loadFilesIntoState(
 }
 
 async function fetchFiles(searchQuery?: string): Promise<Document[]> {
-  let url = "/api/documents/";
+  let url = "/api/documents/list";
   if (searchQuery) {
     url += `?query=${encodeURIComponent(searchQuery)}`;
   }
@@ -105,9 +105,7 @@ async function fetchFiles(searchQuery?: string): Promise<Document[]> {
     throw new Error("Failed to get your files. Please try again.");
   }
 
-  const responseJson: { documents: Document[] } = (await response.json()) as {
-    documents: Document[];
-  };
+  const responseJson = (await response.json()) as Document[];
 
-  return responseJson.documents;
+  return responseJson;
 }

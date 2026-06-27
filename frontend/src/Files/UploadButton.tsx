@@ -44,7 +44,7 @@ function UploadButton(props: Props) {
     });
 
     try {
-      const response: Response = await apiFetch("/api/upload/", {
+      const response: Response = await apiFetch("/api/documents/", {
         method: "POST",
         body: formData,
       });
