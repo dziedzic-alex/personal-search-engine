@@ -58,9 +58,7 @@ class DocumentRepository:
         ranked_results = [result["document"] for result in ranked_results]
         return ranked_results
 
-    def get_relevant_text_documents(
-        self, query: str, user_id: int
-    ) -> list[Document]:
+    def get_relevant_text_documents(self, query: str, user_id: int) -> list[Document]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -150,7 +148,9 @@ class DocumentRepository:
             },
         )
 
-        image_retrieval_rows: list[Document] = [self._to_document(row) for row in image_embedding_search_result.all()]
+        image_retrieval_rows: list[Document] = [
+            self._to_document(row) for row in image_embedding_search_result.all()
+        ]
 
         ranked_results = self._cross_encode_text_rows(query, text_rows)
         seen_document_ids = set(row.id for row in text_rows)
@@ -161,9 +161,7 @@ class DocumentRepository:
 
         return ranked_results
 
-    def get_relevant_image_documents(
-        self, query: str, user_id: int
-    ) -> list[Document]:
+    def get_relevant_image_documents(self, query: str, user_id: int) -> list[Document]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -208,7 +206,9 @@ class DocumentRepository:
             },
         )
 
-        ranked_results: list[Document] = [self._to_document(row) for row in image_embedding_search_result.all()]
+        ranked_results: list[Document] = [
+            self._to_document(row) for row in image_embedding_search_result.all()
+        ]
 
         text_embedding_search_result = self.session.execute(
             text(

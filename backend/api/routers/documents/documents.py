@@ -64,8 +64,15 @@ class SearchMode(enum.StrEnum):
     TEXT = "text"
     IMAGE = "image"
 
+
 @router.get("/search")
-def search(query: str, search_mode: SearchMode, session: SessionDep, user: UserDep, s3_client: S3ClientDep) -> list[ApiDocument]:
+def search(
+    query: str,
+    search_mode: SearchMode,
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
+) -> list[ApiDocument]:
     if search_mode == SearchMode.TEXT:
         relevant_documents = DocumentRepository(session).get_relevant_text_documents(
             query, user.id
@@ -77,9 +84,7 @@ def search(query: str, search_mode: SearchMode, session: SessionDep, user: UserD
 
     response: list[ApiDocument] = []
     for result in relevant_documents:
-        response.append(
-            to_api_document(result, s3_client)
-        )
+        response.append(to_api_document(result, s3_client))
 
     return response
 
@@ -150,9 +155,11 @@ def retry_document(
 
 UploadFiles = Annotated[list[UploadFile], File(...)]
 
+
 class UploadFilesResponse(CamelModel):
     files_being_processed: list[ApiDocument]
     errors: list[str]
+
 
 @router.post("/")
 def upload_files(
@@ -226,4 +233,3 @@ def upload_files(
         )
 
     return uploaded_files
-
