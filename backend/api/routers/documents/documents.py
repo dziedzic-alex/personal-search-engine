@@ -51,7 +51,7 @@ def to_api_document(document: Document, s3_client: S3Client) -> ApiDocument:
     )
 
 
-@router.get("/")
+@router.get("/list")
 def get_documents(
     session: SessionDep, user: UserDep, s3_client: S3ClientDep, query: str | None = None
 ) -> list[ApiDocument]:

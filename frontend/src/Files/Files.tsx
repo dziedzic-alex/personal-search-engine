@@ -92,7 +92,7 @@ async function loadFilesIntoState(
 }
 
 async function fetchFiles(searchQuery?: string): Promise<Document[]> {
-  let url = "/api/documents/";
+  let url = "/api/documents/list";
   if (searchQuery) {
     url += `?query=${encodeURIComponent(searchQuery)}`;
   }
