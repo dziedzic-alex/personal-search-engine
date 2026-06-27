@@ -1,4 +1,5 @@
 import json
+import enum
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
@@ -49,6 +50,30 @@ def get_documents(
     documents = DocumentRepository(session).get_documents(user.id, query)
 
     return [to_api_document(document, s3_client) for document in documents]
+
+
+class SearchMode(enum.StrEnum):
+    TEXT = "text"
+    IMAGE = "image"
+
+@router.get("/search")
+def search(query: str, search_mode: SearchMode, session: SessionDep, user: UserDep, s3_client: S3ClientDep) -> list[ApiDocument]:
+    if search_mode == SearchMode.TEXT:
+        relevant_documents = DocumentRepository(session).get_relevant_text_documents(
+            query, user.id
+        )
+    elif search_mode == SearchMode.IMAGE:
+        relevant_documents = DocumentRepository(session).get_relevant_image_documents(
+            query, user.id
+        )
+
+    response: list[ApiDocument] = []
+    for result in relevant_documents:
+        response.append(
+            to_api_document(result, s3_client)
+        )
+
+    return response
 
 
 @router.delete("/{document_id}", status_code=204)

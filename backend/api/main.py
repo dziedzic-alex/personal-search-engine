@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pillow_heif import register_heif_opener
 
-from api.routers import documents, search
+from api.routers import documents
 from api.routers.auth.auth import router as auth_router
 from api.routers.upload.upload import router as upload_router
 from shared.models.cross_encoding import get_cross_encoding_model
@@ -21,7 +21,6 @@ app = FastAPI()
 
 app.include_router(auth_router)
 app.include_router(upload_router)
-app.include_router(search.router)
 app.include_router(documents.router)
 
 
