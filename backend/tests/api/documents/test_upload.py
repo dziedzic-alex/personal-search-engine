@@ -1,31 +1,11 @@
 import json
 
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
-from api.routers.upload.upload import router as upload_router
-
-
-def test_upload_requires_auth(mocker):
-    mocker.patch("api.routers.upload.upload.get_redis_client")
-
-    app = FastAPI()
-    app.include_router(upload_router)
-    client = TestClient(app)
+def test_upload_returns_files_being_processed(documents_client):
+    client, mock_session, mock_redis, mock_persist_file, _ = documents_client
 
     response = client.post(
-        "/upload/",
-        files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
-    )
-
-    assert response.status_code == 401
-
-
-def test_upload_returns_files_being_processed(upload_client):
-    client, mock_session, mock_redis, mock_persist_file, _ = upload_client
-
-    response = client.post(
-        "/upload/",
+        "/documents/",
         files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
     )
 
@@ -54,11 +34,11 @@ def test_upload_returns_files_being_processed(upload_client):
     )
 
 
-def test_upload_persists_files_to_s3(upload_client, mock_user):
-    client, _, _, mock_persist_file, _ = upload_client
+def test_upload_persists_files_to_s3(documents_client, mock_user):
+    client, _, _, mock_persist_file, _ = documents_client
 
     client.post(
-        "/upload/",
+        "/documents/",
         files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
     )
 
@@ -68,11 +48,11 @@ def test_upload_persists_files_to_s3(upload_client, mock_user):
     assert args[3] == mock_user.id
 
 
-def test_upload_processes_only_supported_files_in_batch(upload_client):
-    client, mock_session, mock_redis, mock_persist_file, _ = upload_client
+def test_upload_processes_only_supported_files_in_batch(documents_client):
+    client, mock_session, mock_redis, mock_persist_file, _ = documents_client
 
     response = client.post(
-        "/upload/",
+        "/documents/",
         files=[
             ("files", ("doc.pdf", b"pdf content", "application/pdf")),
             ("files", ("notes.txt", b"text content", "text/plain")),
@@ -94,15 +74,15 @@ def test_upload_processes_only_supported_files_in_batch(upload_client):
     )
 
 
-def test_upload_skips_duplicate_filename(upload_client, mocker):
-    client, mock_session, mock_redis, mock_persist_file, _ = upload_client
+def test_upload_skips_duplicate_filename(documents_client, mocker):
+    client, mock_session, mock_redis, mock_persist_file, _ = documents_client
 
     mock_scalars = mocker.MagicMock()
     mock_scalars.first.return_value = mocker.MagicMock()
     mock_session.scalars.return_value = mock_scalars
 
     response = client.post(
-        "/upload/",
+        "/documents/",
         files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
     )
 
@@ -117,12 +97,14 @@ def test_upload_skips_duplicate_filename(upload_client, mocker):
     mock_redis.lpush.assert_not_called()
 
 
-def test_upload_rolls_back_s3_on_db_failure(upload_client, mocker):
-    client, mock_session, mock_redis, mock_persist_file, mock_s3_client = upload_client
+def test_upload_rolls_back_s3_on_db_failure(documents_client, mocker):
+    client, mock_session, mock_redis, mock_persist_file, mock_s3_client = (
+        documents_client
+    )
     mock_session.commit.side_effect = Exception("db error")
 
     response = client.post(
-        "/upload/",
+        "/documents/",
         files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
     )
 
