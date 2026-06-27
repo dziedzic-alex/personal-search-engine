@@ -7,6 +7,7 @@ interface Props {
   justify?: "start" | "center" | "end";
   align?: "start" | "center" | "end" | "stretch";
   className?: string;
+  fullWidth?: boolean;
 }
 
 function Stack(props: Props) {
@@ -17,6 +18,7 @@ function Stack(props: Props) {
     justify,
     align,
     className,
+    fullWidth = false,
   } = props;
 
   const classes = [
@@ -25,6 +27,7 @@ function Stack(props: Props) {
     `stack-spacing-${spacing}`,
     justify ? `stack-justify-${justify}` : "",
     align ? `stack-align-${align}` : "",
+    fullWidth ? `stack-full-width` : "",
     className,
   ]
     .filter(Boolean)

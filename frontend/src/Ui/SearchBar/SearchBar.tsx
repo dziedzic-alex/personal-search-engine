@@ -12,11 +12,19 @@ interface Props {
   onChange: (value: string) => void;
   onSearch: () => void;
   placeholder?: string;
+  isDisabled?: boolean;
   suffix?: ReactNode;
 }
 
 function SearchBar(props: Props) {
-  const { value, onChange, onSearch, placeholder = "Search", suffix } = props;
+  const {
+    value,
+    onChange,
+    onSearch,
+    placeholder = "Search",
+    isDisabled = false,
+    suffix,
+  } = props;
 
   return (
     <div className="search-bar">
@@ -33,6 +41,7 @@ function SearchBar(props: Props) {
         value={value}
         onChange={onChange}
         onEnter={onSearch}
+        isDisabled={isDisabled}
         inputMode="search"
         enterKeyHint="search"
       />

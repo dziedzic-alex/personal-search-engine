@@ -53,3 +53,7 @@
 .stack-justify-end {
   justify-content: flex-end;
 }
+
+.stack-full-width {
+  width: 100%;
+}
