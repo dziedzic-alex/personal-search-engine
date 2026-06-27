@@ -1,6 +1,6 @@
 from sqlalchemy import bindparam, select, text
-from sqlalchemy.orm import Session
 from sqlalchemy.engine import Row
+from sqlalchemy.orm import Session
 
 from db.models.document import Document, DocumentStatus
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType

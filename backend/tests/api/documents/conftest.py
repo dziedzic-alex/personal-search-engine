@@ -4,12 +4,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from api.routers.auth.auth_utils import get_current_user
 from api.routers.documents.documents import router as documents_router
 from api.routers.documents.upload_utils import PersistedFileObjectKeys
 from db.models.document import DocumentStatus
 from db.session import get_session
 from shared.s3_client import get_s3_client
-from api.routers.auth.auth_utils import get_current_user
 
 
 @pytest.fixture

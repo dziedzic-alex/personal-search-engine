@@ -1,8 +1,10 @@
-import json
 import enum
+import json
 from datetime import datetime
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, File, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from sqlalchemy import select
 
 from api.dependencies import S3ClientDep, SessionDep, UserDep
 from api.routers.documents.upload_utils import (
@@ -17,8 +19,6 @@ from shared.content_category import ContentCategory, content_type_to_category
 from shared.content_type import ContentType
 from shared.redis_client import get_redis_client
 from shared.s3_client import S3Client
-from sqlalchemy import select
-from typing import Annotated
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
