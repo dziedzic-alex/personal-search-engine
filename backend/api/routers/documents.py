@@ -27,10 +27,6 @@ class ApiDocument(CamelModel):
     uploaded_time: datetime
 
 
-class DocumentsResponse(CamelModel):
-    documents: list[ApiDocument]
-
-
 def to_api_document(document: Document, s3_client: S3Client) -> ApiDocument:
     return ApiDocument(
         id=document.id,
@@ -49,12 +45,10 @@ def to_api_document(document: Document, s3_client: S3Client) -> ApiDocument:
 @router.get("/")
 def get_documents(
     session: SessionDep, user: UserDep, s3_client: S3ClientDep, query: str | None = None
-) -> DocumentsResponse:
+) -> list[ApiDocument]:
     documents = DocumentRepository(session).get_documents(user.id, query)
 
-    return DocumentsResponse(
-        documents=[to_api_document(document, s3_client) for document in documents]
-    )
+    return [to_api_document(document, s3_client) for document in documents]
 
 
 @router.delete("/{document_id}", status_code=204)

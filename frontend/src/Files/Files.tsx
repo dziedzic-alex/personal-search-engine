@@ -105,9 +105,7 @@ async function fetchFiles(searchQuery?: string): Promise<Document[]> {
     throw new Error("Failed to get your files. Please try again.");
   }
 
-  const responseJson: { documents: Document[] } = (await response.json()) as {
-    documents: Document[];
-  };
+  const responseJson = (await response.json()) as Document[];
 
-  return responseJson.documents;
+  return responseJson;
 }
