@@ -2,7 +2,8 @@ import enum
 
 from fastapi import APIRouter
 
-from api.dependencies import SessionDep, UserDep
+from api.dependencies import SessionDep, UserDep, S3ClientDep
+from api.routers.documents import ApiDocument, to_api_document
 from db.repositories.documents import DocumentRepository
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -14,7 +15,7 @@ class SearchMode(enum.StrEnum):
 
 
 @router.get("/")
-def search(query: str, search_mode: SearchMode, session: SessionDep, user: UserDep):
+def search(query: str, search_mode: SearchMode, session: SessionDep, user: UserDep, s3_client: S3ClientDep) -> list[ApiDocument]:
     if search_mode == SearchMode.TEXT:
         relevant_documents = DocumentRepository(session).get_relevant_text_documents(
             query, user.id
@@ -24,14 +25,10 @@ def search(query: str, search_mode: SearchMode, session: SessionDep, user: UserD
             query, user.id
         )
 
-    response = []
+    response: list[ApiDocument] = []
     for result in relevant_documents:
         response.append(
-            {
-                "name": result.name,
-                "distance": result.average_distance,
-                "cross_encoding_score": result.cross_encoding_score,
-            }
+            to_api_document(result, s3_client)
         )
 
     return response
