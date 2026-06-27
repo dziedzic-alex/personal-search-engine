@@ -32,10 +32,19 @@ interface Props {
   setFiles: Dispatch<SetStateAction<Document[]>>;
   filterConfig: FilterConfig;
   onClearFilters: () => void;
+  hasMadeSearchQuery: boolean;
+  clearSearch: () => void;
 }
 
 function FilesTable(props: Props) {
-  const { files, setFiles, filterConfig, onClearFilters } = props;
+  const {
+    files,
+    setFiles,
+    filterConfig,
+    onClearFilters,
+    hasMadeSearchQuery,
+    clearSearch,
+  } = props;
 
   const [sortColumnDirection, setSortColumnDirection] =
     useState<SortColumnDirection | null>(null);
@@ -53,11 +62,20 @@ function FilesTable(props: Props) {
     [files, filterConfig, sortColumnDirection],
   );
 
-  if (files.length === 0) {
+  if (files.length === 0 && !hasMadeSearchQuery) {
     return (
       <EmptyState
         title="No files yet"
         description="Upload a file to get started."
+        fullHeight
+      />
+    );
+  } else if (files.length === 0 && hasMadeSearchQuery) {
+    return (
+      <EmptyState
+        title="No matching files"
+        description="Try adjusting your search query."
+        action={{ label: "Clear search", onClick: clearSearch }}
         fullHeight
       />
     );
