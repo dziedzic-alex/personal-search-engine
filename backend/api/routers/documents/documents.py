@@ -5,7 +5,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, File, UploadFile
 
 from api.dependencies import S3ClientDep, SessionDep, UserDep
-from upload_utils import (
+from api.routers.documents.upload_utils import (
     is_allowed_content_type,
     persist_file,
     sanitize_content_type,
@@ -154,7 +154,7 @@ class UploadFilesResponse(CamelModel):
     files_being_processed: list[ApiDocument]
     errors: list[str]
 
-@router.post("/upload")
+@router.post("/")
 def upload_files(
     files: UploadFiles, user: UserDep, session: SessionDep, s3_client: S3ClientDep
 ) -> UploadFilesResponse:
