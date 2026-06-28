@@ -1,7 +1,13 @@
 import pytest
+from io import BytesIO
+
+from PIL import Image
 
 from api.routers.documents.upload_utils import (
+    THUMBNAIL_HEIGHT,
+    THUMBNAIL_WIDTH,
     PersistedFileObjectKeys,
+    _create_thumbnail,
     persist_file,
     sanitize_content_type,
 )
@@ -62,3 +68,15 @@ def test_persist_file_returns_s3_keys(mocker):
     )
     assert mock_s3_client.persist_file.call_args_list[0].args[3] == ContentType.JPEG
     assert mock_s3_client.persist_file.call_args_list[1].args[3] == ContentType.PNG
+
+
+def test_create_thumbnail():
+    buffer = BytesIO()
+    Image.new("RGB", (2000, 1500)).save(buffer, format="PNG")
+
+    thumbnail_bytes = _create_thumbnail(buffer.getvalue())
+    thumbnail = Image.open(BytesIO(thumbnail_bytes))
+
+    assert thumbnail.format == "JPEG"
+    assert thumbnail.width <= THUMBNAIL_WIDTH
+    assert thumbnail.height <= THUMBNAIL_HEIGHT
