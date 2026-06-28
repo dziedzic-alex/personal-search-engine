@@ -1,0 +1,65 @@
+.file-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-card {
+  position: relative;
+  display: flex;
+  padding: 1rem;
+  flex-direction: column;
+}
+
+.file-card:hover {
+  cursor: pointer;
+  background-color: var(--color-surface-hover);
+}
+
+.file-card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.file-card-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-card-icon {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.file-card-actions {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.file-card-thumbnail {
+  display: block;
+  width: 100%;
+  flex: 1 1 0;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  min-height: 0;
+  background-color: var(--color-thumbnail-bg);
+  outline: 1px solid var(--color-border);
+  outline-offset: -1px;
+}
+
+.file-card-thumbnail-pdf {
+  object-position: top;
+}
+
+.file-card-content {
+  flex: 1;
+  min-height: 0;
+}
+
+.file-card-actions .icon-button:hover:not(:disabled) {
+  background-color: var(--color-border);
+}
