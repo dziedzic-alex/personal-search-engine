@@ -1,3 +1,6 @@
+import { useNavigate } from "react-router-dom";
+
+import EmptyState from "../Ui/EmptyState/EmptyState";
 import ErrorState from "../Ui/ErrorState/ErrorState";
 import LoadingPage from "../Ui/LoadingPage/LoadingPage";
 
@@ -6,8 +9,6 @@ import FileCard from "./FileCard";
 import type { Document } from "../Types/Document";
 
 import "./FilesGrid.css";
-import EmptyState from "../Ui/EmptyState/EmptyState";
-import { useNavigate } from "react-router-dom";
 
 interface Props {
   files: Document[];
