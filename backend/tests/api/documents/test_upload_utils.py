@@ -23,7 +23,7 @@ def test_persist_file_rolls_back_thumbnail_when_content_upload_fails(mocker):
         Exception("s3 error"),
     ]
     mocker.patch(
-        "api.routers.documents.upload_utils.create_image_thumbnail",
+        "api.routers.documents.upload_utils._create_image_thumbnail",
         return_value=b"thumbnail bytes",
     )
 
@@ -44,7 +44,7 @@ def test_persist_file_returns_s3_keys(mocker):
     mock_s3_client.persist_file.side_effect = ["1/thumbnail_test.jpg", "1/test.png"]
 
     mocker.patch(
-        "api.routers.documents.upload_utils.create_image_thumbnail",
+        "api.routers.documents.upload_utils._create_image_thumbnail",
         return_value=b"thumbnail bytes",
     )
 
