@@ -4,20 +4,16 @@ import { useState } from "react";
 import { apiFetch } from "../ApiClient";
 import SearchBar from "../Ui/SearchBar/SearchBar";
 import SegmentedControl from "../Ui/SegmentedControl/SegmentedControl";
-import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
+import FilesGrid from "./FilesGrid";
+
+import type { Document } from "../Types/Document";
 import type { SegmentedControlOption } from "../Ui/SegmentedControl/SegmentedControlOption";
 
 import "./Search.css";
 
 type SearchMode = "text" | "image";
-
-interface SearchResponse {
-  relevant_documents: {
-    name: string;
-  }[];
-}
 
 const SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS: SegmentedControlOption[] = [
   { id: "text", label: "PDFs", icon: FileText },
@@ -27,16 +23,16 @@ const SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS: SegmentedControlOption[] = [
 function Search() {
   const [query, setQuery] = useState<string>("");
   const [searchMode, setSearchMode] = useState<SearchMode>("text");
-  const [responseData, setResponseData] = useState<string | null>(null);
+  const [files, setFiles] = useState<Document[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [shouldShowEmptyState, setShouldShowEmptyState] =
+    useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
     if (error) {
       setError(null);
-    }
-    if (responseData) {
-      setResponseData(null);
     }
   };
 
@@ -45,8 +41,10 @@ function Search() {
       return;
     }
 
+    setIsLoading(true);
     setError(null);
-    setResponseData(null);
+    setFiles([]);
+    setShouldShowEmptyState(false);
 
     try {
       const response: Response = await apiFetch(
@@ -60,12 +58,17 @@ function Search() {
         throw new Error("Failed to search");
       }
 
-      const responseJson: SearchResponse =
-        (await response.json()) as SearchResponse;
+      const responseJson: Document[] = (await response.json()) as Document[];
 
-      setResponseData(JSON.stringify(responseJson));
+      if (responseJson.length === 0) {
+        setShouldShowEmptyState(true);
+      }
+
+      setFiles(responseJson);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to search");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -89,8 +92,13 @@ function Search() {
           }
         />
       </div>
-      {error && <Body variant="error">{error}</Body>}
-      {responseData && <Body variant="muted">{responseData}</Body>}
+      <FilesGrid
+        files={files}
+        isLoading={isLoading}
+        shouldShowEmptyState={shouldShowEmptyState}
+        error={error}
+        retrySearch={() => void handleSearch()}
+      />
     </div>
   );
 }
