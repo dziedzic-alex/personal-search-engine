@@ -8,7 +8,6 @@ import Card from "../Ui/Card/Card";
 import Stack from "../Ui/Layout/Stack";
 import getContentCategoryIcon from "../Utils/FileIcon";
 
-
 import type { ContentCategory } from "../Types/ContentCategory";
 
 import "./FileCard.css";
