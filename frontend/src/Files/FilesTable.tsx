@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, FileText, Image } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import Badge from "../Ui/Badge/Badge";
@@ -11,6 +11,7 @@ import TableHeader from "../Ui/Table/TableHeader";
 import TableRow from "../Ui/Table/TableRow";
 import { formatBytes } from "../Utils/Bytes";
 import { formatDate } from "../Utils/Date";
+import getContentCategoryIcon from "../Utils/FileIcon";
 
 import {
   filterFiles,
@@ -22,7 +23,6 @@ import {
 } from "./filesTable.utils";
 import FilesTableRowActionMenu from "./FilesTableRowActionMenu";
 
-import type { ContentCategory } from "../Types/ContentCategory";
 import type { Document } from "../Types/Document";
 import type { DocumentStatus } from "../Types/DocumentStatus";
 import type { Dispatch, SetStateAction } from "react";
@@ -175,17 +175,6 @@ function FilesTable(props: Props) {
       </TableBody>
     </Table>
   );
-}
-
-function getContentCategoryIcon(
-  contentCategory: ContentCategory,
-): React.ReactNode {
-  switch (contentCategory) {
-    case "pdf":
-      return <FileText />;
-    case "image":
-      return <Image />;
-  }
 }
 
 function getDocumentStatusBadge(status: DocumentStatus): React.ReactNode {
