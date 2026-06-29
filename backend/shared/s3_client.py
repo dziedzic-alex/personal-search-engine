@@ -1,4 +1,5 @@
 import boto3
+from dataclasses import dataclass
 from botocore.config import Config
 
 from shared.content_type import ContentType, content_type_to_mime_type
@@ -52,12 +53,18 @@ class S3Client:
             Key=object_key,
         )
 
-    def generate_presigned_url(self, object_key: str, expires_in: int = 3600) -> str:
-        return self.client.generate_presigned_url(
-            "get_object",
-            Params={
-                "Bucket": settings.s3_files_thumbnails_bucket_name,
-                "Key": object_key,
-            },
-            ExpiresIn=expires_in,
-        )
+    @dataclass
+    class ContentDispositionConfig:
+        filename: str
+        disposition: str = "attachment"
+
+    def generate_presigned_url(self, object_key: str, expires_in: int = 3600, content_disposition_config: ContentDispositionConfig | None = None) -> str:
+        params = {
+            "Bucket": settings.s3_files_thumbnails_bucket_name,
+            "Key": object_key,
+        }
+
+        if content_disposition_config is not None:
+            params["ResponseContentDisposition"] = f"{content_disposition_config.disposition}; filename=\"{content_disposition_config.filename}\""
+
+        return self.client.generate_presigned_url("get_object", Params=params, ExpiresIn=expires_in)
