@@ -81,6 +81,7 @@ def _create_pdf_thumbnail(file_data: bytes) -> bytes:
 
     return _create_thumbnail(image)
 
+
 def _create_thumbnail(image: Image.Image) -> bytes:
     image.thumbnail((THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT), Image.Resampling.LANCZOS)
     buffer = BytesIO()
