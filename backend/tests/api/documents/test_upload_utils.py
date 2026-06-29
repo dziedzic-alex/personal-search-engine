@@ -1,6 +1,6 @@
-import pytest
 from io import BytesIO
 
+import pytest
 from PIL import Image
 
 from api.routers.documents.upload_utils import (

@@ -1,5 +1,6 @@
-import boto3
 from dataclasses import dataclass
+
+import boto3
 from botocore.config import Config
 
 from shared.content_type import ContentType, content_type_to_mime_type
