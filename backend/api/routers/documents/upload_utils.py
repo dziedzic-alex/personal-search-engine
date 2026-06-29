@@ -10,8 +10,8 @@ from shared.image_utils import normalize_image
 from shared.s3_client import S3Client
 
 THUMBNAIL_PREFIX = "thumbnail_"
-THUMBNAIL_WIDTH = 200
-THUMBNAIL_HEIGHT = 200
+THUMBNAIL_WIDTH = 500
+THUMBNAIL_HEIGHT = 500
 
 
 def sanitize_content_type(content_type: str, filename: str) -> str:
@@ -45,11 +45,11 @@ def persist_file(
 ) -> PersistedFileObjectKeys:
     content_category = content_type_to_category(content_type)
     if content_category == ContentCategory.IMAGE:
-        thumbnail = create_image_thumbnail(file_data)
+        thumbnail = _create_image_thumbnail(file_data)
     else:
-        thumbnail = create_pdf_thumbnail(file_data)
+        thumbnail = _create_pdf_thumbnail(file_data)
 
-    thumbnail_filename = THUMBNAIL_PREFIX + filename.split(".")[0] + ".jpg"
+    thumbnail_filename = THUMBNAIL_PREFIX + filename.rsplit(".", 1)[0] + ".jpg"
 
     thumbnail_key = s3_client.persist_file(
         thumbnail_filename, user_id, thumbnail, ContentType.JPEG
@@ -63,27 +63,28 @@ def persist_file(
     return PersistedFileObjectKeys(content_key=content_key, thumbnail_key=thumbnail_key)
 
 
-def create_image_thumbnail(file_data: bytes) -> bytes:
+def _create_image_thumbnail(file_data: bytes) -> bytes:
     image = Image.open(BytesIO(file_data))
     image = normalize_image(image)
-    image.thumbnail((THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
 
-    buffer = BytesIO()
-    image.save(buffer, format="JPEG")
-
-    return buffer.getvalue()
+    return _create_thumbnail(image)
 
 
-def create_pdf_thumbnail(file_data: bytes) -> bytes:
+def _create_pdf_thumbnail(file_data: bytes) -> bytes:
     pixel_map = None
     with fitz.open(stream=file_data, filetype="pdf") as pdf:
-        pixel_map = pdf.load_page(0).get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
+        pixel_map = pdf.load_page(0).get_pixmap(matrix=fitz.Matrix(2, 2))
 
     image = Image.frombytes(
         "RGB", [pixel_map.width, pixel_map.height], pixel_map.samples
     )
-    image.thumbnail((THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
+
+    return _create_thumbnail(image)
+
+
+def _create_thumbnail(image: Image.Image) -> bytes:
+    image.thumbnail((THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT), Image.Resampling.LANCZOS)
     buffer = BytesIO()
-    image.save(buffer, format="JPEG")
+    image.save(buffer, format="JPEG", quality=90, optimize=True)
 
     return buffer.getvalue()

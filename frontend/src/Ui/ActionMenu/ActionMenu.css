@@ -1,5 +1,7 @@
 .action-menu {
   display: inline-flex;
+  position: relative;
+  z-index: 2;
 }
 
 .action-menu-panel {

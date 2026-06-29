@@ -29,7 +29,8 @@ class ApiDocument(CamelModel):
     content_category: ContentCategory
     status: DocumentStatus
     num_attempts: int
-    content_url: str
+    preview_url: str
+    download_url: str
     thumbnail_url: str
     size: int
     source_created_time: datetime | None
@@ -43,7 +44,13 @@ def to_api_document(document: Document, s3_client: S3Client) -> ApiDocument:
         content_category=content_type_to_category(document.content_type),
         status=DocumentStatus(document.status),
         num_attempts=document.num_attempts,
-        content_url=s3_client.generate_presigned_url(document.s3_content_key),
+        preview_url=s3_client.generate_presigned_url(document.s3_content_key),
+        download_url=s3_client.generate_presigned_url(
+            document.s3_content_key,
+            content_disposition_config=S3Client.ContentDispositionConfig(
+                filename=document.name
+            ),
+        ),
         thumbnail_url=s3_client.generate_presigned_url(document.s3_thumbnail_key),
         size=document.size_bytes,
         source_created_time=document.source_created_time,

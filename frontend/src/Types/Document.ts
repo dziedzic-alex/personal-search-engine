@@ -9,7 +9,8 @@ export interface Document {
   contentCategory: ContentCategory;
   status: DocumentStatus;
   numAttempts: number;
-  contentUrl: string;
+  previewUrl: string;
+  downloadUrl: string;
   thumbnailUrl: string;
   size: number;
   sourceCreatedTime: string | null;

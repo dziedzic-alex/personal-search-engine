@@ -1,7 +1,13 @@
+from io import BytesIO
+
 import pytest
+from PIL import Image
 
 from api.routers.documents.upload_utils import (
+    THUMBNAIL_HEIGHT,
+    THUMBNAIL_WIDTH,
     PersistedFileObjectKeys,
+    _create_thumbnail,
     persist_file,
     sanitize_content_type,
 )
@@ -23,7 +29,7 @@ def test_persist_file_rolls_back_thumbnail_when_content_upload_fails(mocker):
         Exception("s3 error"),
     ]
     mocker.patch(
-        "api.routers.documents.upload_utils.create_image_thumbnail",
+        "api.routers.documents.upload_utils._create_image_thumbnail",
         return_value=b"thumbnail bytes",
     )
 
@@ -44,7 +50,7 @@ def test_persist_file_returns_s3_keys(mocker):
     mock_s3_client.persist_file.side_effect = ["1/thumbnail_test.jpg", "1/test.png"]
 
     mocker.patch(
-        "api.routers.documents.upload_utils.create_image_thumbnail",
+        "api.routers.documents.upload_utils._create_image_thumbnail",
         return_value=b"thumbnail bytes",
     )
 
@@ -62,3 +68,14 @@ def test_persist_file_returns_s3_keys(mocker):
     )
     assert mock_s3_client.persist_file.call_args_list[0].args[3] == ContentType.JPEG
     assert mock_s3_client.persist_file.call_args_list[1].args[3] == ContentType.PNG
+
+
+def test_create_thumbnail():
+    image = Image.new("RGB", (2000, 1500))
+
+    thumbnail_bytes = _create_thumbnail(image)
+    thumbnail = Image.open(BytesIO(thumbnail_bytes))
+
+    assert thumbnail.format == "JPEG"
+    assert thumbnail.width <= THUMBNAIL_WIDTH
+    assert thumbnail.height <= THUMBNAIL_HEIGHT
