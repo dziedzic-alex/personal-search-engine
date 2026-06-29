@@ -71,10 +71,9 @@ def test_persist_file_returns_s3_keys(mocker):
 
 
 def test_create_thumbnail():
-    buffer = BytesIO()
-    Image.new("RGB", (2000, 1500)).save(buffer, format="PNG")
+    image = Image.new("RGB", (2000, 1500))
 
-    thumbnail_bytes = _create_thumbnail(buffer.getvalue())
+    thumbnail_bytes = _create_thumbnail(image)
     thumbnail = Image.open(BytesIO(thumbnail_bytes))
 
     assert thumbnail.format == "JPEG"
