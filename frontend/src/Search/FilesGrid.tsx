@@ -57,7 +57,8 @@ function FilesGrid(props: Props) {
             filename={file.name}
             contentCategory={file.contentCategory}
             thumbnailUrl={file.thumbnailUrl}
-            contentUrl={file.contentUrl}
+            previewUrl={file.previewUrl}
+            downloadUrl={file.downloadUrl}
           />
         );
       })}
