@@ -45,7 +45,12 @@ def to_api_document(document: Document, s3_client: S3Client) -> ApiDocument:
         status=DocumentStatus(document.status),
         num_attempts=document.num_attempts,
         preview_url=s3_client.generate_presigned_url(document.s3_content_key),
-        download_url=s3_client.generate_presigned_url(document.s3_content_key, content_disposition_config=S3Client.ContentDispositionConfig(filename=document.name)),
+        download_url=s3_client.generate_presigned_url(
+            document.s3_content_key,
+            content_disposition_config=S3Client.ContentDispositionConfig(
+                filename=document.name
+            ),
+        ),
         thumbnail_url=s3_client.generate_presigned_url(document.s3_thumbnail_key),
         size=document.size_bytes,
         source_created_time=document.source_created_time,

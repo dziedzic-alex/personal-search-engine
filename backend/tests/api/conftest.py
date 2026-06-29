@@ -9,6 +9,7 @@ ph = PasswordHasher()
 @pytest.fixture
 def mock_s3_client(mocker):
     client = mocker.MagicMock()
+
     def generate_presigned_url(
         object_key, expires_in=3600, content_disposition_config=None
     ):

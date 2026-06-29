@@ -58,13 +58,22 @@ class S3Client:
         filename: str
         disposition: str = "attachment"
 
-    def generate_presigned_url(self, object_key: str, expires_in: int = 3600, content_disposition_config: ContentDispositionConfig | None = None) -> str:
+    def generate_presigned_url(
+        self,
+        object_key: str,
+        expires_in: int = 3600,
+        content_disposition_config: ContentDispositionConfig | None = None,
+    ) -> str:
         params = {
             "Bucket": settings.s3_files_thumbnails_bucket_name,
             "Key": object_key,
         }
 
         if content_disposition_config is not None:
-            params["ResponseContentDisposition"] = f"{content_disposition_config.disposition}; filename=\"{content_disposition_config.filename}\""
+            params["ResponseContentDisposition"] = (
+                f'{content_disposition_config.disposition}; filename="{content_disposition_config.filename}"'
+            )
 
-        return self.client.generate_presigned_url("get_object", Params=params, ExpiresIn=expires_in)
+        return self.client.generate_presigned_url(
+            "get_object", Params=params, ExpiresIn=expires_in
+        )
