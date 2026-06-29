@@ -1,4 +1,4 @@
-import { EllipsisVertical } from "lucide-react";
+import { Download, EllipsisVertical, Eye } from "lucide-react";
 
 import ActionMenu, {
   type ActionMenuTriggerProps,
@@ -16,11 +16,13 @@ interface Props {
   filename: string;
   contentCategory: ContentCategory;
   thumbnailUrl: string;
-  contentUrl: string;
+  previewUrl: string;
+  downloadUrl: string;
 }
 
 function FileCard(props: Props) {
-  const { filename, contentCategory, thumbnailUrl, contentUrl } = props;
+  const { filename, contentCategory, thumbnailUrl, previewUrl, downloadUrl } =
+    props;
 
   const thumbnailClassNames = [
     "file-card-thumbnail",
@@ -32,7 +34,7 @@ function FileCard(props: Props) {
   return (
     <Card className="file-card">
       <a
-        href={contentUrl}
+        href={previewUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="file-card-link"
@@ -51,7 +53,24 @@ function FileCard(props: Props) {
                   <EllipsisVertical />
                 </IconButton>
               )}
-              options={[]}
+              options={[
+                {
+                  id: "view",
+                  label: "View",
+                  icon: Eye,
+                  onClick: () => {
+                    window.open(previewUrl, "_blank");
+                  },
+                },
+                {
+                  id: "download",
+                  label: "Download",
+                  icon: Download,
+                  onClick: () => {
+                    window.location.assign(downloadUrl);
+                  },
+                },
+              ]}
             />
           </div>
         </div>
