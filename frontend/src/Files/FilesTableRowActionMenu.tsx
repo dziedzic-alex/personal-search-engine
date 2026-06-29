@@ -1,4 +1,11 @@
-import { EllipsisVertical, Pencil, RotateCcw, Eye, Trash } from "lucide-react";
+import {
+  EllipsisVertical,
+  Pencil,
+  RotateCcw,
+  Eye,
+  Trash,
+  Download,
+} from "lucide-react";
 import { useState, type Dispatch, type SetStateAction } from "react";
 
 import { apiFetch } from "../ApiClient";
@@ -105,7 +112,15 @@ function FilesTableRowActionMenu(props: Props) {
             label: "View",
             icon: Eye,
             onClick: () => {
-              window.open(file.contentUrl, "_blank");
+              window.open(file.previewUrl, "_blank");
+            },
+          },
+          {
+            id: "download",
+            label: "Download",
+            icon: Download,
+            onClick: () => {
+              window.location.assign(file.downloadUrl);
             },
           },
           {
