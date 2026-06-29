@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makeDocument } from "../Files/filesTest.utils";
@@ -13,13 +14,21 @@ vi.mock("../ApiClient", () => ({
   apiFetch: (url: string, options?: RequestInit) => mockApiFetch(url, options),
 }));
 
+function renderSearch() {
+  return render(
+    <MemoryRouter>
+      <Search />
+    </MemoryRouter>,
+  );
+}
+
 describe("Search", () => {
   beforeEach(() => {
     mockApiFetch.mockReset();
   });
 
   it("does not search when the query is empty", async () => {
-    render(<Search />);
+    renderSearch();
 
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
@@ -36,7 +45,7 @@ describe("Search", () => {
       json: () => Promise.resolve(files),
     } as Response);
 
-    render(<Search />);
+    renderSearch();
 
     await userEvent.type(screen.getByPlaceholderText("Search"), "contract");
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
@@ -58,7 +67,7 @@ describe("Search", () => {
       json: () => Promise.resolve([]),
     } as Response);
 
-    render(<Search />);
+    renderSearch();
 
     await userEvent.click(screen.getByRole("radio", { name: "Images" }));
     await userEvent.type(screen.getByPlaceholderText("Search"), "sunset");
@@ -78,7 +87,7 @@ describe("Search", () => {
       json: () => Promise.resolve([]),
     } as Response);
 
-    render(<Search />);
+    renderSearch();
 
     await userEvent.type(screen.getByPlaceholderText("Search"), "missing");
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
@@ -93,7 +102,7 @@ describe("Search", () => {
       ok: false,
     } as Response);
 
-    render(<Search />);
+    renderSearch();
 
     await userEvent.type(screen.getByPlaceholderText("Search"), "broken");
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
