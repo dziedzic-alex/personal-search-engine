@@ -18,7 +18,6 @@ def test_list_documents_returns_user_documents(documents_client, mocker):
             "name": "report.pdf",
             "contentCategory": "pdf",
             "status": "processed",
-            "numAttempts": 0,
             "previewUrl": "https://presigned.example/1/report.pdf",
             "downloadUrl": "https://presigned.example/1/report.pdf",
             "thumbnailUrl": "https://presigned.example/1/thumbnail_report.jpg",

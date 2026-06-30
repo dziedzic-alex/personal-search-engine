@@ -19,7 +19,6 @@ def test_upload_returns_files_being_processed(documents_client):
     assert uploaded["name"] == "test.pdf"
     assert uploaded["contentCategory"] == "pdf"
     assert uploaded["status"] == "pending"
-    assert uploaded["numAttempts"] == 0
     assert uploaded["size"] == len(b"pdf content")
     assert uploaded["previewUrl"] == "https://presigned.example/1/test.pdf"
     assert uploaded["downloadUrl"] == "https://presigned.example/1/test.pdf"

@@ -9,7 +9,6 @@ def make_document(**kwargs) -> Document:
         "user_id": 1,
         "name": "report.pdf",
         "status": DocumentStatus.PROCESSED,
-        "num_attempts": 0,
         "s3_content_key": "1/report.pdf",
         "s3_thumbnail_key": "1/thumbnail_report.jpg",
         "content_type": "pdf",

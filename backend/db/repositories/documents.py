@@ -19,7 +19,6 @@ class DocumentRepository:
             user_id=row.user_id,
             name=row.name,
             status=DocumentStatus(row.status),
-            num_attempts=row.num_attempts,
             s3_content_key=row.s3_content_key,
             s3_thumbnail_key=row.s3_thumbnail_key,
             content_type=row.content_type,

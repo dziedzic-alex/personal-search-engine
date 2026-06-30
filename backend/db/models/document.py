@@ -18,9 +18,6 @@ class DocumentStatus(enum.StrEnum):
     FAILED = "failed"
 
 
-MAX_NUM_ATTEMPTS = 3
-
-
 class Document(Base):
     __tablename__ = "documents"
 
@@ -37,7 +34,6 @@ class Document(Base):
         ),
         insert_default=DocumentStatus.PENDING,
     )
-    num_attempts: Mapped[int] = mapped_column(Integer, insert_default=0)
     s3_content_key: Mapped[str] = mapped_column(String(255))
     s3_thumbnail_key: Mapped[str] = mapped_column(String(255))
     content_type: Mapped[str] = mapped_column(String(255))
