@@ -24,6 +24,7 @@ module "document_processing_dead_letter_queue" {
   environment               = var.environment
   max_message_size          = 2048
   message_retention_seconds = 1209600 # 14 days
+  receive_wait_time_seconds = 3
   redrive_allow_policy = jsonencode({
     redrivePermission = "byQueue"
     sourceQueueArns   = [module.document_processing_queue.queue_arn]
