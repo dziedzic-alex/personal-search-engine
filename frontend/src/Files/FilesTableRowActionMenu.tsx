@@ -1,10 +1,4 @@
-import {
-  EllipsisVertical,
-  Pencil,
-  Eye,
-  Trash,
-  Download,
-} from "lucide-react";
+import { EllipsisVertical, Pencil, Eye, Trash, Download } from "lucide-react";
 import { useState, type Dispatch, type SetStateAction } from "react";
 
 import { apiFetch } from "../ApiClient";
