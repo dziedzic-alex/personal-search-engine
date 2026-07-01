@@ -54,7 +54,9 @@ def persist_file(
         user_id, thumbnail, ContentType.JPEG, f"{file_group_id}/thumbnail"
     )
     try:
-        content_key = s3_client.persist_file(user_id, file_data, content_type, f"{file_group_id}/content")
+        content_key = s3_client.persist_file(
+            user_id, file_data, content_type, f"{file_group_id}/content"
+        )
     except Exception as e:
         s3_client.delete_file(thumbnail_key)
         raise e

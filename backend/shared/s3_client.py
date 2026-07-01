@@ -36,7 +36,11 @@ class S3Client:
         return response["Body"].read()
 
     def persist_file(
-        self, user_id: int, file_data: bytes, content_type: ContentType, object_key_suffix: str | None = None
+        self,
+        user_id: int,
+        file_data: bytes,
+        content_type: ContentType,
+        object_key_suffix: str | None = None,
     ) -> str:
         key_prefix = f"{user_id}/"
         key_suffix = object_key_suffix or str(uuid.uuid4())
