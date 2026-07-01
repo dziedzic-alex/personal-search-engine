@@ -41,8 +41,12 @@ function FilesTableRenameModal(props: Props) {
       body: JSON.stringify({ name: trimmedNewName }),
     })
       .then((response: Response) => {
-        if (!response.ok) {
-          throw new Error("Failed to rename the file. Please try again later.");
+        if (response.status === 409) {
+          throw new Error(
+            `Document with name '${trimmedNewName}' already exists`,
+          );
+        } else if (!response.ok) {
+          throw new Error("Failed to rename the file. Please try again.");
         }
 
         return response.json();
@@ -55,7 +59,7 @@ function FilesTableRenameModal(props: Props) {
         setError(
           error instanceof Error
             ? error.message
-            : "Failed to rename the file. Please try again later.",
+            : "Failed to rename the file. Please try again.",
         );
       })
       .finally(() => {
