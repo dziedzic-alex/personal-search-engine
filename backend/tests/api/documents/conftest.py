@@ -12,7 +12,6 @@ from db.session import get_session
 from shared.s3_client import get_s3_client
 from shared.sqs_client import get_document_processing_sqs_client
 
-
 FILE_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000"
 
 

@@ -1,6 +1,6 @@
+import uuid
 from dataclasses import dataclass
 from io import BytesIO
-import uuid
 
 import fitz
 from PIL import Image

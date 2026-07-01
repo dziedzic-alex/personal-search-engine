@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import uuid
+from dataclasses import dataclass
 
 import boto3
 from botocore.config import Config
