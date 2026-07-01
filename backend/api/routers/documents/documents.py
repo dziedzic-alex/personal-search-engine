@@ -197,7 +197,7 @@ def upload_files(
         file_data = file.file.read()
         content_type = ContentType(sanitized_content_type)
         persisted_file_object_keys = persist_file(
-            s3_client, filename, file_data, user.id, content_type
+            s3_client, file_data, user.id, content_type
         )
 
         try:
