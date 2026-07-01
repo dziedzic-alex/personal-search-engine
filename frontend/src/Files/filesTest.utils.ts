@@ -6,7 +6,6 @@ export function makeDocument(overrides: Partial<Document> = {}): Document {
     name: "report.pdf",
     contentCategory: "pdf",
     status: "processed",
-    numAttempts: 0,
     previewUrl: "https://presigned.example/1/report.pdf",
     downloadUrl: "https://presigned.example/1/report.pdf",
     thumbnailUrl: "",

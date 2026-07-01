@@ -4,8 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Environment(enum.StrEnum):
-    DEVELOPMENT = "development"
-    PRODUCTION = "production"
+    DEV = "dev"
+    PROD = "prod"
 
 
 class Settings(BaseSettings):
@@ -17,9 +17,9 @@ class Settings(BaseSettings):
     jwt_secret: str
     s3_files_thumbnails_bucket_name: str
     s3_files_thumbnails_bucket_region: str
-    jwt_algorithm: str = "HS256"
-    access_token_expires_in_minutes: int = 5
-    refresh_token_expires_in_days: int = 7
+    sqs_document_processing_queue_name: str
+    sqs_document_processing_dead_letter_queue_name: str
+    sqs_document_queues_region: str
 
 
 settings = Settings()

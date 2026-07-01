@@ -13,6 +13,10 @@ from db.models.user import User, UserPlan
 from shared.redis_client import get_redis_client
 from shared.settings import Environment, settings
 
+JWT_ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRES_IN_MINUTES = 10
+REFRESH_TOKEN_EXPIRES_IN_DAYS = 7
+
 REDIS_REFRESH_TOKEN_KEY_PREFIX = "refresh:"
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
@@ -23,10 +27,10 @@ def create_access_token(user_id: int):
     payload = {
         "sub": str(user_id),
         "iat": now,
-        "exp": now + timedelta(minutes=settings.access_token_expires_in_minutes),
+        "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRES_IN_MINUTES),
     }
 
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+    return jwt.encode(payload, settings.jwt_secret, algorithm=JWT_ALGORITHM)
 
 
 def create_refresh_token() -> str:
@@ -38,7 +42,7 @@ def persist_refresh_token(refresh_token: str, user_id: int):
     redis_client.set(
         f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}",
         user_id,
-        ex=settings.refresh_token_expires_in_days * 24 * 60 * 60,
+        ex=REFRESH_TOKEN_EXPIRES_IN_DAYS * 24 * 60 * 60,
     )
 
 
@@ -62,9 +66,9 @@ def set_refresh_token_cookie(response: Response, refresh_token: str):
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token,
         httponly=True,
-        secure=settings.environment == Environment.PRODUCTION,
+        secure=settings.environment == Environment.PROD,
         samesite="lax",
-        max_age=settings.refresh_token_expires_in_days * 24 * 60 * 60,
+        max_age=REFRESH_TOKEN_EXPIRES_IN_DAYS * 24 * 60 * 60,
         path="/",
     )
 
@@ -110,7 +114,7 @@ def get_current_user(
         payload = jwt.decode(
             credentials.credentials,
             settings.jwt_secret,
-            algorithms=[settings.jwt_algorithm],
+            algorithms=[JWT_ALGORITHM],
         )
 
         user_id = payload.get("sub")

@@ -25,14 +25,11 @@ DOCUMENT_ROUTES = [
         id="update",
     ),
     pytest.param("delete", "/documents/1", {}, id="delete"),
-    pytest.param("post", "/documents/1/retry", {}, id="retry"),
 ]
 
 
 @pytest.fixture
-def unauthenticated_documents_client(mocker):
-    mocker.patch("api.routers.documents.documents.get_redis_client")
-
+def unauthenticated_documents_client():
     app = FastAPI()
     app.include_router(documents_router)
     return TestClient(app)

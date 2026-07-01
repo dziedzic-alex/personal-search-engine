@@ -52,12 +52,11 @@ services:
       redis:
         condition: service_started
 
-  worker:
+  document-processor-worker:
     build: .
-    command: python -m workers.main
+    command: python -m workers.document_processor.main
     environment:
       AWS_PROFILE: default
-      REDIS_URL: redis://redis:6379/0
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
     volumes:
       - .:/backend
@@ -65,11 +64,32 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-      redis:
-        condition: service_started
     develop:
       watch:
-        - path: ./workers
+        - path: ./workers/document_processor
+          action: restart
+
+        - path: ./shared
+          action: restart
+
+        - path: ./db
+          action: restart
+
+  failed-document-watcher:
+    build: .
+    command: python -m workers.failed_document_watcher.main
+    environment:
+      AWS_PROFILE: default
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
+    volumes:
+      - .:/backend
+      - ~/.aws:/root/.aws
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    develop:
+      watch:
+        - path: ./workers/failed_document_watcher
           action: restart
 
         - path: ./shared

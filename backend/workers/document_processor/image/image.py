@@ -11,8 +11,8 @@ from shared.image_utils import normalize_image
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 from shared.s3_client import get_s3_client
-from workers.image.image_utils import extract_image_metadata
-from workers.text_quality import (
+from workers.document_processor.image.image_utils import extract_image_metadata
+from workers.document_processor.text_quality import (
     OCR_PDF_EMBEDDED_PROFILE,
     OCR_PDF_PAGE_PROFILE,
     OCR_PHOTO_PROFILE,

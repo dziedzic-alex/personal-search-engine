@@ -1,15 +1,7 @@
-import {
-  EllipsisVertical,
-  Pencil,
-  RotateCcw,
-  Eye,
-  Trash,
-  Download,
-} from "lucide-react";
+import { EllipsisVertical, Pencil, Eye, Trash, Download } from "lucide-react";
 import { useState, type Dispatch, type SetStateAction } from "react";
 
 import { apiFetch } from "../ApiClient";
-import { MAX_NUM_PROCESSING_ATTEMPTS } from "../Types/Document";
 import ActionMenu from "../Ui/ActionMenu/ActionMenu";
 import IconButton from "../Ui/Buttons/IconButton";
 import { notify } from "../Ui/Notification/notify";
@@ -28,36 +20,6 @@ function FilesTableRowActionMenu(props: Props) {
   const { file, setFiles } = props;
 
   const [renameModalOpen, setRenameModalOpen] = useState<boolean>(false);
-
-  const handleRetry = () => {
-    if (file.numAttempts >= MAX_NUM_PROCESSING_ATTEMPTS) {
-      const errorMessage =
-        "Document has reached the maximum number of processing attempts.";
-      notify({ message: errorMessage, variant: "error" });
-      return;
-    }
-
-    apiFetch(`/api/documents/${file.id.toString()}/retry`, {
-      method: "POST",
-    })
-      .then((response: Response) => {
-        if (!response.ok) {
-          throw new Error("Failed to retry the file. Please try again later.");
-        }
-
-        return response.json();
-      })
-      .then((data: Document) => {
-        setFiles((files) => files.map((f) => (f.id === data.id ? data : f)));
-      })
-      .catch((error: unknown) => {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to retry the file. Please try again";
-        notify({ message: errorMessage, variant: "error" });
-      });
-  };
 
   const handleDelete = () => {
     apiFetch(`/api/documents/${file.id.toString()}`, {
@@ -99,13 +61,6 @@ function FilesTableRowActionMenu(props: Props) {
             onClick: () => {
               setRenameModalOpen(true);
             },
-          },
-          {
-            id: "retry",
-            label: "Retry",
-            icon: RotateCcw,
-            disabled: file.status !== "failed",
-            onClick: handleRetry,
           },
           {
             id: "view",
