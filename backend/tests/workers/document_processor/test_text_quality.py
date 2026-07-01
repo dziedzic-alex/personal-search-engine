@@ -1,4 +1,4 @@
-from workers.text_quality import (
+from workers.document_processor.text_quality import (
     OCR_PDF_PAGE_PROFILE,
     OCR_PHOTO_PROFILE,
     PDF_TEXT_BLOCK_PROFILE,

@@ -10,6 +10,7 @@ from api.routers.documents.upload_utils import PersistedFileObjectKeys
 from db.models.document import DocumentStatus
 from db.session import get_session
 from shared.s3_client import get_s3_client
+from shared.sqs_client import get_document_processing_sqs_client
 
 
 @pytest.fixture
@@ -35,8 +36,6 @@ def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file):
         document.id = next_document_id
         if document.status is None:
             document.status = DocumentStatus.PENDING
-        if document.num_attempts is None:
-            document.num_attempts = 0
         if document.created_time is None:
             document.created_time = datetime(2025, 6, 17)
         next_document_id += 1
@@ -50,15 +49,15 @@ def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file):
     def override_get_session():
         yield mock_session
 
-    mock_redis = mocker.MagicMock()
-    mocker.patch(
-        "api.routers.documents.documents.get_redis_client", return_value=mock_redis
-    )
+    mock_sqs_client = mocker.MagicMock()
 
     app = FastAPI()
     app.include_router(documents_router)
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_current_user] = lambda: mock_user
     app.dependency_overrides[get_s3_client] = lambda: mock_s3_client
+    app.dependency_overrides[get_document_processing_sqs_client] = (
+        lambda: mock_sqs_client
+    )
 
-    return TestClient(app), mock_session, mock_redis, mock_persist_file, mock_s3_client
+    return TestClient(app), mock_session, mock_sqs_client, mock_persist_file, mock_s3_client

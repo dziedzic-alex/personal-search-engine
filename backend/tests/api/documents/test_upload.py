@@ -1,8 +1,5 @@
-import json
-
-
-def test_upload_returns_files_being_processed(documents_client):
-    client, mock_session, mock_redis, mock_persist_file, _ = documents_client
+def test_upload_returns_files_being_processed(documents_client, mock_user):
+    client, mock_session, mock_sqs_client, mock_persist_file, _ = documents_client
 
     response = client.post(
         "/documents/",
@@ -29,9 +26,7 @@ def test_upload_returns_files_being_processed(documents_client):
     mock_persist_file.assert_called_once()
     mock_session.add.assert_called_once()
     mock_session.commit.assert_called_once()
-    mock_redis.lpush.assert_called_once_with(
-        "jobs:upload", json.dumps({"document_id": 1})
-    )
+    mock_sqs_client.submit_document_message.assert_called_once_with(1, mock_user.id)
 
 
 def test_upload_persists_files_to_s3(documents_client, mock_user):
@@ -48,8 +43,8 @@ def test_upload_persists_files_to_s3(documents_client, mock_user):
     assert args[3] == mock_user.id
 
 
-def test_upload_processes_only_supported_files_in_batch(documents_client):
-    client, mock_session, mock_redis, mock_persist_file, _ = documents_client
+def test_upload_processes_only_supported_files_in_batch(documents_client, mock_user):
+    client, mock_session, mock_sqs_client, mock_persist_file, _ = documents_client
 
     response = client.post(
         "/documents/",
@@ -69,13 +64,11 @@ def test_upload_processes_only_supported_files_in_batch(documents_client):
     mock_persist_file.assert_called_once()
     mock_session.add.assert_called_once()
     mock_session.commit.assert_called_once()
-    mock_redis.lpush.assert_called_once_with(
-        "jobs:upload", json.dumps({"document_id": 1})
-    )
+    mock_sqs_client.submit_document_message.assert_called_once_with(1, mock_user.id)
 
 
 def test_upload_skips_duplicate_filename(documents_client, mocker):
-    client, mock_session, mock_redis, mock_persist_file, _ = documents_client
+    client, mock_session, mock_sqs_client, mock_persist_file, _ = documents_client
 
     mock_scalars = mocker.MagicMock()
     mock_scalars.first.return_value = mocker.MagicMock()
@@ -94,11 +87,11 @@ def test_upload_skips_duplicate_filename(documents_client, mocker):
     mock_persist_file.assert_not_called()
     mock_session.add.assert_not_called()
     mock_session.commit.assert_not_called()
-    mock_redis.lpush.assert_not_called()
+    mock_sqs_client.submit_document_message.assert_not_called()
 
 
 def test_upload_rolls_back_s3_on_db_failure(documents_client, mocker):
-    client, mock_session, mock_redis, mock_persist_file, mock_s3_client = (
+    client, mock_session, mock_sqs_client, mock_persist_file, mock_s3_client = (
         documents_client
     )
     mock_session.commit.side_effect = Exception("db error")
@@ -116,4 +109,25 @@ def test_upload_rolls_back_s3_on_db_failure(documents_client, mocker):
     mock_session.rollback.assert_called_once()
     mock_s3_client.delete_file.assert_any_call("1/test.pdf")
     mock_s3_client.delete_file.assert_any_call("1/thumbnail_test.jpg")
-    mock_redis.lpush.assert_not_called()
+    mock_sqs_client.submit_document_message.assert_not_called()
+
+
+def test_upload_rolls_back_db_and_s3_on_sqs_failure(documents_client, mock_s3_client):
+    client, mock_session, mock_sqs_client, _, _ = documents_client
+    mock_sqs_client.submit_document_message.side_effect = Exception("sqs error")
+
+    response = client.post(
+        "/documents/",
+        files=[("files", ("test.pdf", b"pdf content", "application/pdf"))],
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "filesBeingProcessed": [],
+        "errors": ["Error submitting document test.pdf for processing"],
+    }
+    assert mock_session.commit.call_count == 2
+    mock_session.delete.assert_called_once()
+    mock_s3_client.delete_file.assert_any_call("1/test.pdf")
+    mock_s3_client.delete_file.assert_any_call("1/thumbnail_test.jpg")
+    mock_sqs_client.submit_document_message.assert_called_once_with(1, 1)

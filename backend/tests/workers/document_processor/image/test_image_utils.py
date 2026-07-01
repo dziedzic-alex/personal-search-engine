@@ -3,7 +3,7 @@ from datetime import datetime
 from PIL.ExifTags import Base
 from sqlalchemy.dialects import postgresql
 
-from workers.image.image_utils import extract_image_metadata
+from workers.document_processor.image.image_utils import extract_image_metadata
 
 
 def _source_created_time_from_execute(mock_session) -> datetime:

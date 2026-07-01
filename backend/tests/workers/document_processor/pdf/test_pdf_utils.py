@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.dialects import postgresql
 
-from workers.pdf.pdf_utils import (
+from workers.document_processor.pdf.pdf_utils import (
     extract_pdf_metadata,
     is_text_block_usable,
     merge_text_blocks_into_chunks,
