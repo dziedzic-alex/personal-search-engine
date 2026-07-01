@@ -82,6 +82,7 @@ def upgrade() -> None:
             name="fk_documents_user_id_users",
             ondelete="CASCADE",
         ),
+        sa.UniqueConstraint("user_id", "name", name="uq_documents_user_id_name"),
     )
     op.create_table(
         "document_embeddings",

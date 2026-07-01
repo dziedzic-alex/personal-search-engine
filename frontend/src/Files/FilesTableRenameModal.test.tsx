@@ -65,6 +65,7 @@ describe("FilesTableRenameModal", () => {
   it("shows an error when rename fails", async () => {
     mockApiFetch.mockResolvedValue({
       ok: false,
+      status: 500,
     } as Response);
 
     render(
@@ -83,10 +84,39 @@ describe("FilesTableRenameModal", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
     expect(
+      await screen.findByText("Failed to rename the file. Please try again."),
+    ).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(setFiles).not.toHaveBeenCalled();
+  });
+
+  it("shows a duplicate name error when rename returns 409", async () => {
+    mockApiFetch.mockResolvedValue({
+      ok: false,
+      status: 409,
+    } as Response);
+
+    render(
+      <FilesTableRenameModal
+        file={file}
+        onClose={onClose}
+        setFiles={setFiles}
+      />,
+    );
+
+    await userEvent.clear(screen.getByPlaceholderText("Enter new name"));
+    await userEvent.type(
+      screen.getByPlaceholderText("Enter new name"),
+      "existing.pdf",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(
       await screen.findByText(
-        "Failed to rename the file. Please try again later.",
+        "Document with name 'existing.pdf' already exists",
       ),
     ).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
+    expect(setFiles).not.toHaveBeenCalled();
   });
 });
