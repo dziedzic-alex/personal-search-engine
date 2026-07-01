@@ -1,5 +1,4 @@
 import enum
-import json
 from datetime import datetime
 from typing import Annotated
 
@@ -13,11 +12,11 @@ from api.routers.documents.upload_utils import (
     sanitize_content_type,
 )
 from api.schemas.camel_model import CamelModel
-from db.models.document import MAX_NUM_ATTEMPTS, Document, DocumentStatus
+from api.dependencies.sqs import SQSDocumentProcessingClientDep
+from db.models.document import Document, DocumentStatus
 from db.repositories.documents import DocumentRepository
 from shared.content_category import ContentCategory, content_type_to_category
 from shared.content_type import ContentType
-from shared.redis_client import get_redis_client
 from shared.s3_client import S3Client
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -28,7 +27,6 @@ class ApiDocument(CamelModel):
     name: str
     content_category: ContentCategory
     status: DocumentStatus
-    num_attempts: int
     preview_url: str
     download_url: str
     thumbnail_url: str
@@ -43,7 +41,6 @@ def to_api_document(document: Document, s3_client: S3Client) -> ApiDocument:
         name=document.name,
         content_category=content_type_to_category(document.content_type),
         status=DocumentStatus(document.status),
-        num_attempts=document.num_attempts,
         preview_url=s3_client.generate_presigned_url(document.s3_content_key),
         download_url=s3_client.generate_presigned_url(
             document.s3_content_key,
@@ -137,29 +134,6 @@ def update_document(
     return to_api_document(document, s3_client)
 
 
-@router.post("/{document_id}/retry")
-def retry_document(
-    document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep
-) -> ApiDocument:
-    document = session.get(Document, document_id)
-    if document is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-    if document.user_id != user.id:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
-    if document.num_attempts >= MAX_NUM_ATTEMPTS:
-        raise HTTPException(
-            status_code=400,
-            detail="Document has reached the maximum number of processing attempts",
-        )
-
-    document.status = DocumentStatus.PENDING
-    session.commit()
-    get_redis_client().lpush("jobs:upload", json.dumps({"document_id": document.id}))
-
-    return to_api_document(document, s3_client)
-
-
 UploadFiles = Annotated[list[UploadFile], File(...)]
 
 
@@ -170,13 +144,11 @@ class UploadFilesResponse(CamelModel):
 
 @router.post("/")
 def upload_files(
-    files: UploadFiles, user: UserDep, session: SessionDep, s3_client: S3ClientDep
+    files: UploadFiles, user: UserDep, session: SessionDep, s3_client: S3ClientDep, sqs_client: SQSDocumentProcessingClientDep
 ) -> UploadFilesResponse:
     uploaded_files: UploadFilesResponse = UploadFilesResponse(
         files_being_processed=[], errors=[]
     )
-
-    redis_client = get_redis_client()
 
     for file in files:
         filename = file.filename
@@ -234,7 +206,17 @@ def upload_files(
             uploaded_files.errors.append(f"Error saving document {filename}")
             continue
 
-        redis_client.lpush("jobs:upload", json.dumps({"document_id": document.id}))
+        try:
+            sqs_client.submit_document_message(document.id, user.id)
+        except Exception as e:
+            print(f"Error submitting document {filename} for processing: {e}")
+            session.delete(document)
+            session.commit()
+            s3_client.delete_file(persisted_file_object_keys.content_key)
+            s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
+            uploaded_files.errors.append(f"Error submitting document {filename} for processing")
+            continue
+        
         uploaded_files.files_being_processed.append(
             to_api_document(document, s3_client)
         )
