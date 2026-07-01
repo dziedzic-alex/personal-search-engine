@@ -13,7 +13,6 @@ from db.models.user import User, UserPlan
 from shared.redis_client import get_redis_client
 from shared.settings import Environment, settings
 
-
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRES_IN_MINUTES = 10
 REFRESH_TOKEN_EXPIRES_IN_DAYS = 7

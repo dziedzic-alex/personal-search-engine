@@ -1,6 +1,7 @@
-import boto3
 import json
 from dataclasses import dataclass
+
+import boto3
 
 from shared.settings import settings
 

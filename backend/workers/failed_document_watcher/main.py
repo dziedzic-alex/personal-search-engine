@@ -1,10 +1,10 @@
+from db.models.document import Document, DocumentStatus
+from db.session import SessionLocal
 from shared.sqs_client import (
     ConsumerResponse,
     SQSDocumentProcessingDeadLetterClient,
     get_document_processing_dead_letter_sqs_client,
 )
-from db.session import SessionLocal
-from db.models.document import Document, DocumentStatus
 
 
 def main():

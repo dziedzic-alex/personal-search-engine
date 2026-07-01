@@ -6,13 +6,13 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from sqlalchemy import select
 
 from api.dependencies import S3ClientDep, SessionDep, UserDep
+from api.dependencies.sqs import SQSDocumentProcessingClientDep
 from api.routers.documents.upload_utils import (
     is_allowed_content_type,
     persist_file,
     sanitize_content_type,
 )
 from api.schemas.camel_model import CamelModel
-from api.dependencies.sqs import SQSDocumentProcessingClientDep
 from db.models.document import Document, DocumentStatus
 from db.repositories.documents import DocumentRepository
 from shared.content_category import ContentCategory, content_type_to_category
