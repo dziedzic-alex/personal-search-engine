@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from io import BytesIO
+import uuid
 
 import fitz
 from PIL import Image
@@ -9,7 +10,6 @@ from shared.content_type import ContentType
 from shared.image_utils import normalize_image
 from shared.s3_client import S3Client
 
-THUMBNAIL_PREFIX = "thumbnail_"
 THUMBNAIL_WIDTH = 500
 THUMBNAIL_HEIGHT = 500
 
@@ -38,7 +38,6 @@ class PersistedFileObjectKeys:
 
 def persist_file(
     s3_client: S3Client,
-    filename: str,
     file_data: bytes,
     user_id: int,
     content_type: ContentType,
@@ -49,13 +48,13 @@ def persist_file(
     else:
         thumbnail = _create_pdf_thumbnail(file_data)
 
-    thumbnail_filename = THUMBNAIL_PREFIX + filename.rsplit(".", 1)[0] + ".jpg"
+    file_group_id = str(uuid.uuid4())
 
     thumbnail_key = s3_client.persist_file(
-        thumbnail_filename, user_id, thumbnail, ContentType.JPEG
+        user_id, thumbnail, ContentType.JPEG, f"{file_group_id}/thumbnail"
     )
     try:
-        content_key = s3_client.persist_file(filename, user_id, file_data, content_type)
+        content_key = s3_client.persist_file(user_id, file_data, content_type, f"{file_group_id}/content")
     except Exception as e:
         s3_client.delete_file(thumbnail_key)
         raise e

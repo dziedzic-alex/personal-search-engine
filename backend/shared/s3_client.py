@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import uuid
 
 import boto3
 from botocore.config import Config
@@ -35,9 +36,11 @@ class S3Client:
         return response["Body"].read()
 
     def persist_file(
-        self, filename: str, user_id: int, file_data: bytes, content_type: ContentType
+        self, user_id: int, file_data: bytes, content_type: ContentType, object_key_suffix: str | None = None
     ) -> str:
-        object_key = f"{user_id}/{filename}"
+        key_prefix = f"{user_id}/"
+        key_suffix = object_key_suffix or str(uuid.uuid4())
+        object_key = f"{key_prefix}{key_suffix}"
 
         self.client.put_object(
             Bucket=settings.s3_files_thumbnails_bucket_name,
