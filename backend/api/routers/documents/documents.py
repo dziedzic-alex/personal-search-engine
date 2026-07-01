@@ -128,9 +128,15 @@ def update_document(
     if document.user_id != user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    existing_document = session.scalars(select(Document).where(Document.user_id == user.id).where(Document.name == request.name)).first()
+    existing_document = session.scalars(
+        select(Document)
+        .where(Document.user_id == user.id)
+        .where(Document.name == request.name)
+    ).first()
     if existing_document is not None:
-        raise HTTPException(status_code=409, detail="Document with given name already exists")
+        raise HTTPException(
+            status_code=409, detail="Document with given name already exists"
+        )
 
     document.name = request.name
     session.commit()
