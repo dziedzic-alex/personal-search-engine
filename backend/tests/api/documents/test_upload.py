@@ -1,3 +1,10 @@
+from shared.content_type import ContentType
+
+FILE_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000"
+CONTENT_KEY = f"1/{FILE_GROUP_ID}/content"
+THUMBNAIL_KEY = f"1/{FILE_GROUP_ID}/thumbnail"
+
+
 def test_upload_returns_files_being_processed(documents_client, mock_user):
     client, mock_session, mock_sqs_client, mock_persist_file, _ = documents_client
 
@@ -17,9 +24,9 @@ def test_upload_returns_files_being_processed(documents_client, mock_user):
     assert uploaded["contentCategory"] == "pdf"
     assert uploaded["status"] == "pending"
     assert uploaded["size"] == len(b"pdf content")
-    assert uploaded["previewUrl"] == "https://presigned.example/1/test.pdf"
-    assert uploaded["downloadUrl"] == "https://presigned.example/1/test.pdf"
-    assert uploaded["thumbnailUrl"] == "https://presigned.example/1/thumbnail_test.jpg"
+    assert uploaded["previewUrl"] == f"https://presigned.example/{CONTENT_KEY}"
+    assert uploaded["downloadUrl"] == f"https://presigned.example/{CONTENT_KEY}"
+    assert uploaded["thumbnailUrl"] == f"https://presigned.example/{THUMBNAIL_KEY}"
     assert uploaded["sourceCreatedTime"] is None
     assert "uploadedTime" in uploaded
 
@@ -38,9 +45,9 @@ def test_upload_persists_files_to_s3(documents_client, mock_user):
     )
 
     args = mock_persist_file.call_args[0]
-    assert args[1] == "test.pdf"
-    assert args[2] == b"pdf content"
-    assert args[3] == mock_user.id
+    assert args[1] == b"pdf content"
+    assert args[2] == mock_user.id
+    assert args[3] == ContentType.PDF
 
 
 def test_upload_processes_only_supported_files_in_batch(documents_client, mock_user):
@@ -107,8 +114,8 @@ def test_upload_rolls_back_s3_on_db_failure(documents_client, mocker):
         "errors": ["Error saving document test.pdf"],
     }
     mock_session.rollback.assert_called_once()
-    mock_s3_client.delete_file.assert_any_call("1/test.pdf")
-    mock_s3_client.delete_file.assert_any_call("1/thumbnail_test.jpg")
+    mock_s3_client.delete_file.assert_any_call(CONTENT_KEY)
+    mock_s3_client.delete_file.assert_any_call(THUMBNAIL_KEY)
     mock_sqs_client.submit_document_message.assert_not_called()
 
 
@@ -128,6 +135,6 @@ def test_upload_rolls_back_db_and_s3_on_sqs_failure(documents_client, mock_s3_cl
     }
     assert mock_session.commit.call_count == 2
     mock_session.delete.assert_called_once()
-    mock_s3_client.delete_file.assert_any_call("1/test.pdf")
-    mock_s3_client.delete_file.assert_any_call("1/thumbnail_test.jpg")
+    mock_s3_client.delete_file.assert_any_call(CONTENT_KEY)
+    mock_s3_client.delete_file.assert_any_call(THUMBNAIL_KEY)
     mock_sqs_client.submit_document_message.assert_called_once_with(1, 1)

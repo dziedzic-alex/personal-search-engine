@@ -13,14 +13,17 @@ from shared.s3_client import get_s3_client
 from shared.sqs_client import get_document_processing_sqs_client
 
 
+FILE_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000"
+
+
 @pytest.fixture
 def mock_persist_file(mocker):
     return mocker.patch(
         "api.routers.documents.documents.persist_file",
-        side_effect=lambda s3_client, filename, file_data, user_id, content_type: (
+        side_effect=lambda s3_client, file_data, user_id, content_type: (
             PersistedFileObjectKeys(
-                content_key=f"{user_id}/{filename}",
-                thumbnail_key=f"{user_id}/thumbnail_{filename.rsplit('.', 1)[0]}.jpg",
+                content_key=f"{user_id}/{FILE_GROUP_ID}/content",
+                thumbnail_key=f"{user_id}/{FILE_GROUP_ID}/thumbnail",
             )
         ),
     )

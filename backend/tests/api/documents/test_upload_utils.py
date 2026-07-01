@@ -1,3 +1,4 @@
+import uuid
 from io import BytesIO
 
 import pytest
@@ -13,6 +14,8 @@ from api.routers.documents.upload_utils import (
 )
 from shared.content_type import ContentType
 
+FILE_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000"
+
 
 def test_sanitize_content_type_returns_subtype_from_mime_type():
     assert sanitize_content_type("application/pdf", "doc") == "pdf"
@@ -24,10 +27,15 @@ def test_sanitize_content_type_returns_extension_for_octet_stream():
 
 def test_persist_file_rolls_back_thumbnail_when_content_upload_fails(mocker):
     mock_s3_client = mocker.MagicMock()
+    thumbnail_key = f"1/{FILE_GROUP_ID}/thumbnail"
     mock_s3_client.persist_file.side_effect = [
-        "1/thumbnail_test.jpg",
+        thumbnail_key,
         Exception("s3 error"),
     ]
+    mocker.patch(
+        "api.routers.documents.upload_utils.uuid.uuid4",
+        return_value=uuid.UUID(FILE_GROUP_ID),
+    )
     mocker.patch(
         "api.routers.documents.upload_utils._create_image_thumbnail",
         return_value=b"thumbnail bytes",
@@ -36,19 +44,24 @@ def test_persist_file_rolls_back_thumbnail_when_content_upload_fails(mocker):
     with pytest.raises(Exception, match="s3 error"):
         persist_file(
             mock_s3_client,
-            "test.jpg",
             b"image bytes",
             1,
             ContentType.JPEG,
         )
 
-    mock_s3_client.delete_file.assert_called_once_with("1/thumbnail_test.jpg")
+    mock_s3_client.delete_file.assert_called_once_with(thumbnail_key)
 
 
-def test_persist_file_returns_s3_keys(mocker):
+def test_persist_file_returns_paired_s3_keys(mocker):
     mock_s3_client = mocker.MagicMock()
-    mock_s3_client.persist_file.side_effect = ["1/thumbnail_test.jpg", "1/test.png"]
-
+    mock_s3_client.persist_file.side_effect = [
+        f"1/{FILE_GROUP_ID}/thumbnail",
+        f"1/{FILE_GROUP_ID}/content",
+    ]
+    mocker.patch(
+        "api.routers.documents.upload_utils.uuid.uuid4",
+        return_value=uuid.UUID(FILE_GROUP_ID),
+    )
     mocker.patch(
         "api.routers.documents.upload_utils._create_image_thumbnail",
         return_value=b"thumbnail bytes",
@@ -56,18 +69,29 @@ def test_persist_file_returns_s3_keys(mocker):
 
     result = persist_file(
         mock_s3_client,
-        "test.png",
         b"image bytes",
         1,
         ContentType.PNG,
     )
 
     assert result == PersistedFileObjectKeys(
-        content_key="1/test.png",
-        thumbnail_key="1/thumbnail_test.jpg",
+        content_key=f"1/{FILE_GROUP_ID}/content",
+        thumbnail_key=f"1/{FILE_GROUP_ID}/thumbnail",
     )
-    assert mock_s3_client.persist_file.call_args_list[0].args[3] == ContentType.JPEG
-    assert mock_s3_client.persist_file.call_args_list[1].args[3] == ContentType.PNG
+    thumbnail_call = mock_s3_client.persist_file.call_args_list[0]
+    assert thumbnail_call.args == (
+        1,
+        b"thumbnail bytes",
+        ContentType.JPEG,
+        f"{FILE_GROUP_ID}/thumbnail",
+    )
+    content_call = mock_s3_client.persist_file.call_args_list[1]
+    assert content_call.args == (
+        1,
+        b"image bytes",
+        ContentType.PNG,
+        f"{FILE_GROUP_ID}/content",
+    )
 
 
 def test_create_thumbnail():
