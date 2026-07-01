@@ -20,7 +20,7 @@ class DocumentStatus(enum.StrEnum):
 
 class Document(Base):
     __tablename__ = "documents"
-    __table_args__ = (UniqueConstraint("user_id", "name"))
+    __table_args__ = (UniqueConstraint("user_id", "name"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
