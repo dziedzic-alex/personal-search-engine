@@ -29,7 +29,9 @@ def test_scanned_page_uses_pixmap_fallback(
 ):
     page = make_page(text_blocks=[])
     document = make_document([page])
-    mock_index_image = mocker.patch("workers.document_processor.pdf.pdf.index_image", return_value=True)
+    mock_index_image = mocker.patch(
+        "workers.document_processor.pdf.pdf.index_image", return_value=True
+    )
 
     index_pdf(1, document)
 
@@ -46,7 +48,9 @@ def test_embedded_image_uses_pdf_embedded_context(
     page = make_page(text_blocks=[], images=[(5,)])
     document = make_document([page])
     document.extract_image.return_value = {"image": make_png_image_bytes()}
-    mock_index_image = mocker.patch("workers.document_processor.pdf.pdf.index_image", return_value=True)
+    mock_index_image = mocker.patch(
+        "workers.document_processor.pdf.pdf.index_image", return_value=True
+    )
 
     index_pdf(1, document)
 
@@ -64,7 +68,9 @@ def test_pixmap_fallback_when_embedded_image_is_too_small(
     page = make_page(text_blocks=[], images=[(5,)])
     document = make_document([page])
     document.extract_image.return_value = {"image": make_png_image_bytes()}
-    mock_index_image = mocker.patch("workers.document_processor.pdf.pdf.index_image", return_value=False)
+    mock_index_image = mocker.patch(
+        "workers.document_processor.pdf.pdf.index_image", return_value=False
+    )
 
     index_pdf(1, document)
 
@@ -88,7 +94,9 @@ def test_duplicate_xref_is_indexed_once(
     page_two = make_page(text_blocks=[rich_text], images=[(5,)], page_number=1)
     document = make_document([page_one, page_two])
     document.extract_image.return_value = {"image": make_png_image_bytes()}
-    mock_index_image = mocker.patch("workers.document_processor.pdf.pdf.index_image", return_value=True)
+    mock_index_image = mocker.patch(
+        "workers.document_processor.pdf.pdf.index_image", return_value=True
+    )
 
     index_pdf(1, document)
 
@@ -107,7 +115,9 @@ def test_extract_image_failure_falls_back_to_pixmap(
     page = make_page(text_blocks=[], images=[(5,)])
     document = make_document([page])
     document.extract_image.side_effect = RuntimeError("bad xref")
-    mock_index_image = mocker.patch("workers.document_processor.pdf.pdf.index_image", return_value=True)
+    mock_index_image = mocker.patch(
+        "workers.document_processor.pdf.pdf.index_image", return_value=True
+    )
 
     index_pdf(1, document)
 
@@ -122,7 +132,9 @@ def test_mixed_pdf_indexes_text_chunks_and_scanned_pages(
     text_page = make_page(text_blocks=["B" * 250], page_number=0)
     scanned_page = make_page(text_blocks=[], page_number=1)
     document = make_document([text_page, scanned_page])
-    mock_index_image = mocker.patch("workers.document_processor.pdf.pdf.index_image", return_value=True)
+    mock_index_image = mocker.patch(
+        "workers.document_processor.pdf.pdf.index_image", return_value=True
+    )
 
     index_pdf(1, document)
 

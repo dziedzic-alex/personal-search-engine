@@ -1,6 +1,11 @@
-from shared.sqs_client import ConsumerResponse, SQSDocumentProcessingDeadLetterClient, get_document_processing_dead_letter_sqs_client
+from shared.sqs_client import (
+    ConsumerResponse,
+    SQSDocumentProcessingDeadLetterClient,
+    get_document_processing_dead_letter_sqs_client,
+)
 from db.session import SessionLocal
 from db.models.document import Document, DocumentStatus
+
 
 def main():
     print("Failed document watcher is running")
@@ -20,7 +25,10 @@ def main():
             continue
 
 
-def _process_failed_document_message(document_message: ConsumerResponse, sqs_client: SQSDocumentProcessingDeadLetterClient) -> None:
+def _process_failed_document_message(
+    document_message: ConsumerResponse,
+    sqs_client: SQSDocumentProcessingDeadLetterClient,
+) -> None:
     with SessionLocal() as session:
         document = session.get(Document, document_message.document_id)
 
@@ -30,18 +38,23 @@ def _process_failed_document_message(document_message: ConsumerResponse, sqs_cli
             return
 
         if document.status == DocumentStatus.FAILED:
-            print(f"Document {document_message.document_id} already marked as failed. Skipping...")
+            print(
+                f"Document {document_message.document_id} already marked as failed. Skipping..."
+            )
             sqs_client.delete_document_message(document_message.receipt_handle)
             return
         elif document.status == DocumentStatus.PROCESSED:
-            print(f"Document {document_message.document_id} already processed. Skipping...")
+            print(
+                f"Document {document_message.document_id} already processed. Skipping..."
+            )
             sqs_client.delete_document_message(document_message.receipt_handle)
             return
 
         document.status = DocumentStatus.FAILED
         session.commit()
-    
+
     sqs_client.delete_document_message(document_message.receipt_handle)
+
 
 if __name__ == "__main__":
     main()

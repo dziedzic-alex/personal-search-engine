@@ -47,7 +47,8 @@ def test_index_image_skips_tiny_images(
     mock_image_session, mock_embedding_models, mocker
 ):
     mocker.patch(
-        "workers.document_processor.image.image.pytesseract.image_to_string", return_value="caption"
+        "workers.document_processor.image.image.pytesseract.image_to_string",
+        return_value="caption",
     )
 
     assert not index_image(1, make_image(width=32, height=32))
@@ -58,7 +59,10 @@ def test_index_image_skips_tiny_images(
 def test_photo_with_no_ocr_writes_image_embedding_only(
     mock_image_session, mock_embedding_models, mocker
 ):
-    mocker.patch("workers.document_processor.image.image.pytesseract.image_to_string", return_value="")
+    mocker.patch(
+        "workers.document_processor.image.image.pytesseract.image_to_string",
+        return_value="",
+    )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
 
@@ -93,7 +97,8 @@ def test_photo_with_long_ocr_writes_text_embedding_only(
 ):
     long_text = "document " * 30
     mocker.patch(
-        "workers.document_processor.image.image.pytesseract.image_to_string", return_value=long_text
+        "workers.document_processor.image.image.pytesseract.image_to_string",
+        return_value=long_text,
     )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
@@ -125,7 +130,10 @@ def test_pdf_page_with_good_ocr_writes_text_embedding_only(
     mock_image_session, mock_embedding_models, mocker
 ):
     text = "This quarterly earnings report summarizes regional revenue growth."
-    mocker.patch("workers.document_processor.image.image.pytesseract.image_to_string", return_value=text)
+    mocker.patch(
+        "workers.document_processor.image.image.pytesseract.image_to_string",
+        return_value=text,
+    )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PDF_PAGE)
 
@@ -139,7 +147,10 @@ def test_pdf_page_with_good_ocr_writes_text_embedding_only(
 def test_pdf_page_with_no_ocr_writes_image_embedding_only(
     mock_image_session, mock_embedding_models, mocker
 ):
-    mocker.patch("workers.document_processor.image.image.pytesseract.image_to_string", return_value="")
+    mocker.patch(
+        "workers.document_processor.image.image.pytesseract.image_to_string",
+        return_value="",
+    )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PDF_PAGE)
 
@@ -153,7 +164,10 @@ def test_pdf_embedded_with_good_ocr_writes_text_embedding_only(
     mock_image_session, mock_embedding_models, mocker
 ):
     text = "Figure 2: Revenue increased across all regions in Q4."
-    mocker.patch("workers.document_processor.image.image.pytesseract.image_to_string", return_value=text)
+    mocker.patch(
+        "workers.document_processor.image.image.pytesseract.image_to_string",
+        return_value=text,
+    )
 
     assert index_image(1, make_image(), context=ImageIndexContext.PDF_EMBEDDED)
 

@@ -6,7 +6,10 @@ from sqlalchemy import update
 
 from db.models.document import Document
 from db.session import SessionLocal
-from workers.document_processor.text_quality import PDF_TEXT_BLOCK_PROFILE, passes_text_quality_checks
+from workers.document_processor.text_quality import (
+    PDF_TEXT_BLOCK_PROFILE,
+    passes_text_quality_checks,
+)
 
 MIN_PAGE_TEXT_LENGTH = 200
 MIN_CHUNK_CHARS = 300

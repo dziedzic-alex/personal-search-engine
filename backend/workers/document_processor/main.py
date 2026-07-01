@@ -8,7 +8,11 @@ from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 from shared.s3_client import get_s3_client
-from shared.sqs_client import ConsumerResponse, SQSDocumentProcessingClient, get_document_processing_sqs_client
+from shared.sqs_client import (
+    ConsumerResponse,
+    SQSDocumentProcessingClient,
+    get_document_processing_sqs_client,
+)
 from workers.document_processor.image.image import process_image_document
 from workers.document_processor.pdf.pdf import process_pdf_document
 
@@ -39,7 +43,9 @@ def main():
             continue
 
 
-def _process_document_message(document_message: ConsumerResponse, sqs_client: SQSDocumentProcessingClient) -> None:
+def _process_document_message(
+    document_message: ConsumerResponse, sqs_client: SQSDocumentProcessingClient
+) -> None:
     print(f"Processing document: {document_message.document_id}")
 
     with SessionLocal(expire_on_commit=False) as session:
@@ -55,9 +61,7 @@ def _process_document_message(document_message: ConsumerResponse, sqs_client: SQ
             sqs_client.delete_document_message(document_message.receipt_handle)
             return
         elif document.status != DocumentStatus.PENDING:
-            print(
-                f"Document {document.name} is not pending. Skipping..."
-            )
+            print(f"Document {document.name} is not pending. Skipping...")
             return
 
         document.status = DocumentStatus.PROCESSING
@@ -76,7 +80,11 @@ def _process_document_message(document_message: ConsumerResponse, sqs_client: SQ
         with SessionLocal() as session:
             document = session.get(Document, document_message.document_id)
             document.status = DocumentStatus.PENDING
-            session.execute(delete(DocumentEmbedding).where(DocumentEmbedding.document_id == document.id))
+            session.execute(
+                delete(DocumentEmbedding).where(
+                    DocumentEmbedding.document_id == document.id
+                )
+            )
             session.commit()
 
         return
@@ -88,8 +96,6 @@ def _process_document_message(document_message: ConsumerResponse, sqs_client: SQ
 
     print(f"Document {document.name} successfully processed")
     sqs_client.delete_document_message(document_message.receipt_handle)
-
-
 
 
 if __name__ == "__main__":

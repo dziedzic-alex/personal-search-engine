@@ -56,8 +56,14 @@ def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file):
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_current_user] = lambda: mock_user
     app.dependency_overrides[get_s3_client] = lambda: mock_s3_client
-    app.dependency_overrides[get_document_processing_sqs_client] = (
-        lambda: mock_sqs_client
+    app.dependency_overrides[get_document_processing_sqs_client] = lambda: (
+        mock_sqs_client
     )
 
-    return TestClient(app), mock_session, mock_sqs_client, mock_persist_file, mock_s3_client
+    return (
+        TestClient(app),
+        mock_session,
+        mock_sqs_client,
+        mock_persist_file,
+        mock_s3_client,
+    )

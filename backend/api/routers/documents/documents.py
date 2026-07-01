@@ -144,7 +144,11 @@ class UploadFilesResponse(CamelModel):
 
 @router.post("/")
 def upload_files(
-    files: UploadFiles, user: UserDep, session: SessionDep, s3_client: S3ClientDep, sqs_client: SQSDocumentProcessingClientDep
+    files: UploadFiles,
+    user: UserDep,
+    session: SessionDep,
+    s3_client: S3ClientDep,
+    sqs_client: SQSDocumentProcessingClientDep,
 ) -> UploadFilesResponse:
     uploaded_files: UploadFilesResponse = UploadFilesResponse(
         files_being_processed=[], errors=[]
@@ -214,9 +218,11 @@ def upload_files(
             session.commit()
             s3_client.delete_file(persisted_file_object_keys.content_key)
             s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
-            uploaded_files.errors.append(f"Error submitting document {filename} for processing")
+            uploaded_files.errors.append(
+                f"Error submitting document {filename} for processing"
+            )
             continue
-        
+
         uploaded_files.files_being_processed.append(
             to_api_document(document, s3_client)
         )
