@@ -16,10 +16,10 @@ from api.routers.documents.upload_utils import (
 from api.schemas.camel_model import CamelModel
 from db.models.document import Document, DocumentStatus
 from db.repositories.documents import (
-    DocumentRepository,
-    SortConfig,
-    FilterConfig,
     DOCUMENT_LIST_PAGE_SIZE,
+    DocumentRepository,
+    FilterConfig,
+    SortConfig,
 )
 from shared.content_category import ContentCategory, content_type_to_category
 from shared.content_type import ContentType

@@ -1,17 +1,18 @@
-from dataclasses import dataclass
 import enum
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+
 from sqlalchemy import bindparam, select, text
 from sqlalchemy.engine import Row
-from datetime import datetime, timedelta
-from sqlalchemy.orm import Session, InstrumentedAttribute
+from sqlalchemy.orm import InstrumentedAttribute, Session
 from sqlalchemy.sql import Select
 
 from db.models.document import Document, DocumentStatus
+from shared.content_category import ContentCategory, get_content_types_for_category
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
-from shared.content_category import ContentCategory, get_content_types_for_category
 
 
 @dataclass
