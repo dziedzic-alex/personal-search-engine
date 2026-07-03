@@ -1,5 +1,3 @@
-import "./TableBody.css";
-
 interface Props {
   children: React.ReactNode;
 }

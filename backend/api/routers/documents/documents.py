@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from pydantic import Field
 from sqlalchemy import select
 
 from api.dependencies import S3ClientDep, SessionDep, UserDep
@@ -14,7 +15,12 @@ from api.routers.documents.upload_utils import (
 )
 from api.schemas.camel_model import CamelModel
 from db.models.document import Document, DocumentStatus
-from db.repositories.documents import DocumentRepository
+from db.repositories.documents import (
+    DOCUMENT_LIST_PAGE_SIZE,
+    DocumentRepository,
+    FilterConfig,
+    SortConfig,
+)
 from shared.content_category import ContentCategory, content_type_to_category
 from shared.content_type import ContentType
 from shared.s3_client import S3Client
@@ -55,13 +61,38 @@ def to_api_document(document: Document, s3_client: S3Client) -> ApiDocument:
     )
 
 
-@router.get("/list")
-def get_documents(
-    session: SessionDep, user: UserDep, s3_client: S3ClientDep, query: str | None = None
-) -> list[ApiDocument]:
-    documents = DocumentRepository(session).get_documents(user.id, query)
+class ListDocumentsRequest(CamelModel):
+    query: str | None = None
+    sort_config: SortConfig | None = None
+    filter_config: FilterConfig | None = None
+    page: int = Field(0, ge=0)
 
-    return [to_api_document(document, s3_client) for document in documents]
+
+class ListDocumentsResponse(CamelModel):
+    documents: list[ApiDocument]
+    next_page: int | None = Field(None, ge=0)
+
+
+@router.post("/list")
+def get_documents(
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
+    request: ListDocumentsRequest,
+) -> ListDocumentsResponse:
+    documents = DocumentRepository(session).get_documents(
+        user.id, request.query, request.sort_config, request.filter_config, request.page
+    )
+
+    next_page = None
+
+    if len(documents) == DOCUMENT_LIST_PAGE_SIZE:
+        next_page = request.page + 1
+
+    return ListDocumentsResponse(
+        documents=[to_api_document(document, s3_client) for document in documents],
+        next_page=next_page,
+    )
 
 
 class SearchMode(enum.StrEnum):

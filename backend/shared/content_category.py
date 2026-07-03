@@ -2,6 +2,7 @@ import enum
 
 from shared.content_type import (
     IMAGE_CONTENT_TYPE_VALUES,
+    IMAGE_CONTENT_TYPES,
     ContentType,
 )
 
@@ -22,3 +23,10 @@ def content_type_to_category(content_type: str | ContentType) -> ContentCategory
         return ContentCategory.IMAGE
 
     raise ValueError(f"Unsupported content type: {content_type}")
+
+
+def get_content_types_for_category(category: ContentCategory) -> list[ContentType]:
+    if category == ContentCategory.PDF:
+        return [ContentType.PDF]
+    elif category == ContentCategory.IMAGE:
+        return list(IMAGE_CONTENT_TYPES)

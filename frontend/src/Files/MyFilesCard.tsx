@@ -1,33 +1,31 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useState, useMemo } from "react";
 
 import Card from "../Ui/Card/Card";
 import Stack from "../Ui/Layout/Stack";
-import LoadingPage from "../Ui/LoadingPage/LoadingPage";
 import Header from "../Ui/Typography/Header";
 
 import FilesTable from "./FilesTable";
 import TableFilters from "./TableFilters";
 import UploadButton from "./UploadButton";
+import useGetFiles from "./useGetFiles";
 
-import type { DateFilterOption } from "./dateFilter.utils";
-import type { FilterConfig } from "./filesTable.utils";
 import type { ContentCategory } from "../Types/ContentCategory";
-import type { Document } from "../Types/Document";
+import type {
+  DateFilterOption,
+  FilterConfig,
+  SortColumnDirection,
+} from "../Types/DocumentsListRequest";
 import type { DocumentStatus } from "../Types/DocumentStatus";
 
 import "./MyFilesCard.css";
 
 interface Props {
-  files: Document[];
-  setFiles: Dispatch<SetStateAction<Document[]>>;
-  isLoadingFiles: boolean;
-  hasMadeSearchQuery: boolean;
+  currentlyExecutedSearchQuery: string | null;
   clearSearch: () => void;
 }
 
 function MyFilesCard(props: Props) {
-  const { files, setFiles, isLoadingFiles, hasMadeSearchQuery, clearSearch } =
-    props;
+  const { currentlyExecutedSearchQuery, clearSearch } = props;
 
   const [typeFilterValue, setTypeFilterValue] =
     useState<ContentCategory | null>(null);
@@ -38,20 +36,37 @@ function MyFilesCard(props: Props) {
   const [dateCreatedFilterValue, setDateCreatedFilterValue] =
     useState<DateFilterOption | null>(null);
 
-  const filterConfig: FilterConfig = useMemo(
-    () => ({
+  const filterConfig: FilterConfig = useMemo(() => {
+    return {
       type: typeFilterValue,
       status: statusFilterValue,
       dateUploaded: dateUploadedFilterValue,
       dateCreated: dateCreatedFilterValue,
-    }),
-    [
-      typeFilterValue,
-      statusFilterValue,
-      dateUploadedFilterValue,
-      dateCreatedFilterValue,
-    ],
-  );
+    };
+  }, [
+    typeFilterValue,
+    statusFilterValue,
+    dateUploadedFilterValue,
+    dateCreatedFilterValue,
+  ]);
+
+  const [sortColumnDirection, setSortColumnDirection] =
+    useState<SortColumnDirection | null>(null);
+
+  const {
+    files,
+    setFiles,
+    isLoading,
+    error,
+    isFetchingMore,
+    errorFetchingMore,
+    fetchMoreFiles,
+    refetchInitialFiles,
+  } = useGetFiles({
+    filterConfig: filterConfig,
+    query: currentlyExecutedSearchQuery,
+    sortColumnDirection: sortColumnDirection,
+  });
 
   const clearFilters = () => {
     setTypeFilterValue(null);
@@ -62,34 +77,42 @@ function MyFilesCard(props: Props) {
 
   return (
     <Card className="my-files-card">
-      {isLoadingFiles ? (
-        <LoadingPage />
-      ) : (
-        <Stack spacing="md" fullWidth>
-          <Stack direction="horizontal" spacing="md" align="center">
-            <Header level={1}>My files</Header>
-            <UploadButton setFiles={setFiles} />
-          </Stack>
-          <TableFilters
-            typeFilterValue={typeFilterValue}
-            statusFilterValue={statusFilterValue}
-            dateUploadedFilterValue={dateUploadedFilterValue}
-            dateCreatedFilterValue={dateCreatedFilterValue}
-            setTypeFilterValue={setTypeFilterValue}
-            setStatusFilterValue={setStatusFilterValue}
-            setDateUploadedFilterValue={setDateUploadedFilterValue}
-            setDateCreatedFilterValue={setDateCreatedFilterValue}
-          />
-          <FilesTable
-            files={files}
-            setFiles={setFiles}
-            filterConfig={filterConfig}
-            onClearFilters={clearFilters}
-            hasMadeSearchQuery={hasMadeSearchQuery}
-            clearSearch={clearSearch}
-          />
+      <Stack spacing="md" fullWidth>
+        <Stack direction="horizontal" spacing="md" align="center">
+          <Header level={1}>My files</Header>
+          <UploadButton setFiles={setFiles} />
         </Stack>
-      )}
+        <TableFilters
+          typeFilterValue={typeFilterValue}
+          statusFilterValue={statusFilterValue}
+          dateUploadedFilterValue={dateUploadedFilterValue}
+          dateCreatedFilterValue={dateCreatedFilterValue}
+          setTypeFilterValue={setTypeFilterValue}
+          setStatusFilterValue={setStatusFilterValue}
+          setDateUploadedFilterValue={setDateUploadedFilterValue}
+          setDateCreatedFilterValue={setDateCreatedFilterValue}
+        />
+        <FilesTable
+          files={files}
+          setFiles={setFiles}
+          setSortColumnDirection={setSortColumnDirection}
+          onClearFilters={clearFilters}
+          hasMadeSearchQuery={currentlyExecutedSearchQuery !== null}
+          hasAppliedFilters={
+            filterConfig.type !== null ||
+            filterConfig.status !== null ||
+            filterConfig.dateUploaded !== null ||
+            filterConfig.dateCreated !== null
+          }
+          clearSearch={clearSearch}
+          fetchNextPage={fetchMoreFiles}
+          refetchInitialFiles={refetchInitialFiles}
+          isFetchingMore={isFetchingMore}
+          errorFetchingMore={errorFetchingMore}
+          isLoading={isLoading}
+          error={error}
+        />
+      </Stack>
     </Card>
   );
 }
