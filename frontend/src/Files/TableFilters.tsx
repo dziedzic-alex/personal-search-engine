@@ -3,8 +3,8 @@ import { Clock, Check, X, Calendar, FileText, Image } from "lucide-react";
 import Dropdown from "../Ui/Dropdown/Dropdown";
 import Stack from "../Ui/Layout/Stack";
 
-import type { DateFilterOption } from "./dateFilter.utils";
 import type { ContentCategory } from "../Types/ContentCategory";
+import type { DateFilterOption } from "../Types/DocumentsListRequest";
 import type { DocumentStatus } from "../Types/DocumentStatus";
 import type { DropdownOption } from "../Ui/Dropdown/DropdownOption";
 import type { Dispatch, SetStateAction } from "react";
