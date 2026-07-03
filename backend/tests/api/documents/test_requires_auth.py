@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from api.routers.documents.documents import router as documents_router
 
 DOCUMENT_ROUTES = [
-    pytest.param("get", "/documents/list", {}, id="list"),
+    pytest.param("post", "/documents/list", {"json": {"page": 0}}, id="list"),
     pytest.param(
         "get",
         "/documents/search",
