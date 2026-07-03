@@ -1,13 +1,48 @@
+from dataclasses import dataclass
+import enum
 from sqlalchemy import bindparam, select, text
 from sqlalchemy.engine import Row
-from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session, InstrumentedAttribute
+from sqlalchemy.sql import Select
 
 from db.models.document import Document, DocumentStatus
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
+from shared.content_category import ContentCategory, get_content_types_for_category
 
+@dataclass
+class SortConfig:
+    column: SortColumn
+    direction: SortDirection
+
+class SortColumn(enum.StrEnum):
+    NAME = "name"
+    UPLOADED_TIME = "uploadedTime"
+    SOURCE_CREATED_TIME = "sourceCreatedTime"
+    SIZE = "size"
+
+class SortDirection(enum.StrEnum):
+    ASC = "asc"
+    DESC = "desc"
+
+@dataclass
+class FilterConfig:
+    type: ContentCategory | None = None
+    status: DocumentStatus | None = None
+    dateUploaded: DateFilterOption | None = None
+    dateCreated: DateFilterOption | None = None
+
+class DateFilterOption(enum.StrEnum):
+    TODAY = "today"
+    LAST_7_DAYS = "last7Days"
+    LAST_30_DAYS = "last30Days"
+    THIS_YEAR = "thisYear"
+    LAST_YEAR = "lastYear"
+
+DOCUMENT_LIST_PAGE_SIZE = 8
 
 class DocumentRepository:
     def __init__(self, session: Session):
@@ -261,8 +296,22 @@ class DocumentRepository:
 
         return ranked_results
 
-    def get_documents(self, user_id: int, query: str | None = None) -> list[Document]:
+    def get_documents(self, user_id: int, query: str | None = None, sort_config: SortConfig | None = None, filter_config: FilterConfig | None = None, page: int = 0) -> list[Document]:
         db_query = select(Document).where(Document.user_id == user_id)
+
+        if filter_config:
+            if filter_config.type:
+                content_type_values = [content_type.value for content_type in get_content_types_for_category(filter_config.type)]
+                db_query = db_query.where(Document.content_type.in_(content_type_values))
+
+            if filter_config.status:
+                db_query = db_query.where(Document.status == filter_config.status.value)
+
+            if filter_config.dateUploaded:
+                db_query = _apply_date_filter(db_query, filter_config.dateUploaded, Document.created_time)
+
+            if filter_config.dateCreated:
+                db_query = _apply_date_filter(db_query, filter_config.dateCreated, Document.source_created_time)
 
         if query:
             query = query.strip()
@@ -270,4 +319,53 @@ class DocumentRepository:
         if query:
             db_query = db_query.where(Document.name.ilike(f"%{query}%"))
 
+        if sort_config:
+            attribute = _get_attribute_from_sort_column(sort_config.column)
+            if sort_config.direction == SortDirection.ASC:
+                db_query = db_query.order_by(attribute.asc())
+            else:
+                db_query = db_query.order_by(attribute.desc())
+
+        db_query = db_query.order_by(Document.id.desc())
+
+        db_query = db_query.limit(DOCUMENT_LIST_PAGE_SIZE).offset(page * DOCUMENT_LIST_PAGE_SIZE)
+
         return self.session.scalars(db_query).all()
+
+def _apply_date_filter(db_query: Select, date_filter: DateFilterOption, attribute: InstrumentedAttribute) -> Select:
+    now = datetime.now()
+    start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_of_tomorrow = start_of_today + timedelta(days=1)
+
+    if date_filter == DateFilterOption.TODAY:
+        return db_query.where(attribute >= start_of_today, attribute < start_of_tomorrow)
+    elif date_filter == DateFilterOption.LAST_7_DAYS:
+        return db_query.where(
+            attribute >= start_of_today - timedelta(days=6),
+            attribute < start_of_tomorrow,
+        )
+    elif date_filter == DateFilterOption.LAST_30_DAYS:
+        return db_query.where(
+            attribute >= start_of_today - timedelta(days=29),
+            attribute < start_of_tomorrow,
+        )
+    elif date_filter == DateFilterOption.THIS_YEAR:
+        start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        end = start.replace(year=start.year + 1)
+        return db_query.where(attribute >= start, attribute < end)
+    elif date_filter == DateFilterOption.LAST_YEAR:
+        start = now.replace(
+            year=now.year - 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        end = start.replace(year=start.year + 1)
+        return db_query.where(attribute >= start, attribute < end)
+
+def _get_attribute_from_sort_column(column: SortColumn) -> InstrumentedAttribute:
+    if column == SortColumn.NAME:
+        return Document.name
+    elif column == SortColumn.UPLOADED_TIME:
+        return Document.created_time
+    elif column == SortColumn.SOURCE_CREATED_TIME:
+        return Document.source_created_time
+    elif column == SortColumn.SIZE:
+        return Document.size_bytes
