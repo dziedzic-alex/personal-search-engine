@@ -89,7 +89,7 @@ function FilesTable(props: Props) {
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
     if (distanceFromBottom <= 1) {
-      fetchNextPage();
+      void fetchNextPage();
     }
   };
 
