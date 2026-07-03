@@ -4,11 +4,12 @@ interface Props {
   children: React.ReactNode;
   sortable?: boolean;
   as?: "th" | "td";
+  colSpan?: number;
   onClick?: () => void;
 }
 
 function TableCell(props: Props) {
-  const { children, as = "td", sortable = false, onClick } = props;
+  const { children, as = "td", sortable = false, colSpan = 1, onClick } = props;
 
   const classNames = [
     "table-cell",
@@ -23,6 +24,7 @@ function TableCell(props: Props) {
     <Tag
       className={classNames}
       scope={as === "th" ? "col" : undefined}
+      colSpan={colSpan}
       onClick={onClick}
     >
       {children}
