@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 
 import Badge from "../Ui/Badge/Badge";
 import EmptyState from "../Ui/EmptyState/EmptyState";
+import ErrorState from "../Ui/ErrorState/ErrorState";
 import Stack from "../Ui/Layout/Stack";
+import LoadingPage from "../Ui/LoadingPage/LoadingPage";
+import { notify } from "../Ui/Notification/notify";
+import Spinner from "../Ui/Spinner/Spinner";
 import Table from "../Ui/Table/Table";
 import TableBody from "../Ui/Table/TableBody";
 import TableCell from "../Ui/Table/TableCell";
@@ -16,18 +20,13 @@ import getContentCategoryIcon from "../Utils/FileIcon";
 import FilesTableRowActionMenu from "./FilesTableRowActionMenu";
 
 import type { Document } from "../Types/Document";
-import type { DocumentStatus } from "../Types/DocumentStatus";
-import type { Dispatch, SetStateAction } from "react";
 import type {
   SortColumn,
   SortColumnDirection,
   SortDirection,
 } from "../Types/DocumentsListRequest";
-import LoadingPage from "../Ui/LoadingPage/LoadingPage";
-import ErrorState from "../Ui/ErrorState/ErrorState";
-import Spinner from "../Ui/Spinner/Spinner";
-
-import { notify } from "../Ui/Notification/notify";
+import type { DocumentStatus } from "../Types/DocumentStatus";
+import type { Dispatch, SetStateAction } from "react";
 
 import "./FilesTable.css";
 
