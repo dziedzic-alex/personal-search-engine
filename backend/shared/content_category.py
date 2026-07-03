@@ -24,6 +24,7 @@ def content_type_to_category(content_type: str | ContentType) -> ContentCategory
 
     raise ValueError(f"Unsupported content type: {content_type}")
 
+
 def get_content_types_for_category(category: ContentCategory) -> list[ContentType]:
     if category == ContentCategory.PDF:
         return [ContentType.PDF]
