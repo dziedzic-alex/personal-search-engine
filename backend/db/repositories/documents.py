@@ -50,6 +50,7 @@ class DateFilterOption(enum.StrEnum):
 
 
 DOCUMENT_LIST_PAGE_SIZE = 8
+SUGGEST_LIMIT = 5
 
 
 class DocumentRepository:
@@ -352,10 +353,25 @@ class DocumentRepository:
             else:
                 db_query = db_query.order_by(attribute.desc())
 
-        db_query = db_query.order_by(Document.id.desc())
+        db_query = db_query.order_by(Document.created_time.desc())
 
         db_query = db_query.limit(DOCUMENT_LIST_PAGE_SIZE).offset(
             page * DOCUMENT_LIST_PAGE_SIZE
+        )
+
+        return self.session.scalars(db_query).all()
+
+    def suggest_documents(self, user_id: int, query: str) -> list[Document]:
+        query = query.strip()
+        if not query:
+            return []
+
+        db_query = (
+            select(Document)
+            .where(Document.user_id == user_id)
+            .where(Document.name.ilike(f"%{query}%"))
+            .order_by(Document.created_time.desc())
+            .limit(SUGGEST_LIMIT)
         )
 
         return self.session.scalars(db_query).all()
