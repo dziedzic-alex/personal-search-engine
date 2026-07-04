@@ -63,10 +63,8 @@ function FilesTable(props: Props) {
     refetchInitialFiles,
   } = props;
 
-  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection | null>(
-    null,
-  );
+  const [sortColumn, setSortColumn] = useState<SortColumn>("uploadedTime");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   const updateSort = (newSortColumn: SortColumn) => {
     let newDirection: SortDirection = "asc";

@@ -51,7 +51,10 @@ function MyFilesCard(props: Props) {
   ]);
 
   const [sortColumnDirection, setSortColumnDirection] =
-    useState<SortColumnDirection | null>(null);
+    useState<SortColumnDirection>({
+      column: "uploadedTime",
+      direction: "desc",
+    });
 
   const {
     files,
