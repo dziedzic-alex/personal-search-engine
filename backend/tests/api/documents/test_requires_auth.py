@@ -13,6 +13,12 @@ DOCUMENT_ROUTES = [
         id="search",
     ),
     pytest.param(
+        "get",
+        "/documents/suggest",
+        {"params": {"query": "test"}},
+        id="suggest",
+    ),
+    pytest.param(
         "post",
         "/documents/",
         {"files": [("files", ("test.pdf", b"pdf content", "application/pdf"))]},
