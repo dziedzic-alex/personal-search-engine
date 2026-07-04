@@ -14,6 +14,9 @@ interface Props {
   placeholder?: string;
   isDisabled?: boolean;
   suffix?: ReactNode;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  inputRef?: React.Ref<HTMLInputElement>;
 }
 
 function SearchBar(props: Props) {
@@ -24,6 +27,9 @@ function SearchBar(props: Props) {
     placeholder = "Search",
     isDisabled = false,
     suffix,
+    onFocus,
+    onBlur,
+    inputRef,
   } = props;
 
   return (
@@ -44,6 +50,9 @@ function SearchBar(props: Props) {
         isDisabled={isDisabled}
         inputMode="search"
         enterKeyHint="search"
+        onFocus={onFocus}
+        onBlur={onBlur}
+        inputRef={inputRef}
       />
       {suffix ? <div className="search-bar-suffix">{suffix}</div> : null}
       <IconButton

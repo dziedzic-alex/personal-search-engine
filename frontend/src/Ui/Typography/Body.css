@@ -1,6 +1,7 @@
 .body-default,
-.body-muted {
-  margin: 0 0 1.5rem;
+.body-muted,
+.body-error {
+  margin: 0;
 }
 
 .body-default {
@@ -12,6 +13,5 @@
 }
 
 .body-error {
-  margin: 0;
   color: #8b4a42;
 }

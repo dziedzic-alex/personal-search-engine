@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import { apiFetch } from "../ApiClient";
+import { isAbortError } from "../Utils/isAbortError";
 
 import type { Document } from "../Types/Document";
 import type {
@@ -15,14 +16,14 @@ import type {
 } from "../Types/DocumentsListRequest";
 import type { DocumentsListResponse } from "../Types/DocumentsListResponse";
 
-interface props {
+interface UseGetFilesOptions {
   filterConfig: FilterConfig | null;
   query: string | null;
   sortColumnDirection: SortColumnDirection | null;
 }
 
-function useGetFiles(props: props) {
-  const { filterConfig, query, sortColumnDirection } = props;
+function useGetFiles(options: UseGetFilesOptions) {
+  const { filterConfig, query, sortColumnDirection } = options;
 
   const [files, setFiles] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -71,26 +72,13 @@ function useGetFiles(props: props) {
     setIsFetchingMore(true);
     setErrorFetchingMore(null);
     try {
-      const response: Response = await apiFetch("/api/documents/list", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          page: nextPage,
-          filterConfig: filterConfig,
-          query: query,
-          sortConfig: sortColumnDirection,
-        }),
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get more files. Please try again.");
-      }
-
-      const listFilesResponse: DocumentsListResponse =
-        (await response.json()) as DocumentsListResponse;
+      const listFilesResponse: DocumentsListResponse = await fetchDocumentsList(
+        nextPage,
+        filterConfig,
+        query,
+        sortColumnDirection,
+        controller.signal,
+      );
 
       if (controller !== fetchMoreController.current) {
         return;
@@ -161,7 +149,7 @@ async function fetchInitialFiles(
   setError(null);
   setErrorFetchingMore(null);
   try {
-    const listFilesResponse: DocumentsListResponse = await fetchFiles(
+    const listFilesResponse: DocumentsListResponse = await fetchDocumentsList(
       nextPage ?? 0,
       filterConfig,
       query,
@@ -189,7 +177,7 @@ async function fetchInitialFiles(
   setIsLoading(false);
 }
 
-async function fetchFiles(
+async function fetchDocumentsList(
   page: number,
   filterConfig: FilterConfig | null,
   query: string | null,
@@ -214,15 +202,5 @@ async function fetchFiles(
     throw new Error("Failed to get your files. Please try again.");
   }
 
-  const listFilesResponse: DocumentsListResponse =
-    (await response.json()) as DocumentsListResponse;
-
-  return listFilesResponse;
-}
-
-function isAbortError(error: unknown): boolean {
-  return (
-    (error instanceof DOMException && error.name === "AbortError") ||
-    (error instanceof Error && error.name === "AbortError")
-  );
+  return (await response.json()) as DocumentsListResponse;
 }

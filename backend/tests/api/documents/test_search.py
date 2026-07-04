@@ -1,4 +1,4 @@
-from tests.api.factories import make_document
+from tests.api.factories import api_document_json, make_document
 
 
 def test_text_search_returns_matching_documents(documents_client, mocker):
@@ -28,32 +28,7 @@ def test_text_search_returns_matching_documents(documents_client, mocker):
     )
 
     assert response.status_code == 200
-    assert response.json() == [
-        {
-            "id": 1,
-            "name": "alex dziedzic PIIA.pdf",
-            "contentCategory": "pdf",
-            "status": "processed",
-            "previewUrl": "https://presigned.example/1/piia.pdf",
-            "downloadUrl": "https://presigned.example/1/piia.pdf",
-            "thumbnailUrl": "https://presigned.example/1/thumbnail_piia.jpg",
-            "size": 1024,
-            "sourceCreatedTime": None,
-            "uploadedTime": documents[0].created_time.isoformat(),
-        },
-        {
-            "id": 2,
-            "name": "Nutshell Exit Agreement - Alex Dziedzic (2).pdf",
-            "contentCategory": "pdf",
-            "status": "processed",
-            "previewUrl": "https://presigned.example/1/exit.pdf",
-            "downloadUrl": "https://presigned.example/1/exit.pdf",
-            "thumbnailUrl": "https://presigned.example/1/thumbnail_exit.jpg",
-            "size": 1024,
-            "sourceCreatedTime": None,
-            "uploadedTime": documents[1].created_time.isoformat(),
-        },
-    ]
+    assert response.json() == [api_document_json(document) for document in documents]
     mock_get_text.assert_called_once_with("laid off", 1)
 
 
@@ -86,32 +61,7 @@ def test_image_search_returns_matching_documents(documents_client, mocker):
     )
 
     assert response.status_code == 200
-    assert response.json() == [
-        {
-            "id": 1,
-            "name": "photo.jpg",
-            "contentCategory": "image",
-            "status": "processed",
-            "previewUrl": "https://presigned.example/1/photo.jpg",
-            "downloadUrl": "https://presigned.example/1/photo.jpg",
-            "thumbnailUrl": "https://presigned.example/1/thumbnail_photo.jpg",
-            "size": 1024,
-            "sourceCreatedTime": None,
-            "uploadedTime": documents[0].created_time.isoformat(),
-        },
-        {
-            "id": 2,
-            "name": "scan.png",
-            "contentCategory": "image",
-            "status": "processed",
-            "previewUrl": "https://presigned.example/1/scan.png",
-            "downloadUrl": "https://presigned.example/1/scan.png",
-            "thumbnailUrl": "https://presigned.example/1/thumbnail_scan.png",
-            "size": 1024,
-            "sourceCreatedTime": None,
-            "uploadedTime": documents[1].created_time.isoformat(),
-        },
-    ]
+    assert response.json() == [api_document_json(document) for document in documents]
     mock_get_image.assert_called_once_with("person eating a burger", 1)
 
 
