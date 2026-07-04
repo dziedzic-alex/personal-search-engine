@@ -1,20 +1,5 @@
 from db.repositories.documents import DOCUMENT_LIST_PAGE_SIZE
-from tests.api.factories import make_document
-
-
-def _api_document_json(document) -> dict:
-    return {
-        "id": document.id,
-        "name": document.name,
-        "contentCategory": "pdf",
-        "status": "processed",
-        "previewUrl": f"https://presigned.example/{document.s3_content_key}",
-        "downloadUrl": f"https://presigned.example/{document.s3_content_key}",
-        "thumbnailUrl": f"https://presigned.example/{document.s3_thumbnail_key}",
-        "size": document.size_bytes,
-        "sourceCreatedTime": document.source_created_time,
-        "uploadedTime": document.created_time.isoformat(),
-    }
+from tests.api.factories import api_document_json, make_document
 
 
 def test_list_documents_returns_user_documents(documents_client, mocker):
@@ -29,7 +14,7 @@ def test_list_documents_returns_user_documents(documents_client, mocker):
 
     assert response.status_code == 200
     assert response.json() == {
-        "documents": [_api_document_json(document)],
+        "documents": [api_document_json(document)],
         "nextPage": None,
     }
     mock_get_documents.assert_called_once_with(1, None, None, None, 0)
@@ -50,7 +35,7 @@ def test_list_documents_returns_next_page_when_page_is_full(documents_client, mo
 
     assert response.status_code == 200
     assert response.json() == {
-        "documents": [_api_document_json(document) for document in documents],
+        "documents": [api_document_json(document) for document in documents],
         "nextPage": 1,
     }
 
