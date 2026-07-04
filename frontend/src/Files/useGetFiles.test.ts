@@ -57,7 +57,9 @@ describe("useGetFiles", () => {
 
   it("fetchMoreFiles appends the next page", async () => {
     const page0 = [makeDocument({ id: 1, name: "report.pdf" })];
-    const page1 = [makeDocument({ id: 2, name: "photo.jpg", contentCategory: "image" })];
+    const page1 = [
+      makeDocument({ id: 2, name: "photo.jpg", contentCategory: "image" }),
+    ];
     mockApiFetch
       .mockResolvedValueOnce({
         ok: true,
