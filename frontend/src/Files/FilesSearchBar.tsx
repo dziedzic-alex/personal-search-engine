@@ -1,9 +1,12 @@
+import { CornerDownLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
 import SearchBar from "../Ui/SearchBar/SearchBar";
 import Body from "../Ui/Typography/Body";
-import { CornerDownLeft } from "lucide-react";
 import getContentCategoryIcon from "../Utils/FileIcon";
+
 import useFilesTypeahead from "./useFilesTypeahead";
-import { useEffect, useRef, useState } from "react";
+
 
 import "./FilesSearchBar.css";
 
@@ -39,7 +42,7 @@ function FilesSearchBar(props: Props) {
       setDebouncedQuery(value);
     }, 250);
 
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); };
   }, [value]);
 
   const commitSearch = () => {
@@ -110,8 +113,8 @@ function FilesSearchBar(props: Props) {
         onChange={onChange}
         onSearch={commitSearch}
         placeholder={placeholder}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onFocus={() => { setIsFocused(true); }}
+        onBlur={() => { setIsFocused(false); }}
         inputRef={inputRef}
       />
       {shouldShowPanel && (
