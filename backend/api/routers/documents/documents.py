@@ -81,7 +81,11 @@ def get_documents(
     request: ListDocumentsRequest,
 ) -> ListDocumentsResponse:
     documents = DocumentRepository(session).get_documents(
-        user.id, request.query, request.sort_config, request.filter_config, request.page
+        user.id,
+        request.query,
+        request.sort_config,
+        request.filter_config,
+        request.page,
     )
 
     next_page = None
@@ -93,6 +97,18 @@ def get_documents(
         documents=[to_api_document(document, s3_client) for document in documents],
         next_page=next_page,
     )
+
+
+@router.get("/suggest")
+def suggest_documents(
+    query: str,
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
+) -> list[ApiDocument]:
+    documents = DocumentRepository(session).suggest_documents(user.id, query)
+
+    return [to_api_document(document, s3_client) for document in documents]
 
 
 class SearchMode(enum.StrEnum):
