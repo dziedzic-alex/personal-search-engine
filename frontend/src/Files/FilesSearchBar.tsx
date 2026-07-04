@@ -7,7 +7,6 @@ import getContentCategoryIcon from "../Utils/FileIcon";
 
 import useFilesTypeahead from "./useFilesTypeahead";
 
-
 import "./FilesSearchBar.css";
 
 interface Props {
@@ -33,16 +32,13 @@ function FilesSearchBar(props: Props) {
   const shouldShowPanel = isFocused && value.length > 0;
 
   useEffect(() => {
-    if (value === "") {
-      setDebouncedQuery("");
-      return;
-    }
-
     const timer = setTimeout(() => {
       setDebouncedQuery(value);
     }, 250);
 
-    return () => { clearTimeout(timer); };
+    return () => {
+      clearTimeout(timer);
+    };
   }, [value]);
 
   const commitSearch = () => {
@@ -113,8 +109,12 @@ function FilesSearchBar(props: Props) {
         onChange={onChange}
         onSearch={commitSearch}
         placeholder={placeholder}
-        onFocus={() => { setIsFocused(true); }}
-        onBlur={() => { setIsFocused(false); }}
+        onFocus={() => {
+          setIsFocused(true);
+        }}
+        onBlur={() => {
+          setIsFocused(false);
+        }}
         inputRef={inputRef}
       />
       {shouldShowPanel && (
