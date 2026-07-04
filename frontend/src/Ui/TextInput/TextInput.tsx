@@ -17,6 +17,9 @@ interface Props {
   className?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   enterKeyHint?: React.HTMLAttributes<HTMLInputElement>["enterKeyHint"];
+  onFocus?: () => void;
+  onBlur?: () => void;
+  inputRef?: React.Ref<HTMLInputElement>;
 }
 
 function TextInput(props: Props) {
@@ -37,12 +40,16 @@ function TextInput(props: Props) {
     className,
     inputMode,
     enterKeyHint,
+    onFocus,
+    onBlur,
+    inputRef,
   } = props;
 
   const classes = ["text-input", className].filter(Boolean).join(" ");
 
   return (
     <input
+      ref={inputRef}
       type={type}
       className={classes}
       value={value}
@@ -57,6 +64,8 @@ function TextInput(props: Props) {
       autoFocus={autoFocus}
       inputMode={inputMode}
       enterKeyHint={enterKeyHint}
+      onFocus={onFocus}
+      onBlur={onBlur}
       onKeyDown={(event) => {
         if (event.key === "Enter" && onEnter && !isDisabled) {
           event.preventDefault();
