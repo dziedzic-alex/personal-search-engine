@@ -54,7 +54,7 @@ describe("useFilesTypeahead", () => {
 
   it("aborts the prior request when the query changes", async () => {
     let firstSignal: AbortSignal | undefined;
-    let resolveFirstRequest: (value: Response) => void;
+    let resolveFirstRequest: ((value: Response) => void) | undefined;
 
     mockApiFetch.mockImplementation((_url, options) => {
       if (!firstSignal) {
@@ -86,7 +86,7 @@ describe("useFilesTypeahead", () => {
 
     expect(firstSignal?.aborted).toBe(true);
 
-    resolveFirstRequest({
+    resolveFirstRequest?.({
       ok: true,
       json: () => Promise.resolve([makeDocument()]),
     } as Response);
