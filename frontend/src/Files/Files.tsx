@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import Stack from "../Ui/Layout/Stack";
-import SearchBar from "../Ui/SearchBar/SearchBar";
 
+import FilesSearchBar from "./FilesSearchBar";
 import MyFilesCard from "./MyFilesCard";
 
 import "./Files.css";
@@ -25,8 +25,9 @@ function Files() {
 
   return (
     <Stack spacing="md" className="files-container">
-      <SearchBar
+      <FilesSearchBar
         value={searchQuery}
+        currentlyExecutedSearch={currentlyExecutedSearchQuery}
         onChange={setSearchQuery}
         onSearch={handleSearch}
         placeholder="Search by file name"
