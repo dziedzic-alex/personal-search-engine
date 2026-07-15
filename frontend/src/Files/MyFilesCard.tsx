@@ -1,4 +1,10 @@
-import { useState, useMemo } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 import Card from "../Ui/Card/Card";
 import Stack from "../Ui/Layout/Stack";
@@ -16,6 +22,8 @@ import type {
   SortColumnDirection,
 } from "../Types/DocumentsListRequest";
 import type { DocumentStatus } from "../Types/DocumentStatus";
+import type { Document } from "../Types/Document";
+import SelectedFilesActions from "./SelectedFilesActions";
 
 import "./MyFilesCard.css";
 
@@ -26,6 +34,11 @@ interface Props {
 
 function MyFilesCard(props: Props) {
   const { currentlyExecutedSearchQuery, clearSearch } = props;
+
+  const [selectedFiles, setSelectedFiles] = useState<Document[]>([]);
+  const [selectedAnchorIndex, setSelectedAnchorIndex] = useState<number | null>(
+    null,
+  );
 
   const [typeFilterValue, setTypeFilterValue] =
     useState<ContentCategory | null>(null);
@@ -78,6 +91,14 @@ function MyFilesCard(props: Props) {
     setDateCreatedFilterValue(null);
   };
 
+  const onClearSelectedFiles = () => {
+    clearSelectedFiles(setSelectedFiles, setSelectedAnchorIndex);
+  };
+
+  useEffect(() => {
+    clearSelectedFiles(setSelectedFiles, setSelectedAnchorIndex);
+  }, [sortColumnDirection, currentlyExecutedSearchQuery]);
+
   return (
     <Card className="my-files-card">
       <Stack spacing="md" fullWidth>
@@ -85,16 +106,23 @@ function MyFilesCard(props: Props) {
           <Header level={1}>My files</Header>
           <UploadButton setFiles={setFiles} />
         </Stack>
-        <TableFilters
-          typeFilterValue={typeFilterValue}
-          statusFilterValue={statusFilterValue}
-          dateUploadedFilterValue={dateUploadedFilterValue}
-          dateCreatedFilterValue={dateCreatedFilterValue}
-          setTypeFilterValue={setTypeFilterValue}
-          setStatusFilterValue={setStatusFilterValue}
-          setDateUploadedFilterValue={setDateUploadedFilterValue}
-          setDateCreatedFilterValue={setDateCreatedFilterValue}
-        />
+        {selectedFiles.length > 0 ? (
+          <SelectedFilesActions
+            selectedFiles={selectedFiles}
+            onClearSelectedFiles={onClearSelectedFiles}
+          />
+        ) : (
+          <TableFilters
+            typeFilterValue={typeFilterValue}
+            statusFilterValue={statusFilterValue}
+            dateUploadedFilterValue={dateUploadedFilterValue}
+            dateCreatedFilterValue={dateCreatedFilterValue}
+            setTypeFilterValue={setTypeFilterValue}
+            setStatusFilterValue={setStatusFilterValue}
+            setDateUploadedFilterValue={setDateUploadedFilterValue}
+            setDateCreatedFilterValue={setDateCreatedFilterValue}
+          />
+        )}
         <FilesTable
           files={files}
           setFiles={setFiles}
@@ -114,10 +142,22 @@ function MyFilesCard(props: Props) {
           errorFetchingMore={errorFetchingMore}
           isLoading={isLoading}
           error={error}
+          selectedFiles={selectedFiles}
+          selectedAnchorIndex={selectedAnchorIndex}
+          setSelectedFiles={setSelectedFiles}
+          setSelectedAnchorIndex={setSelectedAnchorIndex}
         />
       </Stack>
     </Card>
   );
+}
+
+function clearSelectedFiles(
+  setSelectedFiles: Dispatch<SetStateAction<Document[]>>,
+  setSelectedAnchorIndex: Dispatch<SetStateAction<number | null>>,
+) {
+  setSelectedFiles([]);
+  setSelectedAnchorIndex(null);
 }
 
 export default MyFilesCard;
