@@ -11,19 +11,19 @@ import Stack from "../Ui/Layout/Stack";
 import Header from "../Ui/Typography/Header";
 
 import FilesTable from "./FilesTable";
+import SelectedFilesActions from "./SelectedFilesActions";
 import TableFilters from "./TableFilters";
 import UploadButton from "./UploadButton";
 import useGetFiles from "./useGetFiles";
 
 import type { ContentCategory } from "../Types/ContentCategory";
+import type { Document } from "../Types/Document";
 import type {
   DateFilterOption,
   FilterConfig,
   SortColumnDirection,
 } from "../Types/DocumentsListRequest";
 import type { DocumentStatus } from "../Types/DocumentStatus";
-import type { Document } from "../Types/Document";
-import SelectedFilesActions from "./SelectedFilesActions";
 
 import "./MyFilesCard.css";
 

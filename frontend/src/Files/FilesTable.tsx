@@ -114,7 +114,7 @@ function FilesTable(props: Props) {
       const startIndex = Math.min(selectedAnchorIndex, currentFileIndex);
       const endIndex = Math.max(selectedAnchorIndex, currentFileIndex);
 
-      const shiftSelectedFilesIds: Set<number> = new Set();
+      const shiftSelectedFilesIds = new Set<number>();
       const shiftSelectedFiles: Document[] = [];
 
       for (let i = startIndex; i < endIndex + 1; i++) {
