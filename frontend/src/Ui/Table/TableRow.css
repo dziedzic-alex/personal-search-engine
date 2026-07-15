@@ -1,3 +1,16 @@
-.table-body .table-row:hover {
+.table-body .table-row:hover .table-cell {
   background-color: var(--color-bg);
+}
+
+.table-row-selected .table-cell {
+  background-color: var(--color-selection-bg);
+}
+
+.table-body .table-row-selected:hover .table-cell {
+  background-color: var(--color-selection-bg-hover);
+}
+
+.table-row-clickable {
+  cursor: pointer;
+  user-select: none;
 }

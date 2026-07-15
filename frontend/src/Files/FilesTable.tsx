@@ -33,7 +33,7 @@ import "./FilesTable.css";
 interface Props {
   files: Document[];
   setFiles: Dispatch<SetStateAction<Document[]>>;
-  setSortColumnDirection: Dispatch<SetStateAction<SortColumnDirection | null>>;
+  setSortColumnDirection: Dispatch<SetStateAction<SortColumnDirection>>;
   onClearFilters: () => void;
   hasMadeSearchQuery: boolean;
   hasAppliedFilters: boolean;
@@ -44,6 +44,10 @@ interface Props {
   isFetchingMore: boolean;
   errorFetchingMore: string | null;
   refetchInitialFiles: () => void;
+  selectedFiles: Document[];
+  selectedAnchorIndex: number | null;
+  setSelectedFiles: Dispatch<SetStateAction<Document[]>>;
+  setSelectedAnchorIndex: Dispatch<SetStateAction<number | null>>;
 }
 
 function FilesTable(props: Props) {
@@ -61,12 +65,14 @@ function FilesTable(props: Props) {
     isFetchingMore,
     errorFetchingMore,
     refetchInitialFiles,
+    selectedFiles,
+    selectedAnchorIndex,
+    setSelectedFiles,
+    setSelectedAnchorIndex,
   } = props;
 
-  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection | null>(
-    null,
-  );
+  const [sortColumn, setSortColumn] = useState<SortColumn>("uploadedTime");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   const updateSort = (newSortColumn: SortColumn) => {
     let newDirection: SortDirection = "asc";
@@ -91,6 +97,57 @@ function FilesTable(props: Props) {
     if (distanceFromBottom <= 1) {
       void fetchNextPage();
     }
+  };
+
+  const handleRowClick = (
+    file: Document,
+    event: React.MouseEvent<HTMLTableRowElement>,
+  ) => {
+    const currentFileIndex = files.findIndex((f) => f.id === file.id);
+    if (currentFileIndex === -1) {
+      return;
+    }
+
+    const { metaKey, ctrlKey, shiftKey } = event;
+
+    if (shiftKey && selectedAnchorIndex !== null) {
+      const startIndex = Math.min(selectedAnchorIndex, currentFileIndex);
+      const endIndex = Math.max(selectedAnchorIndex, currentFileIndex);
+
+      const shiftSelectedFilesIds = new Set<number>();
+      const shiftSelectedFiles: Document[] = [];
+
+      for (let i = startIndex; i < endIndex + 1; i++) {
+        shiftSelectedFilesIds.add(files[i].id);
+        shiftSelectedFiles.push(files[i]);
+      }
+
+      const selectedFilesNotInShiftSelectedFiles: Document[] =
+        selectedFiles.filter((f) => !shiftSelectedFilesIds.has(f.id));
+
+      setSelectedFiles([
+        ...selectedFilesNotInShiftSelectedFiles,
+        ...shiftSelectedFiles,
+      ]);
+    } else if (metaKey || ctrlKey) {
+      const isFileSelected = selectedFiles.some((f) => f.id === file.id);
+
+      if (isFileSelected) {
+        setSelectedFiles((prevFiles) =>
+          prevFiles.filter((f) => f.id !== file.id),
+        );
+      } else {
+        setSelectedFiles((prevFiles) => [...prevFiles, file]);
+      }
+    } else {
+      setSelectedFiles([file]);
+    }
+
+    setSelectedAnchorIndex(currentFileIndex);
+  };
+
+  const handleDoubleClick = (file: Document) => {
+    window.open(file.previewUrl, "_blank");
   };
 
   useEffect(() => {
@@ -224,7 +281,18 @@ function FilesTable(props: Props) {
       </TableHeader>
       <TableBody>
         {files.map((file) => (
-          <TableRow key={file.id}>
+          <TableRow
+            key={file.id}
+            onClick={(event) => {
+              handleRowClick(file, event);
+            }}
+            onDoubleClick={() => {
+              handleDoubleClick(file);
+            }}
+            isSelected={selectedFiles.some(
+              (selectedFile) => selectedFile.id === file.id,
+            )}
+          >
             <TableCell>
               <Stack direction="horizontal" spacing="sm">
                 {getContentCategoryIcon(file.contentCategory)}

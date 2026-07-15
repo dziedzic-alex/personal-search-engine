@@ -16,6 +16,12 @@
   --color-text-on-brand: #ffffff;
   --color-accent: #4a6b6b;
   --color-accent-hover: #3d5858;
+  --color-selection-bg: color-mix(in srgb, #5a9fd4 18%, var(--color-surface));
+  --color-selection-bg-hover: color-mix(
+    in srgb,
+    #5a9fd4 28%,
+    var(--color-bg-hover)
+  );
 
   --radius-sm: 6px;
   --radius-md: 8px;
