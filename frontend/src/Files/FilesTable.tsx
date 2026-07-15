@@ -33,7 +33,7 @@ import "./FilesTable.css";
 interface Props {
   files: Document[];
   setFiles: Dispatch<SetStateAction<Document[]>>;
-  setSortColumnDirection: Dispatch<SetStateAction<SortColumnDirection | null>>;
+  setSortColumnDirection: Dispatch<SetStateAction<SortColumnDirection>>;
   onClearFilters: () => void;
   hasMadeSearchQuery: boolean;
   hasAppliedFilters: boolean;
