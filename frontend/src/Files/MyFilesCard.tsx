@@ -6,11 +6,14 @@ import {
   type SetStateAction,
 } from "react";
 
+import { apiFetch } from "../ApiClient";
 import Card from "../Ui/Card/Card";
 import Stack from "../Ui/Layout/Stack";
+import { notify } from "../Ui/Notification/notify";
 import Header from "../Ui/Typography/Header";
 
 import FilesTable from "./FilesTable";
+import FilesTableBulkDeleteModal from "./FilesTableBulkDeleteModal";
 import SelectedFilesActions from "./SelectedFilesActions";
 import TableFilters from "./TableFilters";
 import UploadButton from "./UploadButton";
@@ -24,6 +27,7 @@ import type {
   SortColumnDirection,
 } from "../Types/DocumentsListRequest";
 import type { DocumentStatus } from "../Types/DocumentStatus";
+
 
 import "./MyFilesCard.css";
 
@@ -39,6 +43,8 @@ function MyFilesCard(props: Props) {
   const [selectedAnchorIndex, setSelectedAnchorIndex] = useState<number | null>(
     null,
   );
+
+  const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
 
   const [typeFilterValue, setTypeFilterValue] =
     useState<ContentCategory | null>(null);
@@ -95,6 +101,43 @@ function MyFilesCard(props: Props) {
     clearSelectedFiles(setSelectedFiles, setSelectedAnchorIndex);
   };
 
+  const handleDelete = async () => {
+    if (selectedFiles.length === 0) {
+      return;
+    }
+
+    if (selectedFiles.length > 1) {
+      setBulkDeleteModalOpen(true);
+      return;
+    }
+
+    try {
+      const response = await apiFetch(
+        `/api/documents/${String(selectedFiles[0].id)}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to delete the selected file. Please try again.",
+        );
+      }
+
+      setFiles((files) =>
+        files.filter((file) => selectedFiles[0].id !== file.id),
+      );
+      onClearSelectedFiles();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to delete the selected file. Please try again.";
+      notify({ message: errorMessage, variant: "error" });
+    }
+  };
+
   useEffect(() => {
     clearSelectedFiles(setSelectedFiles, setSelectedAnchorIndex);
   }, [sortColumnDirection, currentlyExecutedSearchQuery]);
@@ -110,6 +153,7 @@ function MyFilesCard(props: Props) {
           <SelectedFilesActions
             selectedFiles={selectedFiles}
             onClearSelectedFiles={onClearSelectedFiles}
+            handleDelete={handleDelete}
           />
         ) : (
           <TableFilters
@@ -146,8 +190,19 @@ function MyFilesCard(props: Props) {
           selectedAnchorIndex={selectedAnchorIndex}
           setSelectedFiles={setSelectedFiles}
           setSelectedAnchorIndex={setSelectedAnchorIndex}
+          handleDelete={handleDelete}
         />
       </Stack>
+      {bulkDeleteModalOpen && (
+        <FilesTableBulkDeleteModal
+          selectedFiles={selectedFiles}
+          clearSelectedFiles={onClearSelectedFiles}
+          setFiles={setFiles}
+          onClose={() => {
+            setBulkDeleteModalOpen(false);
+          }}
+        />
+      )}
     </Card>
   );
 }
