@@ -48,6 +48,7 @@ interface Props {
   selectedAnchorIndex: number | null;
   setSelectedFiles: Dispatch<SetStateAction<Document[]>>;
   setSelectedAnchorIndex: Dispatch<SetStateAction<number | null>>;
+  handleDelete: () => Promise<void>;
 }
 
 function FilesTable(props: Props) {
@@ -69,6 +70,7 @@ function FilesTable(props: Props) {
     selectedAnchorIndex,
     setSelectedFiles,
     setSelectedAnchorIndex,
+    handleDelete,
   } = props;
 
   const [sortColumn, setSortColumn] = useState<SortColumn>("uploadedTime");
@@ -308,7 +310,11 @@ function FilesTable(props: Props) {
             </TableCell>
             <TableCell>{formatBytes(file.size)}</TableCell>
             <TableCell>
-              <FilesTableRowActionMenu file={file} setFiles={setFiles} />
+              <FilesTableRowActionMenu
+                file={file}
+                setFiles={setFiles}
+                handleDelete={handleDelete}
+              />
             </TableCell>
           </TableRow>
         ))}

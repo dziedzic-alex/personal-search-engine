@@ -61,6 +61,28 @@ class S3Client:
             Key=object_key,
         )
 
+    MAX_DELETE_OBJECTS_PER_REQUEST = 1000
+
+    def delete_files(self, object_keys: list[str]) -> None:
+        for i in range(0, len(object_keys), self.MAX_DELETE_OBJECTS_PER_REQUEST):
+            response = self.client.delete_objects(
+                Bucket=settings.s3_files_thumbnails_bucket_name,
+                Delete={
+                    "Objects": [
+                        {"Key": object_key}
+                        for object_key in object_keys[
+                            i : i + self.MAX_DELETE_OBJECTS_PER_REQUEST
+                        ]
+                    ],
+                    "Quiet": True,
+                },
+            )
+
+            if "Errors" in response and len(response["Errors"]) > 0:
+                print(
+                    f"Error deleting the following objects: {str(response['Errors'])}"
+                )
+
     @dataclass
     class ContentDispositionConfig:
         filename: str

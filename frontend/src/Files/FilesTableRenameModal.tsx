@@ -11,6 +11,8 @@ import Header from "../Ui/Typography/Header";
 import type { Document } from "../Types/Document";
 import type { Dispatch, SetStateAction } from "react";
 
+import "./FilesTableRenameModal.css";
+
 interface Props {
   onClose: () => void;
   file: Document;
@@ -69,7 +71,7 @@ function FilesTableRenameModal(props: Props) {
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Rename file">
-      <Stack spacing="md">
+      <Stack spacing="md" className="files-table-rename-modal-content">
         <Header level={2}>Rename</Header>
         <TextInput
           value={renameModalNewName}
