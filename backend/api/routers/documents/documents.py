@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import Field
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from api.dependencies import S3ClientDep, SessionDep, UserDep
 from api.dependencies.sqs import SQSDocumentProcessingClientDep
@@ -140,6 +140,43 @@ def search(
     return response
 
 
+class DeleteDocumentsRequest(CamelModel):
+    document_ids: list[int] = Field(min_length=1)
+
+
+@router.delete("/bulk-delete", status_code=204)
+def delete_documents(
+    request: DeleteDocumentsRequest,
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
+):
+    documents_to_delete = session.scalars(
+        select(Document)
+        .where(Document.user_id == user.id)
+        .where(Document.id.in_(request.document_ids))
+    ).all()
+
+    if len(documents_to_delete) != len(request.document_ids):
+        raise HTTPException(status_code=404, detail="One or more documents not found")
+
+    session.execute(
+        delete(Document)
+        .where(Document.user_id == user.id)
+        .where(Document.id.in_([document.id for document in documents_to_delete]))
+    )
+    session.commit()
+
+    content_keys = [document.s3_content_key for document in documents_to_delete]
+    thumbnail_keys = [document.s3_thumbnail_key for document in documents_to_delete]
+
+    try:
+        s3_client.delete_files(content_keys + thumbnail_keys)
+    except Exception as e:
+        print(f"Error deleting documents {request.document_ids} from S3: {e}")
+        pass
+
+
 @router.delete("/{document_id}", status_code=204)
 def delete_document(
     document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep
@@ -153,8 +190,11 @@ def delete_document(
     session.delete(document)
     session.commit()
 
-    s3_client.delete_file(document.s3_content_key)
-    s3_client.delete_file(document.s3_thumbnail_key)
+    try:
+        s3_client.delete_files([document.s3_content_key, document.s3_thumbnail_key])
+    except Exception as e:
+        print(f"Error deleting document {document.id} from S3: {e}")
+        pass
 
 
 class DocumentUpdateRequest(CamelModel):
