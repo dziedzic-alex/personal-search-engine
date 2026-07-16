@@ -28,7 +28,6 @@ import type {
 } from "../Types/DocumentsListRequest";
 import type { DocumentStatus } from "../Types/DocumentStatus";
 
-
 import "./MyFilesCard.css";
 
 interface Props {
