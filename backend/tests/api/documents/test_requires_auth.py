@@ -31,6 +31,12 @@ DOCUMENT_ROUTES = [
         id="update",
     ),
     pytest.param("delete", "/documents/1", {}, id="delete"),
+    pytest.param(
+        "delete",
+        "/documents/bulk-delete",
+        {},
+        id="bulk-delete",
+    ),
 ]
 
 
