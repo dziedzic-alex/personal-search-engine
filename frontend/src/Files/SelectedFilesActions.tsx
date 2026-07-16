@@ -11,10 +11,11 @@ import "./SelectedFilesActions.css";
 interface Props {
   selectedFiles: Document[];
   onClearSelectedFiles: () => void;
+  handleDelete: () => Promise<void>;
 }
 
 function SelectedFilesActions(props: Props) {
-  const { selectedFiles, onClearSelectedFiles } = props;
+  const { selectedFiles, onClearSelectedFiles, handleDelete } = props;
 
   const selectedCountText =
     selectedFiles.length === 1
@@ -26,10 +27,6 @@ function SelectedFilesActions(props: Props) {
       window.location.assign(selectedFiles[0].downloadUrl);
       return;
     }
-  };
-
-  const handleDelete = () => {
-    console.log("Delete selected files");
   };
 
   return (
@@ -49,7 +46,10 @@ function SelectedFilesActions(props: Props) {
           >
             <Download />
           </IconButton>
-          <IconButton ariaLabel="Delete selected files" onClick={handleDelete}>
+          <IconButton
+            ariaLabel="Delete selected files"
+            onClick={() => void handleDelete()}
+          >
             <Trash2 />
           </IconButton>
         </div>
