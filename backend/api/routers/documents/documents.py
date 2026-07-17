@@ -1,10 +1,15 @@
 import enum
+import os
+import zipfile
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import Field
 from sqlalchemy import delete, select
+from starlette.background import BackgroundTask
 
 from api.dependencies import S3ClientDep, SessionDep, UserDep
 from api.dependencies.sqs import SQSDocumentProcessingClientDep
@@ -325,3 +330,55 @@ def upload_files(
         )
 
     return uploaded_files
+
+MAX_BULK_DOWNLOAD_GB = 2
+MAX_BULK_DOWNLOAD_BYTE_SIZE = MAX_BULK_DOWNLOAD_GB * 1024 * 1024 * 1024
+
+class DownloadDocumentsRequest(CamelModel):
+    document_ids: list[int] = Field(min_length=2)
+
+@router.post("/bulk-download")
+def download_documents(
+    request: DownloadDocumentsRequest,
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
+):
+    documents_to_download = session.scalars(
+        select(Document)
+        .where(Document.user_id == user.id)
+        .where(Document.id.in_(request.document_ids))
+    ).all()
+
+    if len(documents_to_download) != len(request.document_ids):
+        raise HTTPException(status_code=404, detail="One or more documents not found")
+
+    total_byte_size = sum(document.size_bytes for document in documents_to_download)
+    if total_byte_size > MAX_BULK_DOWNLOAD_BYTE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Total size of selected files exceeds {MAX_BULK_DOWNLOAD_GB}GB",
+        )
+
+    tmp = NamedTemporaryFile(delete=False)
+    try:
+        with zipfile.ZipFile(
+            tmp, "w"
+        ) as zip_file_stream:
+            for document in documents_to_download:
+                zip_file_stream.writestr(
+                    document.name,
+                    s3_client.get_file(document.s3_content_key),
+                )
+
+        tmp.close()
+
+        return FileResponse(
+            tmp.name,
+            media_type="application/zip",
+            background=BackgroundTask(os.unlink, tmp.name),
+        )
+    except Exception:
+        tmp.close()
+        os.unlink(tmp.name)
+        raise
