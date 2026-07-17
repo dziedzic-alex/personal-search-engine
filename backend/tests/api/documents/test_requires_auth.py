@@ -37,6 +37,12 @@ DOCUMENT_ROUTES = [
         {},
         id="bulk-delete",
     ),
+    pytest.param(
+        "post",
+        "/documents/bulk-download",
+        {"json": {"documentIds": [1, 2]}},
+        id="bulk-download",
+    ),
 ]
 
 
