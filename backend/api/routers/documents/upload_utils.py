@@ -36,7 +36,7 @@ class PersistedFileObjectKeys:
     thumbnail_key: str
 
 
-def persist_file(
+def persist_file_to_s3(
     s3_client: S3Client,
     file_data: bytes,
     user_id: int,

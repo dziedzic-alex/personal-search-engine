@@ -9,7 +9,7 @@ from api.routers.documents.upload_utils import (
     THUMBNAIL_WIDTH,
     PersistedFileObjectKeys,
     _create_thumbnail,
-    persist_file,
+    persist_file_to_s3,
     sanitize_content_type,
 )
 from shared.content_type import ContentType
@@ -25,7 +25,7 @@ def test_sanitize_content_type_returns_extension_for_octet_stream():
     assert sanitize_content_type("application/octet-stream", "photo.heic") == "heic"
 
 
-def test_persist_file_rolls_back_thumbnail_when_content_upload_fails(mocker):
+def test_persist_file_to_s3_rolls_back_thumbnail_when_content_upload_fails(mocker):
     mock_s3_client = mocker.MagicMock()
     thumbnail_key = f"1/{FILE_GROUP_ID}/thumbnail"
     mock_s3_client.persist_file.side_effect = [
@@ -42,7 +42,7 @@ def test_persist_file_rolls_back_thumbnail_when_content_upload_fails(mocker):
     )
 
     with pytest.raises(Exception, match="s3 error"):
-        persist_file(
+        persist_file_to_s3(
             mock_s3_client,
             b"image bytes",
             1,
@@ -52,7 +52,7 @@ def test_persist_file_rolls_back_thumbnail_when_content_upload_fails(mocker):
     mock_s3_client.delete_file.assert_called_once_with(thumbnail_key)
 
 
-def test_persist_file_returns_paired_s3_keys(mocker):
+def test_persist_file_to_s3_returns_paired_s3_keys(mocker):
     mock_s3_client = mocker.MagicMock()
     mock_s3_client.persist_file.side_effect = [
         f"1/{FILE_GROUP_ID}/thumbnail",
@@ -67,7 +67,7 @@ def test_persist_file_returns_paired_s3_keys(mocker):
         return_value=b"thumbnail bytes",
     )
 
-    result = persist_file(
+    result = persist_file_to_s3(
         mock_s3_client,
         b"image bytes",
         1,
