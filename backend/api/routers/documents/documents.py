@@ -331,11 +331,14 @@ def upload_files(
 
     return uploaded_files
 
+
 MAX_BULK_DOWNLOAD_GB = 2
 MAX_BULK_DOWNLOAD_BYTE_SIZE = MAX_BULK_DOWNLOAD_GB * 1024 * 1024 * 1024
 
+
 class DownloadDocumentsRequest(CamelModel):
     document_ids: list[int] = Field(min_length=2)
+
 
 @router.post("/bulk-download")
 def download_documents(
@@ -362,9 +365,7 @@ def download_documents(
 
     tmp = NamedTemporaryFile(delete=False)
     try:
-        with zipfile.ZipFile(
-            tmp, "w"
-        ) as zip_file_stream:
+        with zipfile.ZipFile(tmp, "w") as zip_file_stream:
             for document in documents_to_download:
                 zip_file_stream.writestr(
                     document.name,
