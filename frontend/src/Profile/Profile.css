@@ -1,3 +1,20 @@
-.profile {
+.profile-card {
   display: flex;
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+  align-self: center;
+}
+
+.profile-card-label {
+  min-width: 6rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.profile-card-divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
 }
