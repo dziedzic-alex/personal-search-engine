@@ -72,7 +72,7 @@ function FilesTableBulkDeleteModal(props: Props) {
             Cancel
           </Button>
           <Button
-            variant="primary"
+            variant="danger"
             isLoading={isDeleting}
             loadingText="Deleting..."
             onClick={() => void onConfirmDelete()}
