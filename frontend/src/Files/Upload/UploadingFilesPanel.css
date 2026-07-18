@@ -1,0 +1,43 @@
+.uploading-files-panel {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 0;
+  right: 2rem;
+  z-index: 1000;
+  width: 350px;
+  max-height: 450px;
+  user-select: none;
+}
+
+.uploading-files-list {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.uploading-file-item {
+  padding: 0.9rem 1rem;
+}
+
+.uploading-file-item-name-container {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.uploading-file-item-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.uploading-files-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+}
