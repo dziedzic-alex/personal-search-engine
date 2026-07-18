@@ -12,6 +12,7 @@ import type { User } from "../Auth/User";
 export const mockUser: User = {
   id: 1,
   firstName: "Test",
+  lastName: "User",
   email: "test@example.com",
   plan: "free",
 };
@@ -26,6 +27,7 @@ const baseAuthContext: Omit<
   login: vi.fn<() => Promise<void>>(() => Promise.resolve()),
   logout: vi.fn<() => Promise<void>>(() => Promise.resolve()),
   clearSession: vi.fn<() => void>(() => undefined),
+  updateUser: vi.fn<() => Promise<void>>(() => Promise.resolve()),
 };
 
 export function createMockAuthContext(
