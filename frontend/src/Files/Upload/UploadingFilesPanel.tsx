@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -7,18 +6,20 @@ import {
   File,
   X,
 } from "lucide-react";
+import { useState } from "react";
 
+import IconButton from "../../Ui/Buttons/IconButton";
 import Card from "../../Ui/Card/Card";
 import Stack from "../../Ui/Layout/Stack";
-import type { ContentCategory } from "../../Types/ContentCategory";
-import getContentCategoryIcon from "../../Utils/FileIcon";
 import Spinner from "../../Ui/Spinner/Spinner";
 import Body from "../../Ui/Typography/Body";
 import Header from "../../Ui/Typography/Header";
+import getContentCategoryIcon from "../../Utils/FileIcon";
 
 import "./UploadingFilesPanel.css";
-import IconButton from "../../Ui/Buttons/IconButton";
 import { ALLOWED_IMAGE_FILE_EXTENSIONS } from "./AllowedFilesConsts";
+
+import type { ContentCategory } from "../../Types/ContentCategory";
 
 export interface UploadingFile {
   file: File;
@@ -45,7 +46,7 @@ function UploadingFilesPanel(props: Props) {
         <Header level={3}>{headerText}</Header>
         <Stack direction="horizontal" align="center" spacing="xs">
           <IconButton
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => { setIsExpanded(!isExpanded); }}
             ariaLabel="Collapse or expand upload panel"
             size="large"
           >
