@@ -25,6 +25,14 @@ def test_sanitize_content_type_returns_extension_for_octet_stream():
     assert sanitize_content_type("application/octet-stream", "photo.heic") == "heic"
 
 
+def test_sanitize_content_type_returns_extension_when_content_type_is_none():
+    assert sanitize_content_type(None, "document.pdf") == "pdf"
+
+
+def test_sanitize_content_type_returns_extension_when_content_type_has_no_slash():
+    assert sanitize_content_type("pdf", "document.pdf") == "pdf"
+
+
 def test_persist_file_to_s3_rolls_back_thumbnail_when_content_upload_fails(mocker):
     mock_s3_client = mocker.MagicMock()
     thumbnail_key = f"1/{FILE_GROUP_ID}/thumbnail"
