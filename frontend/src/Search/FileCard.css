@@ -23,12 +23,6 @@
   z-index: 1;
 }
 
-.file-card-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .file-card-icon {
   flex-shrink: 0;
   display: flex;
