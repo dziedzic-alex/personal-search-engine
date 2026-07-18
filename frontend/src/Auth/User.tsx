@@ -3,6 +3,7 @@ type UserPlan = "free" | "basic" | "pro" | "ultra";
 interface User {
   id: number;
   firstName: string;
+  lastName: string;
   email: string;
   plan: UserPlan;
 }
