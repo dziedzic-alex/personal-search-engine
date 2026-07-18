@@ -1,12 +1,12 @@
 import { useState } from "react";
 
+import { apiFetch } from "../ApiClient";
 import Button from "../Ui/Buttons/Button";
 import Stack from "../Ui/Layout/Stack";
-import Header from "../Ui/Typography/Header";
 import Modal from "../Ui/Modal/Modal";
-import Body from "../Ui/Typography/Body";
-import { apiFetch } from "../ApiClient";
 import { notify } from "../Ui/Notification/notify";
+import Body from "../Ui/Typography/Body";
+import Header from "../Ui/Typography/Header";
 
 interface Props {
   onClose: () => void;
