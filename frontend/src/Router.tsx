@@ -1,12 +1,12 @@
 import { createBrowserRouter, Outlet } from "react-router-dom";
 
+import Account from "./Account/Account";
 import AuthProvider from "./Auth/AuthProvider";
 import Login from "./Auth/Login";
 import Signup from "./Auth/Signup";
 import AuthLayout from "./AuthLayout";
 import Files from "./Files/Files";
 import Home from "./Home/Home";
-import Account from "./Account/Account";
 import ProtectedRoute from "./ProtectedRoute";
 import Search from "./Search/Search";
 import NotificationProvider from "./Ui/Notification/NotificationProvider";
