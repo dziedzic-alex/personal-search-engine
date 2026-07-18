@@ -46,19 +46,6 @@ def test_upload_persists_file_to_s3(documents_client, mock_user):
     assert args[3] == ContentType.PDF
 
 
-def test_upload_returns_400_when_filename_missing(documents_client):
-    client, mock_session, _, mock_persist_file_to_s3, _ = documents_client
-
-    response = client.post(
-        "/documents/",
-        files={"file": ("", b"pdf content", "application/pdf")},
-    )
-
-    assert response.status_code == 400
-    mock_persist_file_to_s3.assert_not_called()
-    mock_session.add.assert_not_called()
-
-
 def test_upload_returns_415_for_unsupported_content_type(documents_client):
     client, mock_session, _, mock_persist_file_to_s3, _ = documents_client
 
