@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useAuth } from "../Auth/AuthContext";
+import { useAuthenticatedUser } from "../Auth/AuthContext";
 import Button from "../Ui/Buttons/Button";
 import Card from "../Ui/Card/Card";
 import Stack from "../Ui/Layout/Stack";
@@ -14,7 +14,7 @@ import DeleteAccountConfirmationModal from "./DeleteAccountConfirmationModal";
 import "./Account.css";
 
 function Account() {
-  const { user, logout, clearSession, updateUser } = useAuth();
+  const { user, logout, clearSession, updateUser } = useAuthenticatedUser();
 
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);

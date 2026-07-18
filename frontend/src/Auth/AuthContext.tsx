@@ -29,3 +29,14 @@ export function useAuth(): AuthContextValue {
 
   return context;
 }
+
+export function useAuthenticatedUser(): AuthContextValue & { user: User } {
+  const context = useAuth();
+  if (!context.user) {
+    throw new Error(
+      "useAuthenticatedUser must be used within an authenticated route",
+    );
+  }
+
+  return context as AuthContextValue & { user: User };
+}
