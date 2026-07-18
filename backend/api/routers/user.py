@@ -11,9 +11,11 @@ from api.dependencies import S3ClientDep
 
 router = APIRouter(prefix="/user", tags=["user"])
 
+
 class UpdateUserRequest(CamelModel):
     first_name: str = Field(min_length=1, max_length=255)
     last_name: str = Field(min_length=1, max_length=255)
+
 
 class UserResponse(CamelModel):
     id: int
@@ -22,8 +24,11 @@ class UserResponse(CamelModel):
     email: str
     plan: UserPlan
 
+
 @router.patch("/me")
-def update_user(request: UpdateUserRequest, user: UserDep, session: SessionDep) -> UserResponse:
+def update_user(
+    request: UpdateUserRequest, user: UserDep, session: SessionDep
+) -> UserResponse:
     user.first_name = request.first_name
     user.last_name = request.last_name
     session.commit()
@@ -36,11 +41,16 @@ def update_user(request: UpdateUserRequest, user: UserDep, session: SessionDep) 
         plan=user.plan,
     )
 
+
 @router.delete("/me", status_code=204)
 def delete_user(user: UserDep, session: SessionDep, s3_client: S3ClientDep):
-    user_documents = session.scalars(select(Document).where(Document.user_id == user.id)).all()
+    user_documents = session.scalars(
+        select(Document).where(Document.user_id == user.id)
+    ).all()
 
-    objects_to_delete = [document.s3_content_key for document in user_documents] + [document.s3_thumbnail_key for document in user_documents]
+    objects_to_delete = [document.s3_content_key for document in user_documents] + [
+        document.s3_thumbnail_key for document in user_documents
+    ]
 
     session.delete(user)
     session.commit()
