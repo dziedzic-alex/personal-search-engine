@@ -2,8 +2,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from api.routers.user import router as user_router
 from api.routers.auth.auth_utils import get_current_user
+from api.routers.user import router as user_router
 from db.session import get_session
 from shared.s3_client import get_s3_client
 from tests.api.conftest import make_user

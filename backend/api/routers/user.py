@@ -2,12 +2,10 @@ from fastapi import APIRouter
 from pydantic import Field
 from sqlalchemy import select
 
-
-from api.dependencies import SessionDep, UserDep
+from api.dependencies import S3ClientDep, SessionDep, UserDep
+from api.schemas.camel_model import CamelModel
 from db.models.document import Document
 from db.models.user import UserPlan
-from api.schemas.camel_model import CamelModel
-from api.dependencies import S3ClientDep
 
 router = APIRouter(prefix="/user", tags=["user"])
 
