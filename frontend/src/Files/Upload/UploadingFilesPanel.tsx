@@ -46,7 +46,9 @@ function UploadingFilesPanel(props: Props) {
         <Header level={3}>{headerText}</Header>
         <Stack direction="horizontal" align="center" spacing="xs">
           <IconButton
-            onClick={() => { setIsExpanded(!isExpanded); }}
+            onClick={() => {
+              setIsExpanded(!isExpanded);
+            }}
             ariaLabel="Collapse or expand upload panel"
             size="large"
           >
@@ -109,14 +111,14 @@ function getHeaderText(uploadingFiles: UploadingFile[]): string {
   if (numFilesCurrentlyUploading > 0) {
     return numFilesCurrentlyUploading === 1
       ? "Uploading 1 file"
-      : `Uploading ${numFilesCurrentlyUploading} files`;
+      : `Uploading ${String(numFilesCurrentlyUploading)} files`;
   }
 
   const numUploadsComplete = uploadingFiles.length;
 
   return numUploadsComplete === 1
     ? "1 upload complete"
-    : `${numUploadsComplete} uploads complete`;
+    : `${String(numUploadsComplete)} uploads complete`;
 }
 
 function getFileIconFromTypeOrName(
