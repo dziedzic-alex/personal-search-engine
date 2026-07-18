@@ -6,6 +6,7 @@ import ActionMenu, {
 import IconButton from "../Ui/Buttons/IconButton";
 import Card from "../Ui/Card/Card";
 import Stack from "../Ui/Layout/Stack";
+import Body from "../Ui/Typography/Body";
 import getContentCategoryIcon from "../Utils/FileIcon";
 
 import type { ContentCategory } from "../Types/ContentCategory";
@@ -39,13 +40,14 @@ function FileCard(props: Props) {
         rel="noopener noreferrer"
         className="file-card-link"
         aria-label={`Open ${filename}`}
+        title={filename}
       />
       <Stack className="file-card-content">
         <div className="file-card-header">
           <div className="file-card-icon">
             {getContentCategoryIcon(contentCategory)}
           </div>
-          <div className="file-card-name">{filename}</div>
+          <Body truncate>{filename}</Body>
           <div className="file-card-actions">
             <ActionMenu
               renderTrigger={(triggerProps: ActionMenuTriggerProps) => (

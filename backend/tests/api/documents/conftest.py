@@ -16,9 +16,9 @@ FILE_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000"
 
 
 @pytest.fixture
-def mock_persist_file(mocker):
+def mock_persist_file_to_s3(mocker):
     return mocker.patch(
-        "api.routers.documents.documents.persist_file",
+        "api.routers.documents.documents.persist_file_to_s3",
         side_effect=lambda s3_client, file_data, user_id, content_type: (
             PersistedFileObjectKeys(
                 content_key=f"{user_id}/{FILE_GROUP_ID}/content",
@@ -29,7 +29,7 @@ def mock_persist_file(mocker):
 
 
 @pytest.fixture
-def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file):
+def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file_to_s3):
     mock_session = mocker.MagicMock()
     next_document_id = 1
 
@@ -66,6 +66,6 @@ def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file):
         TestClient(app),
         mock_session,
         mock_sqs_client,
-        mock_persist_file,
+        mock_persist_file_to_s3,
         mock_s3_client,
     )

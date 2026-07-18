@@ -16,7 +16,7 @@ import FilesTable from "./FilesTable";
 import FilesTableBulkDeleteModal from "./FilesTableBulkDeleteModal";
 import SelectedFilesActions from "./SelectedFilesActions";
 import TableFilters from "./TableFilters";
-import UploadButton from "./UploadButton";
+import UploadButton from "./Upload/UploadButton";
 import useGetFiles from "./useGetFiles";
 
 import type { ContentCategory } from "../Types/ContentCategory";

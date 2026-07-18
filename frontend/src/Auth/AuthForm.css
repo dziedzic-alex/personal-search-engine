@@ -7,6 +7,7 @@
 
 .auth-form-card {
   width: min(500px, 100%);
+  padding: 1.5rem;
 }
 
 .auth-form-footer {

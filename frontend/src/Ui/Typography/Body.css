@@ -15,3 +15,9 @@
 .body-error {
   color: #8b4a42;
 }
+
+.body-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

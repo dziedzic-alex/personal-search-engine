@@ -3,9 +3,8 @@ import os
 import zipfile
 from datetime import datetime
 from tempfile import NamedTemporaryFile
-from typing import Annotated
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import Field
 from sqlalchemy import delete, select
@@ -15,7 +14,7 @@ from api.dependencies import S3ClientDep, SessionDep, UserDep
 from api.dependencies.sqs import SQSDocumentProcessingClientDep
 from api.routers.documents.upload_utils import (
     is_allowed_content_type,
-    persist_file,
+    persist_file_to_s3,
     sanitize_content_type,
 )
 from api.schemas.camel_model import CamelModel
@@ -236,100 +235,79 @@ def update_document(
     return to_api_document(document, s3_client)
 
 
-UploadFiles = Annotated[list[UploadFile], File(...)]
-
-
-class UploadFilesResponse(CamelModel):
-    files_being_processed: list[ApiDocument]
-    errors: list[str]
-
-
 @router.post("/")
-def upload_files(
-    files: UploadFiles,
+def upload_file(
+    file: UploadFile,
     user: UserDep,
     session: SessionDep,
     s3_client: S3ClientDep,
     sqs_client: SQSDocumentProcessingClientDep,
-) -> UploadFilesResponse:
-    uploaded_files: UploadFilesResponse = UploadFilesResponse(
-        files_being_processed=[], errors=[]
+) -> ApiDocument:
+    filename = file.filename
+
+    if not filename:
+        raise HTTPException(status_code=400, detail="Missing filename")
+
+    sanitized_content_type = sanitize_content_type(file.content_type, filename)
+
+    if not is_allowed_content_type(sanitized_content_type):
+        raise HTTPException(
+            status_code=415, detail=f"Content type {file.content_type} not allowed"
+        )
+
+    existing_document = session.scalars(
+        select(Document)
+        .where(Document.user_id == user.id)
+        .where(Document.name == filename)
+    ).first()
+
+    if existing_document is not None:
+        print(f"Document {filename} already exists. Skipping...")
+        raise HTTPException(
+            status_code=409, detail=f"Document {filename} already exists"
+        )
+
+    file_data = file.file.read()
+    content_type = ContentType(sanitized_content_type)
+    persisted_file_object_keys = persist_file_to_s3(
+        s3_client, file_data, user.id, content_type
     )
 
-    for file in files:
-        filename = file.filename
-
-        if not filename:
-            uploaded_files.errors.append("Missing filename")
-            continue
-
-        sanitized_content_type = sanitize_content_type(file.content_type, filename)
-
-        if not is_allowed_content_type(sanitized_content_type):
-            if (
-                f"Content type {file.content_type} not allowed"
-                not in uploaded_files.errors
-            ):
-                uploaded_files.errors.append(
-                    f"Content type {file.content_type} not allowed"
-                )
-            continue
-
-        existing_document = session.scalars(
-            select(Document)
-            .where(Document.user_id == user.id)
-            .where(Document.name == filename)
-        ).first()
-
-        if existing_document is not None:
-            print(f"Document {filename} already exists. Skipping...")
-            uploaded_files.errors.append(f"Document {filename} already exists")
-            continue
-
-        file_data = file.file.read()
-        content_type = ContentType(sanitized_content_type)
-        persisted_file_object_keys = persist_file(
-            s3_client, file_data, user.id, content_type
+    try:
+        document = Document(
+            user_id=user.id,
+            name=filename,
+            s3_content_key=persisted_file_object_keys.content_key,
+            s3_thumbnail_key=persisted_file_object_keys.thumbnail_key,
+            content_type=content_type.value,
+            size_bytes=len(file_data),
         )
 
-        try:
-            document = Document(
-                user_id=user.id,
-                name=filename,
-                s3_content_key=persisted_file_object_keys.content_key,
-                s3_thumbnail_key=persisted_file_object_keys.thumbnail_key,
-                content_type=content_type.value,
-                size_bytes=len(file_data),
-            )
+        session.add(document)
+        session.commit()
+    except Exception as e:
+        print(f"Error saving document {filename}: {e}")
+        session.rollback()
+        s3_client.delete_file(persisted_file_object_keys.content_key)
+        s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
+        raise HTTPException(
+            status_code=500, detail=f"Error saving document {filename}"
+        ) from None
 
-            session.add(document)
-            session.commit()
-        except Exception as e:
-            print(f"Error saving document {filename}: {e}")
-            session.rollback()
-            s3_client.delete_file(persisted_file_object_keys.content_key)
-            s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
-            uploaded_files.errors.append(f"Error saving document {filename}")
-            continue
+    try:
+        sqs_client.submit_document_message(document.id, user.id)
+    except Exception as e:
+        print(f"Error submitting document {filename} for processing: {e}")
+        session.delete(document)
+        session.commit()
+        s3_client.delete_file(persisted_file_object_keys.content_key)
+        s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error submitting document {filename} for processing",
+        ) from None
 
-        try:
-            sqs_client.submit_document_message(document.id, user.id)
-        except Exception as e:
-            print(f"Error submitting document {filename} for processing: {e}")
-            session.delete(document)
-            session.commit()
-            s3_client.delete_file(persisted_file_object_keys.content_key)
-            s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
-            uploaded_files.errors.append(
-                f"Error submitting document {filename} for processing"
-            )
-            continue
-
-        uploaded_files.files_being_processed.append(
-            to_api_document(document, s3_client)
-        )
-
-    return uploaded_files
+    return to_api_document(document, s3_client)
 
 
 MAX_BULK_DOWNLOAD_GB = 2
