@@ -30,6 +30,7 @@ def test_signup_success(auth_client, mocker):
     assert data == {
         "id": 1,
         "firstName": "Test",
+        "lastName": "User",
         "email": "test@example.com",
         "plan": "free",
         "accessToken": data["accessToken"],

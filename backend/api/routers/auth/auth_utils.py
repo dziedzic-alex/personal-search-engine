@@ -82,6 +82,7 @@ def clear_refresh_token_cookie(response: Response):
 class AuthResponse(CamelModel):
     id: int
     first_name: str
+    last_name: str
     email: str
     plan: UserPlan
     access_token: str
@@ -96,6 +97,7 @@ def issue_auth_response(user: User, response: Response) -> AuthResponse:
     return AuthResponse(
         id=user.id,
         first_name=user.first_name,
+        last_name=user.last_name,
         email=user.email,
         plan=user.plan,
         access_token=create_access_token(user.id),
