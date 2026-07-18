@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthContext } from "../Auth/AuthContext";
 import { createMockAuthContext, mockUser } from "../test/authTest.utils";
 
-import Profile from "./Profile";
+import Account from "./Account";
 
 import type { AuthContextValue } from "../Auth/AuthContext";
 
@@ -18,7 +18,7 @@ vi.mock("../Ui/Notification/notify", () => ({
   },
 }));
 
-function renderProfile(overrides: Partial<AuthContextValue> = {}) {
+function renderAccount(overrides: Partial<AuthContextValue> = {}) {
   const authContext = createMockAuthContext({
     user: mockUser,
     ...overrides,
@@ -26,20 +26,20 @@ function renderProfile(overrides: Partial<AuthContextValue> = {}) {
 
   render(
     <AuthContext value={authContext}>
-      <Profile />
+      <Account />
     </AuthContext>,
   );
 
   return authContext;
 }
 
-describe("Profile", () => {
+describe("Account", () => {
   beforeEach(() => {
     mockNotify.mockReset();
   });
 
   it("calls updateUser and shows notification on successful save", async () => {
-    const authContext = renderProfile();
+    const authContext = renderAccount();
 
     const firstNameInput = screen.getByDisplayValue("Test");
     await userEvent.clear(firstNameInput);
@@ -58,7 +58,7 @@ describe("Profile", () => {
   });
 
   it("displays an error when updateUser fails", async () => {
-    const authContext = renderProfile({
+    const authContext = renderAccount({
       updateUser: vi.fn(() => Promise.reject(new Error("Network error"))),
     });
 

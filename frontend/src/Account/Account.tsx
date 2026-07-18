@@ -11,9 +11,9 @@ import Header from "../Ui/Typography/Header";
 
 import DeleteAccountConfirmationModal from "./DeleteAccountConfirmationModal";
 
-import "./Profile.css";
+import "./Account.css";
 
-function Profile() {
+function Account() {
   const { user, logout, clearSession, updateUser } = useAuth();
 
   const [firstName, setFirstName] = useState(user.firstName);
@@ -58,7 +58,7 @@ function Profile() {
   const fullName = `${user.firstName} ${user.lastName}`;
 
   return (
-    <Card className="profile-card">
+    <Card className="account-card">
       <Stack spacing="lg" fullWidth>
         <div>
           <Header>{fullName}</Header>
@@ -66,20 +66,20 @@ function Profile() {
         </div>
         <Stack spacing="sm">
           <Stack spacing="sm" direction="horizontal" align="center">
-            <div className="profile-card-label">
+            <div className="account-card-label">
               <Body>First name:</Body>
             </div>
             <TextInput value={firstName} onChange={setFirstName} />
           </Stack>
           <Stack spacing="sm" direction="horizontal" align="center">
-            <div className="profile-card-label">
+            <div className="account-card-label">
               <Body>Last name:</Body>
             </div>
             <TextInput value={lastName} onChange={setLastName} />
           </Stack>
         </Stack>
         <Stack spacing="md" direction="horizontal" align="center">
-          <div className="profile-card-label">
+          <div className="account-card-label">
             <Body>Plan:</Body>
           </div>
           <Body>{user.plan}</Body>
@@ -103,7 +103,7 @@ function Profile() {
         >
           Save
         </Button>
-        <hr className="profile-card-divider" />
+        <hr className="account-card-divider" />
         <Stack spacing="sm" direction="horizontal" align="center">
           <Button
             onClick={() => void handleLogout()}
@@ -137,4 +137,4 @@ function Profile() {
   );
 }
 
-export default Profile;
+export default Account;

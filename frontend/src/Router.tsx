@@ -6,7 +6,7 @@ import Signup from "./Auth/Signup";
 import AuthLayout from "./AuthLayout";
 import Files from "./Files/Files";
 import Home from "./Home/Home";
-import Profile from "./Profile/Profile";
+import Account from "./Account/Account";
 import ProtectedRoute from "./ProtectedRoute";
 import Search from "./Search/Search";
 import NotificationProvider from "./Ui/Notification/NotificationProvider";
@@ -34,7 +34,7 @@ const router = createBrowserRouter([
           { path: "/", element: <Home /> },
           { path: "/files", element: <Files /> },
           { path: "/search", element: <Search /> },
-          { path: "/profile", element: <Profile /> },
+          { path: "/account", element: <Account /> },
         ],
       },
     ],
