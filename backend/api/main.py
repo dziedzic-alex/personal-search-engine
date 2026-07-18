@@ -3,6 +3,7 @@ from pillow_heif import register_heif_opener
 
 from api.routers.auth.auth import router as auth_router
 from api.routers.documents.documents import router as documents_router
+from api.routers.user import router as user_router
 from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
@@ -19,6 +20,7 @@ get_s3_client()
 app = FastAPI()
 
 app.include_router(auth_router)
+app.include_router(user_router)
 app.include_router(documents_router)
 
 
