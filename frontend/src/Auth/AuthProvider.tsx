@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { configureApiClient } from "../ApiClient";
+import { apiFetch, configureApiClient } from "../ApiClient";
 
 import { AuthContext } from "./AuthContext";
 
@@ -10,6 +10,7 @@ import type { User, UserPlan } from "./User";
 interface AuthResponse {
   id: number;
   firstName: string;
+  lastName: string;
   email: string;
   plan: UserPlan;
   accessToken: string;
@@ -53,6 +54,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({
         id: data.id,
         firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         plan: data.plan,
       });
@@ -100,6 +102,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser({
           id: data.id,
           firstName: data.firstName,
+          lastName: data.lastName,
           email: data.email,
           plan: data.plan,
         });
@@ -137,6 +140,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser({
           id: data.id,
           firstName: data.firstName,
+          lastName: data.lastName,
           email: data.email,
           plan: data.plan,
         });
@@ -161,6 +165,35 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [clearSession, navigateToLogin]);
 
+  const updateUser = useCallback(
+    async (firstName: string, lastName: string) => {
+      const response = await apiFetch("/api/user/me", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user. Please try again.");
+      }
+
+      const data: User = (await response.json()) as User;
+      setUser({
+        id: data.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        plan: data.plan,
+      });
+    },
+    [],
+  );
+
   const contextValue = useMemo(() => {
     return {
       user,
@@ -171,6 +204,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       logout,
       clearSession,
+      updateUser,
     };
   }, [
     user,
@@ -181,6 +215,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     clearSession,
+    updateUser,
   ]);
 
   useEffect(() => {

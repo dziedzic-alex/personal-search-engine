@@ -1,5 +1,6 @@
 .button-primary,
-.button-secondary {
+.button-secondary,
+.button-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -30,8 +31,19 @@
   background-color: var(--color-accent-hover);
 }
 
+.button-danger {
+  border: 1px solid transparent;
+  background-color: var(--color-error);
+  color: var(--color-text-on-brand);
+}
+
+.button-danger:hover:not(:disabled) {
+  background-color: var(--color-error-hover);
+}
+
 .button-secondary:disabled,
-.button-primary:disabled {
+.button-primary:disabled,
+.button-danger:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -46,4 +58,8 @@
 
 .button-size-large {
   padding: 0.875rem 1.75rem;
+}
+
+.button-full-width {
+  width: 100%;
 }

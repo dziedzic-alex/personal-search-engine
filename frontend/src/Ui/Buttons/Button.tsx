@@ -5,12 +5,13 @@ import "./Button.css";
 interface Props {
   children: string;
   type?: "button" | "submit";
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "danger";
   onClick?: () => void;
   isDisabled?: boolean;
   isLoading?: boolean;
   loadingText?: string;
   size?: "small" | "medium" | "large";
+  fullWidth?: boolean;
 }
 
 function Button(props: Props) {
@@ -23,7 +24,16 @@ function Button(props: Props) {
     isLoading = false,
     loadingText,
     size = "medium",
+    fullWidth = false,
   } = props;
+
+  const classNames = [
+    `button-${variant}`,
+    `button-size-${size}`,
+    fullWidth && "button-full-width",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   let buttonContent: React.ReactNode = children;
 
@@ -39,7 +49,7 @@ function Button(props: Props) {
   return (
     <button
       type={type}
-      className={`button-${variant} button-size-${size}`}
+      className={classNames}
       onClick={onClick}
       disabled={isDisabled || isLoading}
       aria-busy={isLoading}

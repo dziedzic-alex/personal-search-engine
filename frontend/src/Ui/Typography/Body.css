@@ -13,7 +13,7 @@
 }
 
 .body-error {
-  color: #8b4a42;
+  color: var(--color-error-text);
 }
 
 .body-truncate {

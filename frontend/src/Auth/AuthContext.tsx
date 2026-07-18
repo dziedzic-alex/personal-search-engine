@@ -16,6 +16,7 @@ export interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearSession: () => void;
+  updateUser: (firstName: string, lastName: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -27,4 +28,15 @@ export function useAuth(): AuthContextValue {
   }
 
   return context;
+}
+
+export function useAuthenticatedUser(): AuthContextValue & { user: User } {
+  const context = useAuth();
+  if (!context.user) {
+    throw new Error(
+      "useAuthenticatedUser must be used within an authenticated route",
+    );
+  }
+
+  return context as AuthContextValue & { user: User };
 }
