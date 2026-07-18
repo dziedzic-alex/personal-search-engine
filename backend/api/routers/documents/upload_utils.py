@@ -17,7 +17,7 @@ THUMBNAIL_HEIGHT = 500
 def sanitize_content_type(content_type: str | None, filename: str) -> str:
     if not content_type or "/" not in content_type:
         return filename.split(".").pop().lower()
-        
+
     sanitized = content_type.split("/")[1]
     if sanitized == "octet-stream":
         return filename.split(".").pop().lower()

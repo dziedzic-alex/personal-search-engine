@@ -90,7 +90,6 @@ def test_upload_returns_409_for_duplicate_filename(documents_client, mocker):
     mock_sqs_client.submit_document_message.assert_not_called()
 
 
-
 def test_upload_rolls_back_s3_on_db_failure(documents_client, mocker):
     client, mock_session, mock_sqs_client, _, mock_s3_client = documents_client
 

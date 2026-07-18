@@ -251,7 +251,9 @@ def upload_file(
     sanitized_content_type = sanitize_content_type(file.content_type, filename)
 
     if not is_allowed_content_type(sanitized_content_type):
-        raise HTTPException(status_code=415, detail=f"Content type {file.content_type} not allowed")
+        raise HTTPException(
+            status_code=415, detail=f"Content type {file.content_type} not allowed"
+        )
 
     existing_document = session.scalars(
         select(Document)
@@ -261,7 +263,9 @@ def upload_file(
 
     if existing_document is not None:
         print(f"Document {filename} already exists. Skipping...")
-        raise HTTPException(status_code=409, detail=f"Document {filename} already exists")
+        raise HTTPException(
+            status_code=409, detail=f"Document {filename} already exists"
+        )
 
     file_data = file.file.read()
     content_type = ContentType(sanitized_content_type)
@@ -296,7 +300,10 @@ def upload_file(
         session.commit()
         s3_client.delete_file(persisted_file_object_keys.content_key)
         s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
-        raise HTTPException(status_code=500, detail=f"Error submitting document {filename} for processing")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error submitting document {filename} for processing",
+        )
 
     return to_api_document(document, s3_client)
 
