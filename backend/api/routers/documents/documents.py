@@ -290,7 +290,7 @@ def upload_file(
         session.rollback()
         s3_client.delete_file(persisted_file_object_keys.content_key)
         s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
-        raise HTTPException(status_code=500, detail=f"Error saving document {filename}")
+        raise HTTPException(status_code=500, detail=f"Error saving document {filename}") from None
 
     try:
         sqs_client.submit_document_message(document.id, user.id)
@@ -303,7 +303,7 @@ def upload_file(
         raise HTTPException(
             status_code=500,
             detail=f"Error submitting document {filename} for processing",
-        )
+        ) from None
 
     return to_api_document(document, s3_client)
 
