@@ -2,7 +2,9 @@ import { createBrowserRouter, Outlet } from "react-router-dom";
 
 import Account from "./Account/Account";
 import AuthProvider from "./Auth/AuthProvider";
+import ConfirmEmail from "./Auth/ConfirmEmail";
 import Login from "./Auth/Login";
+import PendingEmailVerification from "./Auth/PendingEmailVerification";
 import Signup from "./Auth/Signup";
 import AuthLayout from "./AuthLayout";
 import Files from "./Files/Files";
@@ -26,6 +28,8 @@ const router = createBrowserRouter([
         children: [
           { path: "/login", element: <Login /> },
           { path: "/signup", element: <Signup /> },
+          { path: "/verify-email", element: <PendingEmailVerification /> },
+          { path: "/verify-email/confirm", element: <ConfirmEmail /> },
         ],
       },
       {

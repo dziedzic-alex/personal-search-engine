@@ -11,6 +11,8 @@ import Header from "../Ui/Typography/Header";
 
 import { useAuth } from "./AuthContext";
 
+import type { LoginResult } from "./AuthProvider";
+
 import "./AuthForm.css";
 
 function Login() {
@@ -28,8 +30,12 @@ function Login() {
     setError(null);
 
     try {
-      await login(email, password);
-      void navigate("/", { replace: true });
+      const result: LoginResult = await login(email, password);
+      if (result === "email_not_verified") {
+        void navigate("/verify-email", { state: email });
+      } else {
+        void navigate("/", { replace: true });
+      }
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);

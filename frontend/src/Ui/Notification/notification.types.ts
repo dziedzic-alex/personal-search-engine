@@ -13,4 +13,4 @@ export interface NotifyOptions {
   durationMs?: number;
 }
 
-export const DEFAULT_NOTIFICATION_DURATION_MS = 5000;
+export const DEFAULT_NOTIFICATION_DURATION_MS = 7000;

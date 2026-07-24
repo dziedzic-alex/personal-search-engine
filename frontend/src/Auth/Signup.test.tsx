@@ -15,7 +15,7 @@ const mockSignup =
       lastName: string,
       email: string,
       password: string,
-    ) => Promise<void>
+    ) => Promise<string>
   >();
 const mockUseAuth = vi.fn<() => AuthContextValue>();
 
@@ -28,6 +28,7 @@ function renderSignup(initialPath = "/signup") {
     <MemoryRouter initialEntries={[initialPath]}>
       <Routes>
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-email" element={<div>Verify email page</div>} />
         <Route path="/" element={<div>Home page</div>} />
       </Routes>
     </MemoryRouter>,
@@ -70,8 +71,8 @@ describe("Signup", () => {
     expect(screen.getByPlaceholderText("Confirm Password")).toBeInTheDocument();
   });
 
-  it("calls signup with form values on submit", async () => {
-    mockSignup.mockResolvedValue();
+  it("calls signup and navigates to verify-email on success", async () => {
+    mockSignup.mockResolvedValue("test@example.com");
     renderSignup();
     fillSignupForm();
     fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
@@ -84,6 +85,7 @@ describe("Signup", () => {
         "password123",
       );
     });
+    expect(await screen.findByText("Verify email page")).toBeInTheDocument();
   });
 
   it("shows an error when signup fails", async () => {

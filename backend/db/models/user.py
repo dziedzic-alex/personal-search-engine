@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, String
+from sqlalchemy import Boolean, DateTime, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base
@@ -21,6 +21,7 @@ class User(Base):
     first_name: Mapped[str] = mapped_column(String(255))
     last_name: Mapped[str] = mapped_column(String(255))
     email: Mapped[str] = mapped_column(String(255))
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     password: Mapped[str] = mapped_column(String(255))
     plan: Mapped[UserPlan] = mapped_column(
         Enum(

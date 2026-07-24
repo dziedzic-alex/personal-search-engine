@@ -1,5 +1,6 @@
 import { createContext, use } from "react";
 
+import type { LoginResult } from "./AuthProvider";
 import type { User } from "./User";
 
 export interface AuthContextValue {
@@ -12,11 +13,12 @@ export interface AuthContextValue {
     lastName: string,
     email: string,
     password: string,
-  ) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  ) => Promise<string>;
+  login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   clearSession: () => void;
   updateUser: (firstName: string, lastName: string) => Promise<void>;
+  verifyEmail: (token: string, userId: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

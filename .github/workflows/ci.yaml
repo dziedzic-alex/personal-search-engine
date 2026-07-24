@@ -50,6 +50,7 @@ jobs:
 
     env:
       ENVIRONMENT: dev
+      FRONTEND_BASE_URL: dummy
       REDIS_URL: redis://localhost:6379/0
       DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/vector_db
       JWT_SECRET: test-jwt-secret-that-is-long-enough
@@ -58,6 +59,8 @@ jobs:
       SQS_DOCUMENT_PROCESSING_QUEUE_NAME: dummy
       SQS_DOCUMENT_PROCESSING_DEAD_LETTER_QUEUE_NAME: dummy
       SQS_DOCUMENT_QUEUES_REGION: dummy
+      SES_FROM_EMAIL: dummy
+      SES_REGION: dummy
 
     steps:
       - name: Checkout code
@@ -105,5 +108,11 @@ jobs:
       - name: Validate Terraform Dev
         run: |
           cd dev
+          terraform init -backend=false
+          terraform validate
+
+      - name: Validate Terraform Shared
+        run: |
+          cd shared
           terraform init -backend=false
           terraform validate

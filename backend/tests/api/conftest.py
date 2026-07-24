@@ -38,6 +38,7 @@ def make_user(**kwargs) -> User:
         "first_name": "Test",
         "last_name": "User",
         "email": "test@example.com",
+        "email_verified": True,
         "password": ph.hash("password123"),
         "plan": UserPlan.FREE,
     }

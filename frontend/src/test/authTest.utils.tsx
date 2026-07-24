@@ -7,6 +7,7 @@ import AuthLayout from "../AuthLayout";
 import ProtectedRoute from "../ProtectedRoute";
 
 import type { AuthContextValue } from "../Auth/AuthContext";
+import type { LoginResult } from "../Auth/AuthProvider";
 import type { User } from "../Auth/User";
 
 export const mockUser: User = {
@@ -23,11 +24,16 @@ const baseAuthContext: Omit<
 > = {
   getAccessToken: vi.fn<() => string | null>(() => null),
   refreshAccessToken: vi.fn<() => Promise<void>>(() => Promise.resolve()),
-  signup: vi.fn<() => Promise<void>>(() => Promise.resolve()),
-  login: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+  signup: vi.fn<() => Promise<string>>(() =>
+    Promise.resolve("test@example.com"),
+  ),
+  login: vi.fn<() => Promise<LoginResult>>(() =>
+    Promise.resolve("authenticated"),
+  ),
   logout: vi.fn<() => Promise<void>>(() => Promise.resolve()),
   clearSession: vi.fn<() => void>(() => undefined),
   updateUser: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+  verifyEmail: vi.fn<() => Promise<void>>(() => Promise.resolve()),
 };
 
 export function createMockAuthContext(
