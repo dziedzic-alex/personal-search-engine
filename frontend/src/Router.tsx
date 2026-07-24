@@ -4,6 +4,8 @@ import Account from "./Account/Account";
 import AuthProvider from "./Auth/AuthProvider";
 import Login from "./Auth/Login";
 import Signup from "./Auth/Signup";
+import ConfirmEmail from "./Auth/ConfirmEmail";
+import PendingEmailVerification from "./Auth/PendingEmailVerification";
 import AuthLayout from "./AuthLayout";
 import Files from "./Files/Files";
 import Home from "./Home/Home";
@@ -26,6 +28,8 @@ const router = createBrowserRouter([
         children: [
           { path: "/login", element: <Login /> },
           { path: "/signup", element: <Signup /> },
+          { path: "/verify-email", element: <PendingEmailVerification /> },
+          { path: "/verify-email/confirm", element: <ConfirmEmail /> },
         ],
       },
       {
