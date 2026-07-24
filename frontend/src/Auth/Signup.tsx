@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import Button from "../Ui/Buttons/Button";
 import Card from "../Ui/Card/Card";
@@ -32,8 +32,8 @@ function Signup() {
     setError(null);
 
     try {
-      await signup(firstName, lastName, email, password);
-      void navigate("/", { replace: true });
+      const userEmail = await signup(firstName, lastName, email, password);
+      void navigate("/verify-email", { state: userEmail });
     } catch (error) {
       setError(
         error instanceof Error
