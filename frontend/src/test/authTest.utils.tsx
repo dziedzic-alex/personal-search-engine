@@ -24,7 +24,9 @@ const baseAuthContext: Omit<
 > = {
   getAccessToken: vi.fn<() => string | null>(() => null),
   refreshAccessToken: vi.fn<() => Promise<void>>(() => Promise.resolve()),
-  signup: vi.fn<() => Promise<string>>(() => Promise.resolve("test@example.com")),
+  signup: vi.fn<() => Promise<string>>(() =>
+    Promise.resolve("test@example.com"),
+  ),
   login: vi.fn<() => Promise<LoginResult>>(() =>
     Promise.resolve("authenticated"),
   ),
