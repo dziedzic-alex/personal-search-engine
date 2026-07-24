@@ -1,3 +1,3 @@
 output "domain" {
-    value = aws_ses_domain_identity.this.domain
+  value = aws_ses_domain_identity.this.domain
 }

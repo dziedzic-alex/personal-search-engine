@@ -1,3 +1,3 @@
 output "ses_domain" {
-    value = module.ses.domain
+  value = module.ses.domain
 }
