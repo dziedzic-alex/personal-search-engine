@@ -110,3 +110,9 @@ jobs:
           cd dev
           terraform init -backend=false
           terraform validate
+
+      - name: Validate Terraform Shared
+        run: |
+          cd shared
+          terraform init -backend=false
+          terraform validate
