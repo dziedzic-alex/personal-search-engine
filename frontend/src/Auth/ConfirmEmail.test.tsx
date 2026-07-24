@@ -43,7 +43,7 @@ describe("ConfirmEmail", () => {
   });
 
   it("redirects to login when token or user_id is missing", () => {
-    renderConfirm();
+    renderConfirm("?token=abc");
 
     expect(screen.getByText("Login page")).toBeInTheDocument();
     expect(mockVerifyEmail).not.toHaveBeenCalled();
