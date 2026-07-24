@@ -1,14 +1,14 @@
+from secrets import token_urlsafe
+
 from argon2 import PasswordHasher
 from fastapi import APIRouter, Cookie, HTTPException
 from fastapi.responses import Response
 from pydantic import EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from shared.settings import settings
+
 from api.dependencies import SessionDep
 from api.dependencies.ses import SESClientDep
-from shared.redis_client import get_redis_client
-from secrets import token_urlsafe
 from api.routers.auth.auth_utils import (
     AuthResponse,
     clear_refresh_token,
@@ -18,6 +18,8 @@ from api.routers.auth.auth_utils import (
 )
 from api.schemas.camel_model import CamelModel
 from db.models.user import User
+from shared.redis_client import get_redis_client
+from shared.settings import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 ph = PasswordHasher()
