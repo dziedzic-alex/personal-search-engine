@@ -7,6 +7,8 @@ import { AuthContext } from "./AuthContext";
 
 import type { User, UserPlan } from "./User";
 
+export type LoginResult = "authenticated" | "email_not_verified";
+
 interface AuthResponse {
   id: number;
   firstName: string;
@@ -76,7 +78,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       lastName: string,
       email: string,
       password: string,
-    ) => {
+    ): Promise<string> => {
       try {
         const response: Response = await fetch("/api/auth/signup", {
           method: "POST",
@@ -98,15 +100,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error("Failed to signup. Please try again.");
         }
 
-        const data: AuthResponse = (await response.json()) as AuthResponse;
-        setUser({
-          id: data.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          plan: data.plan,
-        });
-        accessTokenRef.current = data.accessToken;
+        const userEmail: string = (await response.json()) as string;
+        return userEmail;
       } catch (error) {
         clearSession();
         throw error;
@@ -116,7 +111,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string): Promise<LoginResult> => {
       try {
         const response: Response = await fetch("/api/auth/login", {
           method: "POST",
@@ -132,6 +127,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (response.status == 401) {
           throw new Error("Invalid username or password");
+        } else if (response.status === 403) {
+          return "email_not_verified";
         } else if (response.status !== 200) {
           throw new Error("Failed to login. Please try again.");
         }
@@ -145,6 +142,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           plan: data.plan,
         });
         accessTokenRef.current = data.accessToken;
+
+        return "authenticated";
       } catch (error) {
         clearSession();
         throw error;
@@ -194,6 +193,39 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const verifyEmail = useCallback(async (token: string, userId: string) => {
+    const response = await fetch("/api/auth/verify-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ token, userId }),
+    });
+
+    if (response.status === 400) {
+      throw new Error(
+        "Invalid or expired verification link. Please login to try again.",
+      );
+    } else if (response.status === 404) {
+      throw new Error(
+        "User associated with verification link not found. Please ensure you have created an account and login to try again.",
+      );
+    } else if (!response.ok) {
+      throw new Error("Failed to verify email. Please login to try again.");
+    }
+
+    const data: AuthResponse = (await response.json()) as AuthResponse;
+    setUser({
+      id: data.id,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      plan: data.plan,
+    });
+    accessTokenRef.current = data.accessToken;
+  }, []);
+
   const contextValue = useMemo(() => {
     return {
       user,
@@ -205,6 +237,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       clearSession,
       updateUser,
+      verifyEmail,
     };
   }, [
     user,
@@ -216,6 +249,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     clearSession,
     updateUser,
+    verifyEmail,
   ]);
 
   useEffect(() => {
