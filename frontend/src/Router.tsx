@@ -2,10 +2,10 @@ import { createBrowserRouter, Outlet } from "react-router-dom";
 
 import Account from "./Account/Account";
 import AuthProvider from "./Auth/AuthProvider";
-import Login from "./Auth/Login";
-import Signup from "./Auth/Signup";
 import ConfirmEmail from "./Auth/ConfirmEmail";
+import Login from "./Auth/Login";
 import PendingEmailVerification from "./Auth/PendingEmailVerification";
+import Signup from "./Auth/Signup";
 import AuthLayout from "./AuthLayout";
 import Files from "./Files/Files";
 import Home from "./Home/Home";

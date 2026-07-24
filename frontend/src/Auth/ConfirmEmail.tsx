@@ -1,8 +1,10 @@
-import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
+
 import LoadingPage from "../Ui/LoadingPage/LoadingPage";
-import { useAuth } from "./AuthContext";
 import { notify } from "../Ui/Notification/notify";
+
+import { useAuth } from "./AuthContext";
 
 function ConfirmEmail() {
   const { verifyEmail } = useAuth();
