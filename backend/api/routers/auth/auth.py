@@ -31,9 +31,7 @@ class SignupRequest(CamelModel):
 
 
 @router.post("/signup", status_code=201)
-def signup(
-    request: SignupRequest, session: SessionDep
-) -> str:
+def signup(request: SignupRequest, session: SessionDep) -> str:
     sanitized_email = request.email.strip().lower()
     existing_user = session.scalars(
         select(User).where(User.email == sanitized_email)
@@ -142,41 +140,56 @@ def send_verification_email(
 
     email_verification_token = token_urlsafe(32)
     redis_client = get_redis_client()
-    redis_client.set(f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{user.id}", email_verification_token, ex=EMAIL_VERIFICATION_TOKEN_EXPIRES_IN_MINUTES * 60)
+    redis_client.set(
+        f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{user.id}",
+        email_verification_token,
+        ex=EMAIL_VERIFICATION_TOKEN_EXPIRES_IN_MINUTES * 60,
+    )
 
     url = f"{settings.frontend_base_url}/verify-email/confirm?token={email_verification_token}&user_id={user.id}"
 
-    ses.send_email(subject="Verify your email",
-                 body=f"Please navigate to the following URL to verify your email: {url}\n The link will expire in {EMAIL_VERIFICATION_TOKEN_EXPIRES_IN_MINUTES} minutes", 
-                    html_body=f"<p>Click the following link to verify your email: <a href='{url}'>{url}</a></p><p>The link will expire in {EMAIL_VERIFICATION_TOKEN_EXPIRES_IN_MINUTES} minutes</p>", 
-                    to_addresses=[sanitized_email])
+    ses.send_email(
+        subject="Verify your email",
+        body=f"Please navigate to the following URL to verify your email: {url}\n The link will expire in {EMAIL_VERIFICATION_TOKEN_EXPIRES_IN_MINUTES} minutes",
+        html_body=f"<p>Click the following link to verify your email: <a href='{url}'>{url}</a></p><p>The link will expire in {EMAIL_VERIFICATION_TOKEN_EXPIRES_IN_MINUTES} minutes</p>",
+        to_addresses=[sanitized_email],
+    )
 
 
 class VerifyEmailRequest(CamelModel):
     token: str = Field(min_length=1)
     user_id: int
 
+
 @router.post("/verify-email")
-def verify_email(request: VerifyEmailRequest, session: SessionDep, response: Response) -> AuthResponse:
+def verify_email(
+    request: VerifyEmailRequest, session: SessionDep, response: Response
+) -> AuthResponse:
     redis_client = get_redis_client()
-    email_verification_token = redis_client.get(f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}")
+    email_verification_token = redis_client.get(
+        f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
+    )
 
     if email_verification_token is None:
-        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+        raise HTTPException(
+            status_code=400, detail="Invalid or expired verification token"
+        )
 
     if email_verification_token.decode() != request.token:
-        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+        raise HTTPException(
+            status_code=400, detail="Invalid or expired verification token"
+        )
 
     user_id = int(request.user_id)
     user = session.get(User, user_id)
     if user is None:
-        raise HTTPException(status_code=404, detail="User associated with token not found")
-
+        raise HTTPException(
+            status_code=404, detail="User associated with token not found"
+        )
 
     user.email_verified = True
     session.commit()
 
     redis_client.delete(f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}")
-    
-    return issue_auth_response(user, response)
 
+    return issue_auth_response(user, response)
