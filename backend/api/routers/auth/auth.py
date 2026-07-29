@@ -11,14 +11,14 @@ from sqlalchemy.exc import IntegrityError
 from api.dependencies import SessionDep
 from api.dependencies.ses import SESClientDep
 from api.routers.auth.auth_utils import (
-    AuthResponse,
     REFRESH_TOKEN_COOKIE_NAME,
-    clear_refresh_tokens,
-    clear_refresh_token,
+    AuthResponse,
     clear_refresh_cookie,
-    parse_refresh_cookie,
-    issue_auth_response,
+    clear_refresh_token,
+    clear_refresh_tokens,
     is_refresh_token_valid,
+    issue_auth_response,
+    parse_refresh_cookie,
 )
 from api.schemas.camel_model import CamelModel
 from db.models.user import User

@@ -1,6 +1,10 @@
 from argon2 import PasswordHasher
 
-from api.routers.auth.auth_utils import parse_refresh_cookie, REFRESH_TOKEN_COOKIE_NAME, REDIS_REFRESH_TOKEN_KEY_PREFIX
+from api.routers.auth.auth_utils import (
+    REDIS_REFRESH_TOKEN_KEY_PREFIX,
+    REFRESH_TOKEN_COOKIE_NAME,
+    parse_refresh_cookie,
+)
 from db.models.user import UserPlan
 from tests.api.conftest import make_user
 
