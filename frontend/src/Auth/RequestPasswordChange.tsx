@@ -9,7 +9,6 @@ import TextInput from "../Ui/TextInput/TextInput";
 import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
-
 import { formatSecondsAsTimer } from "./AuthUtils";
 
 const RESEND_COOLDOWN_SECONDS = 59;
