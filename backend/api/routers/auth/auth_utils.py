@@ -42,21 +42,28 @@ def persist_refresh_token(refresh_token: str, user_id: int):
     redis_client = get_redis_client()
 
     redis_client.hset(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token, "1")
-    redis_client.hexpire(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", REFRESH_TOKEN_EXPIRES_IN_DAYS * 24 * 60 * 60, refresh_token)
+    redis_client.hexpire(
+        f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}",
+        REFRESH_TOKEN_EXPIRES_IN_DAYS * 24 * 60 * 60,
+        refresh_token,
+    )
 
 
 def clear_refresh_token(refresh_token: str, user_id: int):
     redis_client = get_redis_client()
     redis_client.hdel(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token)
 
+
 def clear_refresh_tokens(user_id: int):
     redis_client = get_redis_client()
     redis_client.delete(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}")
+
 
 @dataclass(frozen=True)
 class ParsedRefreshCookie:
     user_id: int
     refresh_token: str
+
 
 def parse_refresh_cookie(refresh_cookie: str) -> ParsedRefreshCookie:
     try:
@@ -67,10 +74,13 @@ def parse_refresh_cookie(refresh_cookie: str) -> ParsedRefreshCookie:
         print(f"Error parsing refresh cookie: {e}")
         raise HTTPException(status_code=401, detail="Invalid refresh cookie") from None
 
+
 def is_refresh_token_valid(refresh_token: str, user_id: int) -> bool:
     redis_client = get_redis_client()
 
-    return redis_client.hexists(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token)
+    return redis_client.hexists(
+        f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token
+    )
 
 
 def set_refresh_token_cookie(response: Response, refresh_token: str, user_id: int):

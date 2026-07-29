@@ -99,10 +99,14 @@ def refresh(
         raise HTTPException(status_code=401, detail="No refresh cookie provided")
 
     parsed_refresh_cookie = parse_refresh_cookie(refresh_cookie)
-    if not is_refresh_token_valid(parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id):
+    if not is_refresh_token_valid(
+        parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id
+    ):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    clear_refresh_token(parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id)
+    clear_refresh_token(
+        parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id
+    )
 
     user = session.get(User, parsed_refresh_cookie.user_id)
     if user is None:
@@ -126,7 +130,9 @@ def logout(
 
     try:
         parsed_refresh_cookie = parse_refresh_cookie(refresh_cookie)
-        clear_refresh_token(parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id)
+        clear_refresh_token(
+            parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id
+        )
     except Exception as e:
         print(f"Error clearing refresh token: {e}")
         pass
@@ -186,9 +192,7 @@ def verify_email(
             status_code=400, detail="Invalid or expired verification token"
         )
 
-    if not hmac.compare_digest(
-        email_verification_token.decode(), request.token
-    ):
+    if not hmac.compare_digest(email_verification_token.decode(), request.token):
         raise HTTPException(
             status_code=400, detail="Invalid or expired verification token"
         )
@@ -204,7 +208,9 @@ def verify_email(
     session.commit()
 
     try:
-        redis_client.delete(f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}")
+        redis_client.delete(
+            f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
+        )
     except Exception as e:
         print(f"Error deleting email verification token from Redis: {e}")
         pass
@@ -215,11 +221,15 @@ def verify_email(
 REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX = "password_reset_token:"
 PASSWORD_RESET_TOKEN_EXPIRES_IN_MINUTES = 10
 
+
 class RequestPasswordChangeRequest(CamelModel):
     email: EmailStr
 
+
 @router.post("/request-password-change", status_code=204)
-def request_password_change(request: RequestPasswordChangeRequest, session: SessionDep, ses: SESClientDep) -> None:
+def request_password_change(
+    request: RequestPasswordChangeRequest, session: SessionDep, ses: SESClientDep
+) -> None:
     sanitized_email = request.email.strip().lower()
     user = session.scalars(select(User).where(User.email == sanitized_email)).first()
     if user is None:
@@ -242,10 +252,12 @@ def request_password_change(request: RequestPasswordChangeRequest, session: Sess
         to_addresses=[sanitized_email],
     )
 
+
 class ResetPasswordRequest(CamelModel):
     token: str = Field(min_length=1)
     user_id: int
     new_password: str = Field(min_length=8)
+
 
 @router.post("/reset-password", status_code=204)
 def reset_password(request: ResetPasswordRequest, session: SessionDep):
@@ -255,16 +267,20 @@ def reset_password(request: ResetPasswordRequest, session: SessionDep):
     )
 
     if user_password_reset_token is None:
-        raise HTTPException(status_code=400, detail="Invalid or expired password reset token")
+        raise HTTPException(
+            status_code=400, detail="Invalid or expired password reset token"
+        )
 
-    if not hmac.compare_digest(
-        user_password_reset_token.decode(), request.token
-    ):
-        raise HTTPException(status_code=400, detail="Invalid or expired password reset token")
+    if not hmac.compare_digest(user_password_reset_token.decode(), request.token):
+        raise HTTPException(
+            status_code=400, detail="Invalid or expired password reset token"
+        )
 
     user = session.get(User, request.user_id)
     if user is None:
-        raise HTTPException(status_code=404, detail="User associated with token not found")
+        raise HTTPException(
+            status_code=404, detail="User associated with token not found"
+        )
 
     user.password = ph.hash(request.new_password)
     session.commit()
@@ -274,7 +290,7 @@ def reset_password(request: ResetPasswordRequest, session: SessionDep):
     except Exception as e:
         print(f"Error clearing refresh tokens: {e}")
         pass
-    
+
     try:
         redis_client.delete(f"{REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX}{request.user_id}")
     except Exception as e:

@@ -17,6 +17,7 @@ SIGNUP_PAYLOAD = {
     "password": "password123",
 }
 
+
 def test_signup_success(auth_client, mocker):
     client, mock_session, redis_store, _ = auth_client
 
@@ -77,7 +78,10 @@ def test_login_success(auth_client, mocker):
     assert refresh_cookie is not None
     parsed = parse_refresh_cookie(refresh_cookie)
     assert parsed.user_id == user.id
-    assert redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"][parsed.refresh_token] == b"1"
+    assert (
+        redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"][parsed.refresh_token]
+        == b"1"
+    )
 
 
 def test_login_email_not_verified(auth_client, mocker):
@@ -137,7 +141,9 @@ def test_refresh_success_rotates_token(auth_client, mocker):
     user = make_user()
 
     old_refresh_token = "old-refresh-token"
-    redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"] = {old_refresh_token: b"1"}
+    redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"] = {
+        old_refresh_token: b"1"
+    }
     client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, f"{user.id}:{old_refresh_token}")
     mock_session.get.return_value = user
 
@@ -145,7 +151,9 @@ def test_refresh_success_rotates_token(auth_client, mocker):
 
     assert response.status_code == 200
     assert response.json()["accessToken"]
-    assert old_refresh_token not in redis_store.get(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}", {})
+    assert old_refresh_token not in redis_store.get(
+        f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}", {}
+    )
 
     new_refresh_cookie = response.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
     assert new_refresh_cookie is not None
@@ -153,7 +161,10 @@ def test_refresh_success_rotates_token(auth_client, mocker):
 
     parsed = parse_refresh_cookie(new_refresh_cookie)
     assert parsed.user_id == user.id
-    assert redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"][parsed.refresh_token] == b"1"
+    assert (
+        redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"][parsed.refresh_token]
+        == b"1"
+    )
 
 
 def test_refresh_no_cookie(auth_client):
@@ -216,7 +227,10 @@ def test_logout_revokes_refresh_token(auth_client, mocker):
     refresh_cookie = login_response.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
     assert refresh_cookie is not None
     parsed = parse_refresh_cookie(refresh_cookie)
-    assert parsed.refresh_token in redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"]
+    assert (
+        parsed.refresh_token
+        in redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"]
+    )
 
     other_device_token = "other-device-token"
     redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"][other_device_token] = b"1"
@@ -224,8 +238,12 @@ def test_logout_revokes_refresh_token(auth_client, mocker):
     response = client.post("/auth/logout")
 
     assert response.status_code == 200
-    assert parsed.refresh_token not in redis_store.get(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}", {})
-    assert other_device_token in redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"]
+    assert parsed.refresh_token not in redis_store.get(
+        f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}", {}
+    )
+    assert (
+        other_device_token in redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"]
+    )
 
     set_cookie = response.headers.get("set-cookie", "")
     assert REFRESH_TOKEN_COOKIE_NAME + "=" in set_cookie
