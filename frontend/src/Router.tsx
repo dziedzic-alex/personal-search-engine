@@ -12,6 +12,8 @@ import Home from "./Home/Home";
 import ProtectedRoute from "./ProtectedRoute";
 import Search from "./Search/Search";
 import NotificationProvider from "./Ui/Notification/NotificationProvider";
+import RequestPasswordChange from "./Auth/RequestPasswordChange";
+import ResetPassword from "./Auth/ResetPassword";
 
 const router = createBrowserRouter([
   {
@@ -30,6 +32,11 @@ const router = createBrowserRouter([
           { path: "/signup", element: <Signup /> },
           { path: "/verify-email", element: <PendingEmailVerification /> },
           { path: "/verify-email/confirm", element: <ConfirmEmail /> },
+          {
+            path: "/request-password-change",
+            element: <RequestPasswordChange />,
+          },
+          { path: "/reset-password", element: <ResetPassword /> },
         ],
       },
       {
