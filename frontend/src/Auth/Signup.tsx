@@ -10,6 +10,7 @@ import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
 import { useAuth } from "./AuthContext";
+import { validatePassword } from "./AuthUtils";
 
 import "./AuthForm.css";
 
@@ -46,16 +47,6 @@ function Signup() {
   };
 
   const customValidation = (): boolean => {
-    if (password.includes(" ")) {
-      setError("Password cannot contain spaces");
-      return false;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-
     if (firstName.includes(" ")) {
       setError("First name cannot contain spaces");
       return false;
@@ -63,6 +54,12 @@ function Signup() {
 
     if (lastName.includes(" ")) {
       setError("Last name cannot contain spaces");
+      return false;
+    }
+
+    const passwordError = validatePassword(password, confirmPassword);
+    if (passwordError) {
+      setError(passwordError);
       return false;
     }
 

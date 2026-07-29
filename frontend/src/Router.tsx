@@ -5,6 +5,8 @@ import AuthProvider from "./Auth/AuthProvider";
 import ConfirmEmail from "./Auth/ConfirmEmail";
 import Login from "./Auth/Login";
 import PendingEmailVerification from "./Auth/PendingEmailVerification";
+import RequestPasswordChange from "./Auth/RequestPasswordChange";
+import ResetPassword from "./Auth/ResetPassword";
 import Signup from "./Auth/Signup";
 import AuthLayout from "./AuthLayout";
 import Files from "./Files/Files";
@@ -30,6 +32,11 @@ const router = createBrowserRouter([
           { path: "/signup", element: <Signup /> },
           { path: "/verify-email", element: <PendingEmailVerification /> },
           { path: "/verify-email/confirm", element: <ConfirmEmail /> },
+          {
+            path: "/request-password-change",
+            element: <RequestPasswordChange />,
+          },
+          { path: "/reset-password", element: <ResetPassword /> },
         ],
       },
       {

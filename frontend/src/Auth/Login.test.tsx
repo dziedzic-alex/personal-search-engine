@@ -52,6 +52,9 @@ describe("Login", () => {
     expect(screen.getByRole("heading", { name: "Login" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Password")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Reset password" }),
+    ).toHaveAttribute("href", "/request-password-change");
   });
 
   it("calls login and navigates home when authenticated", async () => {

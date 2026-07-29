@@ -8,6 +8,7 @@ import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
 import "./AuthForm.css";
+import { formatSecondsAsTimer } from "./AuthUtils";
 
 const RESEND_COOLDOWN_SECONDS = 59;
 
@@ -71,7 +72,7 @@ function PendingEmailVerification() {
 
   let resendButtonLabel = "Send verification email";
   if (cooldownSeconds > 0) {
-    resendButtonLabel = `Resend in 0:${String(cooldownSeconds).padStart(2, "0")}`;
+    resendButtonLabel = `Resend in ${formatSecondsAsTimer(cooldownSeconds)}`;
   } else if (verificationEmailSent) {
     resendButtonLabel = "Resend verification email";
   }
