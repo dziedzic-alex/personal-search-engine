@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
@@ -39,32 +40,43 @@ def create_refresh_token() -> str:
 
 def persist_refresh_token(refresh_token: str, user_id: int):
     redis_client = get_redis_client()
-    redis_client.set(
-        f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}",
-        user_id,
-        ex=REFRESH_TOKEN_EXPIRES_IN_DAYS * 24 * 60 * 60,
-    )
+
+    redis_client.hset(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token, "1")
+    redis_client.hexpire(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", REFRESH_TOKEN_EXPIRES_IN_DAYS * 24 * 60 * 60, refresh_token)
 
 
-def clear_refresh_token(refresh_token: str):
+def clear_refresh_token(refresh_token: str, user_id: int):
     redis_client = get_redis_client()
-    redis_client.delete(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}")
+    redis_client.hdel(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token)
 
-
-def get_refresh_token_user_id(refresh_token: str) -> int | None:
+def clear_refresh_tokens(user_id: int):
     redis_client = get_redis_client()
-    user_id = redis_client.get(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{refresh_token}")
+    redis_client.delete(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}")
 
-    if user_id is None:
-        return None
+@dataclass(frozen=True)
+class ParsedRefreshCookie:
+    user_id: int
+    refresh_token: str
 
-    return int(user_id)
+def parse_refresh_cookie(refresh_cookie: str) -> ParsedRefreshCookie:
+    try:
+        parts = refresh_cookie.split(":", 1)
+
+        return ParsedRefreshCookie(user_id=int(parts[0]), refresh_token=parts[1])
+    except Exception as e:
+        print(f"Error parsing refresh cookie: {e}")
+        raise HTTPException(status_code=401, detail="Invalid refresh cookie") from None
+
+def is_refresh_token_valid(refresh_token: str, user_id: int) -> bool:
+    redis_client = get_redis_client()
+
+    return redis_client.hexists(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token)
 
 
-def set_refresh_token_cookie(response: Response, refresh_token: str):
+def set_refresh_token_cookie(response: Response, refresh_token: str, user_id: int):
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE_NAME,
-        value=refresh_token,
+        value=f"{user_id}:{refresh_token}",
         httponly=True,
         secure=settings.environment == Environment.PROD,
         samesite="lax",
@@ -75,7 +87,7 @@ def set_refresh_token_cookie(response: Response, refresh_token: str):
     return response
 
 
-def clear_refresh_token_cookie(response: Response):
+def clear_refresh_cookie(response: Response):
     response.delete_cookie(key=REFRESH_TOKEN_COOKIE_NAME, path="/")
 
 
@@ -92,7 +104,7 @@ def issue_auth_response(user: User, response: Response) -> AuthResponse:
     refresh_token = create_refresh_token()
     persist_refresh_token(refresh_token, user.id)
 
-    set_refresh_token_cookie(response, refresh_token)
+    set_refresh_token_cookie(response, refresh_token, user.id)
 
     return AuthResponse(
         id=user.id,
