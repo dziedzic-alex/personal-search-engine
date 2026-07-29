@@ -1,12 +1,15 @@
-import Card from "../Ui/Card/Card";
-import Stack from "../Ui/Layout/Stack";
-import Header from "../Ui/Typography/Header";
-import Body from "../Ui/Typography/Body";
-import TextInput from "../Ui/TextInput/TextInput";
-import FormField from "../Ui/FormField/FormField";
 import { useEffect, useState } from "react";
-import Button from "../Ui/Buttons/Button";
 import { Link } from "react-router-dom";
+
+import Button from "../Ui/Buttons/Button";
+import Card from "../Ui/Card/Card";
+import FormField from "../Ui/FormField/FormField";
+import Stack from "../Ui/Layout/Stack";
+import TextInput from "../Ui/TextInput/TextInput";
+import Body from "../Ui/Typography/Body";
+import Header from "../Ui/Typography/Header";
+
+
 import { formatSecondsAsTimer } from "./AuthUtils";
 
 const RESEND_COOLDOWN_SECONDS = 59;

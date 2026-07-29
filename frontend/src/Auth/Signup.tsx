@@ -10,9 +10,9 @@ import Body from "../Ui/Typography/Body";
 import Header from "../Ui/Typography/Header";
 
 import { useAuth } from "./AuthContext";
+import { validatePassword } from "./AuthUtils";
 
 import "./AuthForm.css";
-import { validatePassword } from "./AuthUtils";
 
 function Signup() {
   const { signup } = useAuth();

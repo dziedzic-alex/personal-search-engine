@@ -5,6 +5,8 @@ import AuthProvider from "./Auth/AuthProvider";
 import ConfirmEmail from "./Auth/ConfirmEmail";
 import Login from "./Auth/Login";
 import PendingEmailVerification from "./Auth/PendingEmailVerification";
+import RequestPasswordChange from "./Auth/RequestPasswordChange";
+import ResetPassword from "./Auth/ResetPassword";
 import Signup from "./Auth/Signup";
 import AuthLayout from "./AuthLayout";
 import Files from "./Files/Files";
@@ -12,8 +14,6 @@ import Home from "./Home/Home";
 import ProtectedRoute from "./ProtectedRoute";
 import Search from "./Search/Search";
 import NotificationProvider from "./Ui/Notification/NotificationProvider";
-import RequestPasswordChange from "./Auth/RequestPasswordChange";
-import ResetPassword from "./Auth/ResetPassword";
 
 const router = createBrowserRouter([
   {
