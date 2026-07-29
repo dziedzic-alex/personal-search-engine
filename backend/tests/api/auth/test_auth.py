@@ -1,5 +1,10 @@
+from argon2 import PasswordHasher
+
+from api.routers.auth.auth_utils import parse_refresh_cookie, REFRESH_TOKEN_COOKIE_NAME, REDIS_REFRESH_TOKEN_KEY_PREFIX
 from db.models.user import UserPlan
 from tests.api.conftest import make_user
+
+ph = PasswordHasher()
 
 SIGNUP_PAYLOAD = {
     "firstName": "Test",
@@ -7,7 +12,6 @@ SIGNUP_PAYLOAD = {
     "email": "test@example.com",
     "password": "password123",
 }
-
 
 def test_signup_success(auth_client, mocker):
     client, mock_session, redis_store, _ = auth_client
@@ -27,7 +31,7 @@ def test_signup_success(auth_client, mocker):
 
     assert response.status_code == 201
     assert response.json() == "test@example.com"
-    assert response.cookies.get("refresh_token") is None
+    assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is None
     assert redis_store == {}
     mock_session.add.assert_called_once()
     mock_session.commit.assert_called_once()
@@ -65,9 +69,11 @@ def test_login_success(auth_client, mocker):
     assert data["email"] == "test@example.com"
     assert data["accessToken"]
 
-    refresh_token = response.cookies.get("refresh_token")
-    assert refresh_token is not None
-    assert redis_store[f"refresh:{refresh_token}"] == b"1"
+    refresh_cookie = response.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
+    assert refresh_cookie is not None
+    parsed = parse_refresh_cookie(refresh_cookie)
+    assert parsed.user_id == user.id
+    assert redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"][parsed.refresh_token] == b"1"
 
 
 def test_login_email_not_verified(auth_client, mocker):
@@ -85,7 +91,7 @@ def test_login_email_not_verified(auth_client, mocker):
 
     assert response.status_code == 403
     assert response.json()["detail"] == "Email not verified"
-    assert response.cookies.get("refresh_token") is None
+    assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is None
     assert redis_store == {}
 
 
@@ -127,20 +133,23 @@ def test_refresh_success_rotates_token(auth_client, mocker):
     user = make_user()
 
     old_refresh_token = "old-refresh-token"
-    redis_store[f"refresh:{old_refresh_token}"] = b"1"
-    client.cookies.set("refresh_token", old_refresh_token)
+    redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"] = {old_refresh_token: b"1"}
+    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, f"{user.id}:{old_refresh_token}")
     mock_session.get.return_value = user
 
     response = client.post("/auth/refresh")
 
     assert response.status_code == 200
     assert response.json()["accessToken"]
-    assert f"refresh:{old_refresh_token}" not in redis_store
+    assert old_refresh_token not in redis_store.get(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}", {})
 
-    new_refresh_token = response.cookies.get("refresh_token")
-    assert new_refresh_token is not None
-    assert new_refresh_token != old_refresh_token
-    assert redis_store[f"refresh:{new_refresh_token}"] == b"1"
+    new_refresh_cookie = response.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
+    assert new_refresh_cookie is not None
+    assert new_refresh_cookie != f"{user.id}:{old_refresh_token}"
+
+    parsed = parse_refresh_cookie(new_refresh_cookie)
+    assert parsed.user_id == user.id
+    assert redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"][parsed.refresh_token] == b"1"
 
 
 def test_refresh_no_cookie(auth_client):
@@ -149,12 +158,22 @@ def test_refresh_no_cookie(auth_client):
     response = client.post("/auth/refresh")
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "No refresh token provided"
+    assert response.json()["detail"] == "No refresh cookie provided"
+
+
+def test_refresh_invalid_cookie_format(auth_client):
+    client, _, _, _ = auth_client
+    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, "invalid-token")
+
+    response = client.post("/auth/refresh")
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid refresh cookie"
 
 
 def test_refresh_invalid_token(auth_client):
     client, _, _, _ = auth_client
-    client.cookies.set("refresh_token", "invalid-token")
+    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, "1:missing-token")
 
     response = client.post("/auth/refresh")
 
@@ -166,8 +185,8 @@ def test_refresh_user_not_found(auth_client, mocker):
     client, mock_session, redis_store, _ = auth_client
 
     refresh_token = "stale-refresh-token"
-    redis_store[f"refresh:{refresh_token}"] = b"999"
-    client.cookies.set("refresh_token", refresh_token)
+    redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}1"] = {refresh_token: b"1"}
+    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, f"1:{refresh_token}")
     mock_session.get.return_value = None
 
     response = client.post("/auth/refresh")
@@ -190,17 +209,22 @@ def test_logout_revokes_refresh_token(auth_client, mocker):
         "/auth/login",
         json={"email": "test@example.com", "password": "password123"},
     )
-    refresh_token = login_response.cookies.get("refresh_token")
-    assert refresh_token is not None
-    assert f"refresh:{refresh_token}" in redis_store
+    refresh_cookie = login_response.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
+    assert refresh_cookie is not None
+    parsed = parse_refresh_cookie(refresh_cookie)
+    assert parsed.refresh_token in redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"]
+
+    other_device_token = "other-device-token"
+    redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"][other_device_token] = b"1"
 
     response = client.post("/auth/logout")
 
     assert response.status_code == 200
-    assert f"refresh:{refresh_token}" not in redis_store
+    assert parsed.refresh_token not in redis_store.get(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}", {})
+    assert other_device_token in redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"]
 
     set_cookie = response.headers.get("set-cookie", "")
-    assert "refresh_token=" in set_cookie
+    assert REFRESH_TOKEN_COOKIE_NAME + "=" in set_cookie
     assert "Max-Age=0" in set_cookie
 
 
@@ -211,6 +235,19 @@ def test_logout_without_cookie(auth_client):
 
     assert response.status_code == 200
     assert redis_store == {}
+
+
+def test_logout_with_malformed_cookie_still_clears_cookie(auth_client):
+    client, _, redis_store, _ = auth_client
+    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, "not-a-valid-cookie")
+
+    response = client.post("/auth/logout")
+
+    assert response.status_code == 200
+    assert redis_store == {}
+    set_cookie = response.headers.get("set-cookie", "")
+    assert REFRESH_TOKEN_COOKIE_NAME + "=" in set_cookie
+    assert "Max-Age=0" in set_cookie
 
 
 def test_send_verification_email_success(auth_client, mocker):
@@ -290,7 +327,7 @@ def test_verify_email_success(auth_client, mocker):
     assert user.email_verified is True
     mock_session.commit.assert_called()
     assert f"email_verification_token:{user.id}" not in redis_store
-    assert response.cookies.get("refresh_token") is not None
+    assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is not None
 
 
 def test_verify_email_invalid_token(auth_client, mocker):
@@ -339,3 +376,132 @@ def test_verify_email_user_not_found(auth_client, mocker):
     assert response.status_code == 404
     assert response.json()["detail"] == "User associated with token not found"
     assert "email_verification_token:1" in redis_store
+
+
+def test_request_password_change_success(auth_client, mocker):
+    client, mock_session, redis_store, mock_ses = auth_client
+    user = make_user()
+
+    mock_scalars = mocker.MagicMock()
+    mock_scalars.first.return_value = user
+    mock_session.scalars.return_value = mock_scalars
+
+    response = client.post(
+        "/auth/request-password-change",
+        json={"email": "test@example.com"},
+    )
+
+    assert response.status_code == 204
+    assert f"password_reset_token:{user.id}" in redis_store
+    mock_ses.send_email.assert_called_once()
+    send_kwargs = mock_ses.send_email.call_args.kwargs
+    assert send_kwargs["to_addresses"] == ["test@example.com"]
+    assert "http://localhost:5173/reset-password?token=" in send_kwargs["body"]
+    assert f"user_id={user.id}" in send_kwargs["body"]
+
+
+def test_request_password_change_unknown_user_is_opaque(auth_client, mocker):
+    client, mock_session, redis_store, mock_ses = auth_client
+
+    mock_scalars = mocker.MagicMock()
+    mock_scalars.first.return_value = None
+    mock_session.scalars.return_value = mock_scalars
+
+    response = client.post(
+        "/auth/request-password-change",
+        json={"email": "missing@example.com"},
+    )
+
+    assert response.status_code == 204
+    assert redis_store == {}
+    mock_ses.send_email.assert_not_called()
+
+
+def test_reset_password_success_revokes_sessions(auth_client, mocker):
+    client, mock_session, redis_store, _ = auth_client
+    user = make_user()
+    old_password_hash = user.password
+    token = "valid-reset-token"
+
+    redis_store[f"password_reset_token:{user.id}"] = token.encode()
+    redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}"] = {
+        "session-a": b"1",
+        "session-b": b"1",
+    }
+    mock_session.get.return_value = user
+
+    response = client.post(
+        "/auth/reset-password",
+        json={
+            "token": token,
+            "userId": user.id,
+            "newPassword": "newpassword123",
+        },
+    )
+
+    assert response.status_code == 204
+    assert user.password != old_password_hash
+    ph.verify(user.password, "newpassword123")
+    mock_session.commit.assert_called()
+    assert f"password_reset_token:{user.id}" not in redis_store
+    assert f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user.id}" not in redis_store
+
+
+def test_reset_password_invalid_token(auth_client, mocker):
+    client, mock_session, redis_store, _ = auth_client
+
+    response = client.post(
+        "/auth/reset-password",
+        json={
+            "token": "missing-token",
+            "userId": 1,
+            "newPassword": "newpassword123",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid or expired password reset token"
+    mock_session.get.assert_not_called()
+    assert redis_store == {}
+
+
+def test_reset_password_wrong_token(auth_client, mocker):
+    client, mock_session, redis_store, _ = auth_client
+    user = make_user()
+
+    redis_store[f"password_reset_token:{user.id}"] = b"expected-token"
+
+    response = client.post(
+        "/auth/reset-password",
+        json={
+            "token": "wrong-token",
+            "userId": user.id,
+            "newPassword": "newpassword123",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid or expired password reset token"
+    mock_session.get.assert_not_called()
+    assert f"password_reset_token:{user.id}" in redis_store
+
+
+def test_reset_password_user_not_found(auth_client, mocker):
+    client, mock_session, redis_store, _ = auth_client
+    token = "valid-reset-token"
+
+    redis_store["password_reset_token:1"] = token.encode()
+    mock_session.get.return_value = None
+
+    response = client.post(
+        "/auth/reset-password",
+        json={
+            "token": token,
+            "userId": 1,
+            "newPassword": "newpassword123",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "User associated with token not found"
+    assert "password_reset_token:1" in redis_store
