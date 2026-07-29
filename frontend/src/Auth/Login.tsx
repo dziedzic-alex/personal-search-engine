@@ -94,6 +94,10 @@ function Login() {
               <Body>
                 Don't have an account? <Link to="/signup">Sign up</Link>
               </Body>
+              <Body>
+                Forgot your password?{" "}
+                <Link to="/request-password-change">Reset password</Link>
+              </Body>
             </div>
           </Stack>
         </form>
