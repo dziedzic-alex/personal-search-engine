@@ -1,5 +1,3 @@
-from backend.shared.ses_client import get_ses_client
-from backend.shared.sqs_client import get_document_processing_sqs_client
 from fastapi import FastAPI
 from pillow_heif import register_heif_opener
 
@@ -11,6 +9,8 @@ from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 from shared.redis_client import get_redis_client
 from shared.s3_client import get_s3_client
+from shared.ses_client import get_ses_client
+from shared.sqs_client import get_document_processing_sqs_client
 
 get_text_embedding_model()
 get_image_embedding_model()
