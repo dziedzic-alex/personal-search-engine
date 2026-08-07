@@ -9,8 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from api.dependencies import SessionDep
-from api.dependencies.ses import SESClientDep
 from api.dependencies.redis import RedisClientDep
+from api.dependencies.ses import SESClientDep
 from api.routers.auth.auth_utils import (
     REFRESH_TOKEN_COOKIE_NAME,
     AuthResponse,
