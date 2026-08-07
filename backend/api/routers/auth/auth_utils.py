@@ -71,10 +71,14 @@ def parse_refresh_cookie(refresh_cookie: str) -> ParsedRefreshCookie:
         raise HTTPException(status_code=401, detail="Invalid refresh cookie") from None
 
 
-def is_refresh_token_valid(refresh_token: str, user_id: int, redis_client: Redis) -> bool:
-    return bool(redis_client.hexists(
-        f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token
-    ))
+def is_refresh_token_valid(
+    refresh_token: str, user_id: int, redis_client: Redis
+) -> bool:
+    return bool(
+        redis_client.hexists(
+            f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token
+        )
+    )
 
 
 def set_refresh_token_cookie(response: Response, refresh_token: str, user_id: int):
@@ -104,7 +108,9 @@ class AuthResponse(CamelModel):
     access_token: str
 
 
-def issue_auth_response(user: User, response: Response, redis_client: Redis) -> AuthResponse:
+def issue_auth_response(
+    user: User, response: Response, redis_client: Redis
+) -> AuthResponse:
     refresh_token = create_refresh_token()
     persist_refresh_token(refresh_token, user.id, redis_client)
 

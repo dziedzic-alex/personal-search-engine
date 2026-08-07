@@ -70,7 +70,10 @@ class LoginRequest(CamelModel):
 
 @router.post("/login", status_code=200)
 def login(
-    request: LoginRequest, response: Response, session: SessionDep, redis_client: RedisClientDep
+    request: LoginRequest,
+    response: Response,
+    session: SessionDep,
+    redis_client: RedisClientDep,
 ) -> AuthResponse:
     sanitized_email = request.email.strip().lower()
 
@@ -133,8 +136,10 @@ def logout(
     try:
         parsed_refresh_cookie = parse_refresh_cookie(refresh_cookie)
         clear_refresh_token(
-            parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id
-        , redis_client)
+            parsed_refresh_cookie.refresh_token,
+            parsed_refresh_cookie.user_id,
+            redis_client,
+        )
     except Exception as e:
         print(f"Error clearing refresh token: {e}")
         pass
@@ -150,7 +155,10 @@ class SendVerificationEmailRequest(CamelModel):
 
 @router.post("/send-verification-email", status_code=204)
 def send_verification_email(
-    request: SendVerificationEmailRequest, session: SessionDep, ses: SESClientDep, redis_client: RedisClientDep
+    request: SendVerificationEmailRequest,
+    session: SessionDep,
+    ses: SESClientDep,
+    redis_client: RedisClientDep,
 ):
     sanitized_email = request.email.strip().lower()
     user = session.scalars(select(User).where(User.email == sanitized_email)).first()
@@ -181,7 +189,10 @@ class VerifyEmailRequest(CamelModel):
 
 @router.post("/verify-email")
 def verify_email(
-    request: VerifyEmailRequest, session: SessionDep, response: Response, redis_client: RedisClientDep
+    request: VerifyEmailRequest,
+    session: SessionDep,
+    response: Response,
+    redis_client: RedisClientDep,
 ) -> AuthResponse:
     email_verification_token = redis_client.get(
         f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
@@ -228,7 +239,10 @@ class RequestPasswordChangeRequest(CamelModel):
 
 @router.post("/request-password-change", status_code=204)
 def request_password_change(
-    request: RequestPasswordChangeRequest, session: SessionDep, ses: SESClientDep, redis_client: RedisClientDep
+    request: RequestPasswordChangeRequest,
+    session: SessionDep,
+    ses: SESClientDep,
+    redis_client: RedisClientDep,
 ) -> None:
     sanitized_email = request.email.strip().lower()
     user = session.scalars(select(User).where(User.email == sanitized_email)).first()
@@ -259,7 +273,9 @@ class ResetPasswordRequest(CamelModel):
 
 
 @router.post("/reset-password", status_code=204)
-def reset_password(request: ResetPasswordRequest, session: SessionDep, redis_client: RedisClientDep):
+def reset_password(
+    request: ResetPasswordRequest, session: SessionDep, redis_client: RedisClientDep
+):
     user_password_reset_token = redis_client.get(
         f"{REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX}{request.user_id}"
     )
