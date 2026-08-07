@@ -359,7 +359,7 @@ class DocumentRepository:
             page * DOCUMENT_LIST_PAGE_SIZE
         )
 
-        return self.session.scalars(db_query).all()
+        return list(self.session.scalars(db_query).all())
 
     def suggest_documents(self, user_id: int, query: str) -> list[Document]:
         query = query.strip()
@@ -374,7 +374,7 @@ class DocumentRepository:
             .limit(SUGGEST_LIMIT)
         )
 
-        return self.session.scalars(db_query).all()
+        return list(self.session.scalars(db_query).all())
 
 
 def _apply_date_filter(

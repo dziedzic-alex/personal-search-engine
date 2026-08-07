@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from api.dependencies.ses import get_ses_client
 from api.routers.auth.auth import router as auth_router
 from db.session import get_session
+from shared.redis_client import get_redis_client
 
 
 @pytest.fixture
@@ -93,14 +94,6 @@ def auth_client(mocker):
     mock_redis.hexists.side_effect = redis_hexists
     mock_redis.hdel.side_effect = redis_hdel
     mock_redis.hexpire.side_effect = redis_hexpire
-    mocker.patch(
-        "api.routers.auth.auth_utils.get_redis_client",
-        return_value=mock_redis,
-    )
-    mocker.patch(
-        "api.routers.auth.auth.get_redis_client",
-        return_value=mock_redis,
-    )
 
     mock_ses = mocker.MagicMock()
     mock_session = mocker.MagicMock()
@@ -111,9 +104,13 @@ def auth_client(mocker):
     def override_get_ses_client():
         return mock_ses
 
+    def override_get_redis_client():
+        return mock_redis
+
     app = FastAPI()
     app.include_router(auth_router)
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_ses_client] = override_get_ses_client
+    app.dependency_overrides[get_redis_client] = override_get_redis_client
 
     return TestClient(app), mock_session, redis_store, mock_ses

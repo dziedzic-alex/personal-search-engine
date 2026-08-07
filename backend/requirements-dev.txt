@@ -1,3 +1,5 @@
 ruff==0.15.15
 pytest==9.0.3
 pytest-mock==3.15.1
+pyright==1.1.411
+boto3-stubs[s3,sqs,ses]==1.43.67

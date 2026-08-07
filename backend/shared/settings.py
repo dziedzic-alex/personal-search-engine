@@ -25,4 +25,4 @@ class Settings(BaseSettings):
     ses_region: str
 
 
-settings = Settings()
+settings = Settings()  # type: ignore

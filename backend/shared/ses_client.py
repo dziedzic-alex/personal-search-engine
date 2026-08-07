@@ -1,4 +1,5 @@
 import boto3
+from mypy_boto3_ses.client import SESClient as Boto3SESClient
 
 from shared.settings import settings
 
@@ -16,7 +17,9 @@ def get_ses_client() -> SESClient:
 
 class SESClient:
     def __init__(self):
-        self.client = boto3.client("ses", region_name=settings.ses_region)
+        self.client: Boto3SESClient = boto3.client(
+            "ses", region_name=settings.ses_region
+        )
 
     def send_email(
         self, subject: str, body: str, html_body: str, to_addresses: list[str]

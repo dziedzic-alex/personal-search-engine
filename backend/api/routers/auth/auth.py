@@ -1,5 +1,6 @@
 import hmac
 from secrets import token_urlsafe
+from typing import cast
 
 from argon2 import PasswordHasher
 from fastapi import APIRouter, Cookie, HTTPException
@@ -9,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from api.dependencies import SessionDep
+from api.dependencies.redis import RedisClientDep
 from api.dependencies.ses import SESClientDep
 from api.routers.auth.auth_utils import (
     REFRESH_TOKEN_COOKIE_NAME,
@@ -22,7 +24,6 @@ from api.routers.auth.auth_utils import (
 )
 from api.schemas.camel_model import CamelModel
 from db.models.user import User
-from shared.redis_client import get_redis_client
 from shared.settings import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -70,7 +71,10 @@ class LoginRequest(CamelModel):
 
 @router.post("/login", status_code=200)
 def login(
-    request: LoginRequest, response: Response, session: SessionDep
+    request: LoginRequest,
+    response: Response,
+    session: SessionDep,
+    redis_client: RedisClientDep,
 ) -> AuthResponse:
     sanitized_email = request.email.strip().lower()
 
@@ -86,13 +90,14 @@ def login(
     if not user.email_verified:
         raise HTTPException(status_code=403, detail="Email not verified")
 
-    return issue_auth_response(user, response)
+    return issue_auth_response(user, response, redis_client)
 
 
 @router.post("/refresh")
 def refresh(
     response: Response,
     session: SessionDep,
+    redis_client: RedisClientDep,
     refresh_cookie: str | None = Cookie(default=None, alias=REFRESH_TOKEN_COOKIE_NAME),
 ) -> AuthResponse:
     if refresh_cookie is None:
@@ -100,12 +105,12 @@ def refresh(
 
     parsed_refresh_cookie = parse_refresh_cookie(refresh_cookie)
     if not is_refresh_token_valid(
-        parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id
+        parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id, redis_client
     ):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
     clear_refresh_token(
-        parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id
+        parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id, redis_client
     )
 
     user = session.get(User, parsed_refresh_cookie.user_id)
@@ -115,12 +120,13 @@ def refresh(
             status_code=401, detail="User associated with the refresh token not found"
         )
 
-    return issue_auth_response(user, response)
+    return issue_auth_response(user, response, redis_client)
 
 
 @router.post("/logout")
 def logout(
     response: Response,
+    redis_client: RedisClientDep,
     refresh_cookie: str | None = Cookie(default=None, alias=REFRESH_TOKEN_COOKIE_NAME),
 ):
     if refresh_cookie is None:
@@ -131,7 +137,9 @@ def logout(
     try:
         parsed_refresh_cookie = parse_refresh_cookie(refresh_cookie)
         clear_refresh_token(
-            parsed_refresh_cookie.refresh_token, parsed_refresh_cookie.user_id
+            parsed_refresh_cookie.refresh_token,
+            parsed_refresh_cookie.user_id,
+            redis_client,
         )
     except Exception as e:
         print(f"Error clearing refresh token: {e}")
@@ -148,7 +156,10 @@ class SendVerificationEmailRequest(CamelModel):
 
 @router.post("/send-verification-email", status_code=204)
 def send_verification_email(
-    request: SendVerificationEmailRequest, session: SessionDep, ses: SESClientDep
+    request: SendVerificationEmailRequest,
+    session: SessionDep,
+    ses: SESClientDep,
+    redis_client: RedisClientDep,
 ):
     sanitized_email = request.email.strip().lower()
     user = session.scalars(select(User).where(User.email == sanitized_email)).first()
@@ -156,7 +167,6 @@ def send_verification_email(
         return
 
     email_verification_token = token_urlsafe(32)
-    redis_client = get_redis_client()
     redis_client.set(
         f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{user.id}",
         email_verification_token,
@@ -180,11 +190,16 @@ class VerifyEmailRequest(CamelModel):
 
 @router.post("/verify-email")
 def verify_email(
-    request: VerifyEmailRequest, session: SessionDep, response: Response
+    request: VerifyEmailRequest,
+    session: SessionDep,
+    response: Response,
+    redis_client: RedisClientDep,
 ) -> AuthResponse:
-    redis_client = get_redis_client()
-    email_verification_token = redis_client.get(
-        f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
+    email_verification_token = cast(
+        bytes | None,
+        redis_client.get(
+            f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
+        ),
     )
 
     if email_verification_token is None:
@@ -215,7 +230,7 @@ def verify_email(
         print(f"Error deleting email verification token from Redis: {e}")
         pass
 
-    return issue_auth_response(user, response)
+    return issue_auth_response(user, response, redis_client)
 
 
 REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX = "password_reset_token:"
@@ -228,7 +243,10 @@ class RequestPasswordChangeRequest(CamelModel):
 
 @router.post("/request-password-change", status_code=204)
 def request_password_change(
-    request: RequestPasswordChangeRequest, session: SessionDep, ses: SESClientDep
+    request: RequestPasswordChangeRequest,
+    session: SessionDep,
+    ses: SESClientDep,
+    redis_client: RedisClientDep,
 ) -> None:
     sanitized_email = request.email.strip().lower()
     user = session.scalars(select(User).where(User.email == sanitized_email)).first()
@@ -236,7 +254,6 @@ def request_password_change(
         return
 
     password_reset_token = token_urlsafe(32)
-    redis_client = get_redis_client()
     redis_client.set(
         f"{REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX}{user.id}",
         password_reset_token,
@@ -260,10 +277,12 @@ class ResetPasswordRequest(CamelModel):
 
 
 @router.post("/reset-password", status_code=204)
-def reset_password(request: ResetPasswordRequest, session: SessionDep):
-    redis_client = get_redis_client()
-    user_password_reset_token = redis_client.get(
-        f"{REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX}{request.user_id}"
+def reset_password(
+    request: ResetPasswordRequest, session: SessionDep, redis_client: RedisClientDep
+):
+    user_password_reset_token = cast(
+        bytes | None,
+        redis_client.get(f"{REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX}{request.user_id}"),
     )
 
     if user_password_reset_token is None:
@@ -286,7 +305,7 @@ def reset_password(request: ResetPasswordRequest, session: SessionDep):
     session.commit()
 
     try:
-        clear_refresh_tokens(request.user_id)
+        clear_refresh_tokens(request.user_id, redis_client)
     except Exception as e:
         print(f"Error clearing refresh tokens: {e}")
         pass

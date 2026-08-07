@@ -80,7 +80,7 @@ def _create_pdf_thumbnail(file_data: bytes) -> bytes:
         pixel_map = pdf.load_page(0).get_pixmap(matrix=fitz.Matrix(2, 2))
 
     image = Image.frombytes(
-        "RGB", [pixel_map.width, pixel_map.height], pixel_map.samples
+        "RGB", (pixel_map.width, pixel_map.height), pixel_map.samples
     )
 
     return _create_thumbnail(image)
