@@ -1,12 +1,12 @@
-import redis
+from redis import Redis
 
 from shared.settings import settings
 
-client: redis.Redis | None = None
+client: Redis | None = None
 
 
-def get_redis_client() -> redis.Redis:
+def get_redis_client() -> Redis:
     global client
     if client is None:
-        client = redis.Redis.from_url(settings.redis_url)
+        client = Redis.from_url(settings.redis_url)
     return client
