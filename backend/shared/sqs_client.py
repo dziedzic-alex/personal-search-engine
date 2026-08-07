@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass
 
 import boto3
+from mypy_boto3_sqs.service_resource import Queue
 
 from shared.settings import settings
 
@@ -41,7 +42,7 @@ class ConsumerResponse:
 
 class _SQSClient:
     def __init__(self, queue_name: str):
-        self.client = boto3.resource(
+        self.client: Queue = boto3.resource(
             "sqs", region_name=settings.sqs_document_queues_region
         ).get_queue_by_name(QueueName=queue_name)
 

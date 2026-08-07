@@ -79,6 +79,13 @@ def _process_document_message(
 
         with SessionLocal() as session:
             document = session.get(Document, document_message.document_id)
+
+            if document is None:
+                print(
+                    f"Document {document_message.document_id} not found during error recovery."
+                )
+                return
+
             document.status = DocumentStatus.PENDING
             session.execute(
                 delete(DocumentEmbedding).where(
@@ -91,6 +98,13 @@ def _process_document_message(
 
     with SessionLocal(expire_on_commit=False) as session:
         document = session.get(Document, document_message.document_id)
+
+        if document is None:
+            print(
+                f"Document {document_message.document_id} not found after processing."
+            )
+            return
+
         document.status = DocumentStatus.PROCESSED
         session.commit()
 

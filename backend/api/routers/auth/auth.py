@@ -1,5 +1,6 @@
 import hmac
 from secrets import token_urlsafe
+from typing import cast
 
 from argon2 import PasswordHasher
 from fastapi import APIRouter, Cookie, HTTPException
@@ -194,8 +195,11 @@ def verify_email(
     response: Response,
     redis_client: RedisClientDep,
 ) -> AuthResponse:
-    email_verification_token = redis_client.get(
-        f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
+    email_verification_token = cast(
+        bytes | None,
+        redis_client.get(
+            f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
+        ),
     )
 
     if email_verification_token is None:
@@ -276,8 +280,9 @@ class ResetPasswordRequest(CamelModel):
 def reset_password(
     request: ResetPasswordRequest, session: SessionDep, redis_client: RedisClientDep
 ):
-    user_password_reset_token = redis_client.get(
-        f"{REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX}{request.user_id}"
+    user_password_reset_token = cast(
+        bytes | None,
+        redis_client.get(f"{REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX}{request.user_id}"),
     )
 
     if user_password_reset_token is None:

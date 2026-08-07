@@ -70,7 +70,7 @@ def index_pdf(document_id: int, document: fitz.Document):
         if should_fallback and not page_image_indexed:
             pixels = page.get_pixmap(matrix=fitz.Matrix(2, 2))
             image = Image.frombytes(
-                "RGB", [pixels.width, pixels.height], pixels.samples
+                "RGB", (pixels.width, pixels.height), pixels.samples
             )
             index_image(document_id, image, context=ImageIndexContext.PDF_PAGE)
 

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import boto3
 from botocore.config import Config
+from mypy_boto3_s3.client import S3Client as Boto3S3Client
 
 from shared.content_type import ContentType, content_type_to_mime_type
 from shared.settings import settings
@@ -21,7 +22,7 @@ def get_s3_client() -> S3Client:
 
 class S3Client:
     def __init__(self):
-        self.client = boto3.client(
+        self.client: Boto3S3Client = boto3.client(
             "s3",
             region_name=settings.s3_files_thumbnails_bucket_region,
             config=Config(signature_version="s3v4", s3={"addressing_style": "virtual"}),
