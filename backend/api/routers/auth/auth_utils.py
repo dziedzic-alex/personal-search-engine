@@ -7,11 +7,11 @@ import jwt
 from fastapi import Depends, HTTPException
 from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from redis import Redis
 
 from api.dependencies.db import SessionDep
 from api.schemas.camel_model import CamelModel
 from db.models.user import User, UserPlan
-from shared.redis_client import get_redis_client
 from shared.settings import Environment, settings
 
 JWT_ALGORITHM = "HS256"
@@ -38,9 +38,7 @@ def create_refresh_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-def persist_refresh_token(refresh_token: str, user_id: int):
-    redis_client = get_redis_client()
-
+def persist_refresh_token(refresh_token: str, user_id: int, redis_client: Redis):
     redis_client.hset(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token, "1")
     redis_client.hexpire(
         f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}",
@@ -49,13 +47,11 @@ def persist_refresh_token(refresh_token: str, user_id: int):
     )
 
 
-def clear_refresh_token(refresh_token: str, user_id: int):
-    redis_client = get_redis_client()
+def clear_refresh_token(refresh_token: str, user_id: int, redis_client: Redis):
     redis_client.hdel(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token)
 
 
-def clear_refresh_tokens(user_id: int):
-    redis_client = get_redis_client()
+def clear_refresh_tokens(user_id: int, redis_client: Redis):
     redis_client.delete(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}")
 
 
@@ -75,12 +71,10 @@ def parse_refresh_cookie(refresh_cookie: str) -> ParsedRefreshCookie:
         raise HTTPException(status_code=401, detail="Invalid refresh cookie") from None
 
 
-def is_refresh_token_valid(refresh_token: str, user_id: int) -> bool:
-    redis_client = get_redis_client()
-
-    return redis_client.hexists(
+def is_refresh_token_valid(refresh_token: str, user_id: int, redis_client: Redis) -> bool:
+    return bool(redis_client.hexists(
         f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token
-    )
+    ))
 
 
 def set_refresh_token_cookie(response: Response, refresh_token: str, user_id: int):
@@ -110,9 +104,9 @@ class AuthResponse(CamelModel):
     access_token: str
 
 
-def issue_auth_response(user: User, response: Response) -> AuthResponse:
+def issue_auth_response(user: User, response: Response, redis_client: Redis) -> AuthResponse:
     refresh_token = create_refresh_token()
-    persist_refresh_token(refresh_token, user.id)
+    persist_refresh_token(refresh_token, user.id, redis_client)
 
     set_refresh_token_cookie(response, refresh_token, user.id)
 
