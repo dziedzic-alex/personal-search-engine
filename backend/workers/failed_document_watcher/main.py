@@ -5,10 +5,15 @@ from shared.sqs_client import (
     SQSDocumentProcessingDeadLetterClient,
     get_document_processing_dead_letter_sqs_client,
 )
+import logging
+from shared.configure_logging import configure_logging
 
+configure_logging()
+
+logger = logging.getLogger(__name__)
 
 def main():
-    print("Failed document watcher is running")
+    logger.info("Failed document watcher is running")
 
     sqs_client = get_document_processing_dead_letter_sqs_client()
 
@@ -20,8 +25,8 @@ def main():
                 continue
 
             _process_failed_document_message(document_message, sqs_client)
-        except Exception as e:
-            print(f"Worker error: {e}")
+        except Exception:
+            logger.error("Worker error", exc_info=True)
             continue
 
 
@@ -33,18 +38,18 @@ def _process_failed_document_message(
         document = session.get(Document, document_message.document_id)
 
         if document is None:
-            print(f"Document {document_message.document_id} not found. Skipping...")
+            logger.warning(f"Document {document_message.document_id} not found. Skipping...")
             sqs_client.delete_document_message(document_message.receipt_handle)
             return
 
         if document.status == DocumentStatus.FAILED:
-            print(
+            logger.warning(
                 f"Document {document_message.document_id} already marked as failed. Skipping..."
             )
             sqs_client.delete_document_message(document_message.receipt_handle)
             return
         elif document.status == DocumentStatus.PROCESSED:
-            print(
+            logger.warning(
                 f"Document {document_message.document_id} already processed. Skipping..."
             )
             sqs_client.delete_document_message(document_message.receipt_handle)

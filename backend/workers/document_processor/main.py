@@ -15,12 +15,17 @@ from shared.sqs_client import (
 )
 from workers.document_processor.image.image import process_image_document
 from workers.document_processor.pdf.pdf import process_pdf_document
+from shared.configure_logging import configure_logging
+import logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 register_heif_opener()
 
 
 def main():
-    print("Worker is running")
+    logger.info("Worker is running")
 
     get_text_embedding_model()
     get_image_embedding_model()
@@ -28,7 +33,7 @@ def main():
 
     sqs_client = get_document_processing_sqs_client()
 
-    print("Models and clients initialized")
+    logger.info("Models and clients initialized")
 
     while True:
         try:
@@ -38,30 +43,30 @@ def main():
                 continue
 
             _process_document_message(document_message, sqs_client)
-        except Exception as e:
-            print(f"Worker error: {e}")
+        except Exception:
+            logger.error("Worker error", exc_info=True)
             continue
 
 
 def _process_document_message(
     document_message: ConsumerResponse, sqs_client: SQSDocumentProcessingClient
 ) -> None:
-    print(f"Processing document: {document_message.document_id}")
+    logger.info(f"Processing document: {document_message.document_id}")
 
     with SessionLocal(expire_on_commit=False) as session:
         document: Document | None = session.get(Document, document_message.document_id)
 
         if document is None:
-            print(f"Document {document_message.document_id} not found. Skipping...")
+            logger.warning(f"Document {document_message.document_id} not found. Skipping...")
             sqs_client.delete_document_message(document_message.receipt_handle)
             return
 
         if document.status == DocumentStatus.PROCESSED:
-            print(f"Document {document.name} already processed. Skipping...")
+            logger.warning(f"Document {document.name} already processed. Skipping...")
             sqs_client.delete_document_message(document_message.receipt_handle)
             return
         elif document.status != DocumentStatus.PENDING:
-            print(f"Document {document.name} is not pending. Skipping...")
+            logger.warning(f"Document {document.name} is not pending. Skipping...")
             return
 
         document.status = DocumentStatus.PROCESSING
@@ -74,14 +79,14 @@ def _process_document_message(
             process_pdf_document(document)
         else:
             raise ValueError(f"Unsupported document type: {document.content_type}")
-    except Exception as e:
-        print(f"Error processing document {document.name}: {e}")
+    except Exception:
+        logger.error(f"Error processing document {document.name}", exc_info=True)
 
         with SessionLocal() as session:
             document = session.get(Document, document_message.document_id)
 
             if document is None:
-                print(
+                logger.warning(
                     f"Document {document_message.document_id} not found during error recovery."
                 )
                 return
@@ -100,7 +105,7 @@ def _process_document_message(
         document = session.get(Document, document_message.document_id)
 
         if document is None:
-            print(
+            logger.warning(
                 f"Document {document_message.document_id} not found after processing."
             )
             return
@@ -108,7 +113,7 @@ def _process_document_message(
         document.status = DocumentStatus.PROCESSED
         session.commit()
 
-    print(f"Document {document.name} successfully processed")
+    logger.info(f"Document {document.name} successfully processed")
     sqs_client.delete_document_message(document_message.receipt_handle)
 
 

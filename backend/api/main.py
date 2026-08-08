@@ -11,6 +11,9 @@ from shared.redis_client import get_redis_client
 from shared.s3_client import get_s3_client
 from shared.ses_client import get_ses_client
 from shared.sqs_client import get_document_processing_sqs_client
+from shared.configure_logging import configure_logging
+
+configure_logging()
 
 get_text_embedding_model()
 get_image_embedding_model()
