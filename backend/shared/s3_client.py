@@ -1,3 +1,4 @@
+import logging
 import uuid
 from dataclasses import dataclass
 
@@ -7,7 +8,6 @@ from mypy_boto3_s3.client import S3Client as Boto3S3Client
 
 from shared.content_type import ContentType, content_type_to_mime_type
 from shared.settings import settings
-import logging
 
 logger = logging.getLogger(__name__)
 

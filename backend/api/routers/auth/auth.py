@@ -1,4 +1,5 @@
 import hmac
+import logging
 from secrets import token_urlsafe
 from typing import cast
 
@@ -25,7 +26,6 @@ from api.routers.auth.auth_utils import (
 from api.schemas.camel_model import CamelModel
 from db.models.user import User
 from shared.settings import settings
-import logging
 
 logger = logging.getLogger(__name__)
 

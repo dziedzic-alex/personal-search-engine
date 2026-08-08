@@ -1,4 +1,5 @@
 import enum
+import logging
 import os
 import zipfile
 from datetime import datetime
@@ -28,7 +29,6 @@ from db.repositories.documents import (
 from shared.content_category import ContentCategory, content_type_to_category
 from shared.content_type import ContentType
 from shared.s3_client import S3Client
-import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/documents", tags=["documents"])

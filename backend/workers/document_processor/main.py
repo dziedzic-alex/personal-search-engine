@@ -1,9 +1,12 @@
+import logging
+
 from pillow_heif import register_heif_opener
 from sqlalchemy import delete
 
 from db.models.document import Document, DocumentStatus
 from db.models.document_embedding import DocumentEmbedding
 from db.session import SessionLocal
+from shared.configure_logging import configure_logging
 from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
@@ -15,8 +18,6 @@ from shared.sqs_client import (
 )
 from workers.document_processor.image.image import process_image_document
 from workers.document_processor.pdf.pdf import process_pdf_document
-from shared.configure_logging import configure_logging
-import logging
 
 configure_logging()
 logger = logging.getLogger(__name__)

@@ -1,3 +1,4 @@
+import logging
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -13,7 +14,6 @@ from api.dependencies.db import SessionDep
 from api.schemas.camel_model import CamelModel
 from db.models.user import User, UserPlan
 from shared.settings import Environment, settings
-import logging
 
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRES_IN_MINUTES = 10

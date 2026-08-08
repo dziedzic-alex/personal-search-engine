@@ -1,5 +1,6 @@
-from io import BytesIO
 import logging
+from io import BytesIO
+
 import fitz
 from PIL import Image
 
