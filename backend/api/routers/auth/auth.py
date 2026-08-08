@@ -229,7 +229,9 @@ def verify_email(
             f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
         )
     except Exception:
-        logger.error("Error deleting email verification token from Redis", exc_info=True)
+        logger.error(
+            "Error deleting email verification token from Redis", exc_info=True
+        )
         pass
 
     return issue_auth_response(user, response, redis_client)

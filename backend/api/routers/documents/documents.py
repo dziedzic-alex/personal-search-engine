@@ -179,7 +179,9 @@ def delete_documents(
     try:
         s3_client.delete_files(content_keys + thumbnail_keys)
     except Exception:
-        logger.error(f"Error deleting documents {request.document_ids} from S3", exc_info=True)
+        logger.error(
+            f"Error deleting documents {request.document_ids} from S3", exc_info=True
+        )
         pass
 
 
@@ -299,7 +301,9 @@ def upload_file(
     try:
         sqs_client.submit_document_message(document.id, user.id)
     except Exception:
-        logger.error(f"Error submitting document {filename} for processing", exc_info=True)
+        logger.error(
+            f"Error submitting document {filename} for processing", exc_info=True
+        )
         session.delete(document)
         session.commit()
         s3_client.delete_file(persisted_file_object_keys.content_key)
@@ -362,5 +366,7 @@ def download_documents(
     except Exception:
         tmp.close()
         os.unlink(tmp.name)
-        logger.error(f"Error downloading documents {request.document_ids}", exc_info=True)
+        logger.error(
+            f"Error downloading documents {request.document_ids}", exc_info=True
+        )
         raise

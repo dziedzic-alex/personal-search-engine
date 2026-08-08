@@ -13,6 +13,7 @@ configure_logging()
 
 logger = logging.getLogger(__name__)
 
+
 def main():
     logger.info("Failed document watcher is running")
 
@@ -39,7 +40,9 @@ def _process_failed_document_message(
         document = session.get(Document, document_message.document_id)
 
         if document is None:
-            logger.warning(f"Document {document_message.document_id} not found. Skipping...")
+            logger.warning(
+                f"Document {document_message.document_id} not found. Skipping..."
+            )
             sqs_client.delete_document_message(document_message.receipt_handle)
             return
 

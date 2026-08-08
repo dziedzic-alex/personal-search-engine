@@ -66,7 +66,7 @@ def index_pdf(document_id: int, document: fitz.Document):
             except Exception:
                 logger.error(
                     f"Error extracting image {xref} from page {page.number} in document {document_id}",
-                    exc_info=True
+                    exc_info=True,
                 )
                 continue
 

@@ -24,6 +24,7 @@ REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
 logger = logging.getLogger(__name__)
 
+
 def create_access_token(user_id: int):
     now = datetime.now(UTC)
 
