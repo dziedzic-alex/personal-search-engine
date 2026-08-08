@@ -25,6 +25,9 @@ from api.routers.auth.auth_utils import (
 from api.schemas.camel_model import CamelModel
 from db.models.user import User
 from shared.settings import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 ph = PasswordHasher()
@@ -135,15 +138,14 @@ def logout(
     clear_refresh_cookie(response)
 
     try:
-        parsed_refresh_cookie = parse_refresh_cookie(refresh_cookie)
-        clear_refresh_token(
-            parsed_refresh_cookie.refresh_token,
-            parsed_refresh_cookie.user_id,
-            redis_client,
-        )
-    except Exception as e:
-        print(f"Error clearing refresh token: {e}")
-        pass
+        parsed = parse_refresh_cookie(refresh_cookie)
+    except HTTPException:
+        return
+
+    try:
+        clear_refresh_token(parsed.refresh_token, parsed.user_id, redis_client)
+    except Exception:
+        logger.error("Error clearing refresh token", exc_info=True)
 
 
 REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX = "email_verification_token:"
@@ -226,8 +228,8 @@ def verify_email(
         redis_client.delete(
             f"{REDIS_EMAIL_VERIFICATION_TOKEN_KEY_PREFIX}{request.user_id}"
         )
-    except Exception as e:
-        print(f"Error deleting email verification token from Redis: {e}")
+    except Exception:
+        logger.error("Error deleting email verification token from Redis", exc_info=True)
         pass
 
     return issue_auth_response(user, response, redis_client)
@@ -306,12 +308,12 @@ def reset_password(
 
     try:
         clear_refresh_tokens(request.user_id, redis_client)
-    except Exception as e:
-        print(f"Error clearing refresh tokens: {e}")
+    except Exception:
+        logger.error("Error clearing refresh tokens", exc_info=True)
         pass
 
     try:
         redis_client.delete(f"{REDIS_PASSWORD_RESET_TOKEN_KEY_PREFIX}{request.user_id}")
-    except Exception as e:
-        print(f"Error deleting password reset token from Redis: {e}")
+    except Exception:
+        logger.error("Error deleting password reset token from Redis", exc_info=True)
         pass

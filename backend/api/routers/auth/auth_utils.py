@@ -13,6 +13,7 @@ from api.dependencies.db import SessionDep
 from api.schemas.camel_model import CamelModel
 from db.models.user import User, UserPlan
 from shared.settings import Environment, settings
+import logging
 
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRES_IN_MINUTES = 10
@@ -21,6 +22,7 @@ REFRESH_TOKEN_EXPIRES_IN_DAYS = 7
 REDIS_REFRESH_TOKEN_KEY_PREFIX = "refresh:"
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
+logger = logging.getLogger(__name__)
 
 def create_access_token(user_id: int):
     now = datetime.now(UTC)
@@ -66,8 +68,8 @@ def parse_refresh_cookie(refresh_cookie: str) -> ParsedRefreshCookie:
         parts = refresh_cookie.split(":", 1)
 
         return ParsedRefreshCookie(user_id=int(parts[0]), refresh_token=parts[1])
-    except Exception as e:
-        print(f"Error parsing refresh cookie: {e}")
+    except Exception:
+        logger.error("Error parsing refresh cookie", exc_info=True)
         raise HTTPException(status_code=401, detail="Invalid refresh cookie") from None
 
 

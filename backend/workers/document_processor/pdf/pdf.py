@@ -1,5 +1,5 @@
 from io import BytesIO
-
+import logging
 import fitz
 from PIL import Image
 
@@ -16,6 +16,8 @@ from workers.document_processor.pdf.pdf_utils import (
     should_fallback_to_image,
 )
 from workers.document_processor.text_quality import sanitize_text
+
+logger = logging.getLogger(__name__)
 
 
 def _load_pdf_data_from_s3(s3_content_key: str) -> bytes:
@@ -60,9 +62,10 @@ def index_pdf(document_id: int, document: fitz.Document):
                     document_id, image, context=ImageIndexContext.PDF_EMBEDDED
                 ):
                     page_image_indexed = True
-            except Exception as e:
-                print(
-                    f"Error extracting image {xref} from page {page.number} in document {document_id}: {e}"
+            except Exception:
+                logger.error(
+                    f"Error extracting image {xref} from page {page.number} in document {document_id}",
+                    exc_info=True
                 )
                 continue
 
@@ -78,7 +81,7 @@ def index_pdf(document_id: int, document: fitz.Document):
             chunks.extend(merge_text_blocks_into_chunks(page_blocks))
 
     if not chunks:
-        print(f"No text chunks found for document {document_id}")
+        logger.warning(f"No text chunks found for document {document_id}")
         return
 
     text_embedding_model = get_text_embedding_model()
