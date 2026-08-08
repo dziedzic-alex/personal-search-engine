@@ -1,12 +1,20 @@
+from __future__ import annotations
+
+import logging
 import uuid
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import boto3
 from botocore.config import Config
-from mypy_boto3_s3.client import S3Client as Boto3S3Client
 
 from shared.content_type import ContentType, content_type_to_mime_type
 from shared.settings import settings
+
+if TYPE_CHECKING:
+    from mypy_boto3_s3.client import S3Client as Boto3S3Client
+
+logger = logging.getLogger(__name__)
 
 s3_client: S3Client | None = None
 
@@ -80,8 +88,8 @@ class S3Client:
             )
 
             if "Errors" in response and len(response["Errors"]) > 0:
-                print(
-                    f"Error deleting the following objects: {str(response['Errors'])}"
+                logger.error(
+                    f"Error deleting objects from S3: {str(response['Errors'])}"
                 )
 
     @dataclass

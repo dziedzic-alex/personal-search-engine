@@ -1,3 +1,4 @@
+import logging
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -20,6 +21,8 @@ REFRESH_TOKEN_EXPIRES_IN_DAYS = 7
 
 REDIS_REFRESH_TOKEN_KEY_PREFIX = "refresh:"
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
+
+logger = logging.getLogger(__name__)
 
 
 def create_access_token(user_id: int):
@@ -66,8 +69,8 @@ def parse_refresh_cookie(refresh_cookie: str) -> ParsedRefreshCookie:
         parts = refresh_cookie.split(":", 1)
 
         return ParsedRefreshCookie(user_id=int(parts[0]), refresh_token=parts[1])
-    except Exception as e:
-        print(f"Error parsing refresh cookie: {e}")
+    except Exception:
+        logger.error("Error parsing refresh cookie", exc_info=True)
         raise HTTPException(status_code=401, detail="Invalid refresh cookie") from None
 
 

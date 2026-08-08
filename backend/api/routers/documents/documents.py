@@ -1,4 +1,5 @@
 import enum
+import logging
 import os
 import zipfile
 from datetime import datetime
@@ -29,6 +30,7 @@ from shared.content_category import ContentCategory, content_type_to_category
 from shared.content_type import ContentType
 from shared.s3_client import S3Client
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
@@ -176,8 +178,10 @@ def delete_documents(
 
     try:
         s3_client.delete_files(content_keys + thumbnail_keys)
-    except Exception as e:
-        print(f"Error deleting documents {request.document_ids} from S3: {e}")
+    except Exception:
+        logger.error(
+            f"Error deleting documents {request.document_ids} from S3", exc_info=True
+        )
         pass
 
 
@@ -196,8 +200,8 @@ def delete_document(
 
     try:
         s3_client.delete_files([document.s3_content_key, document.s3_thumbnail_key])
-    except Exception as e:
-        print(f"Error deleting document {document.id} from S3: {e}")
+    except Exception:
+        logger.error(f"Error deleting document {document.id} from S3", exc_info=True)
         pass
 
 
@@ -262,7 +266,7 @@ def upload_file(
     ).first()
 
     if existing_document is not None:
-        print(f"Document {filename} already exists. Skipping...")
+        logger.info(f"Document {filename} already exists. Skipping...")
         raise HTTPException(
             status_code=409, detail=f"Document {filename} already exists"
         )
@@ -285,8 +289,8 @@ def upload_file(
 
         session.add(document)
         session.commit()
-    except Exception as e:
-        print(f"Error saving document {filename}: {e}")
+    except Exception:
+        logger.error(f"Error saving document {filename}", exc_info=True)
         session.rollback()
         s3_client.delete_file(persisted_file_object_keys.content_key)
         s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
@@ -296,8 +300,10 @@ def upload_file(
 
     try:
         sqs_client.submit_document_message(document.id, user.id)
-    except Exception as e:
-        print(f"Error submitting document {filename} for processing: {e}")
+    except Exception:
+        logger.error(
+            f"Error submitting document {filename} for processing", exc_info=True
+        )
         session.delete(document)
         session.commit()
         s3_client.delete_file(persisted_file_object_keys.content_key)
@@ -360,4 +366,7 @@ def download_documents(
     except Exception:
         tmp.close()
         os.unlink(tmp.name)
+        logger.error(
+            f"Error downloading documents {request.document_ids}", exc_info=True
+        )
         raise
