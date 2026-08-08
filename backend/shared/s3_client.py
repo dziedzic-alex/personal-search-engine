@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 import logging
 import uuid
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import boto3
 from botocore.config import Config
-from mypy_boto3_s3.client import S3Client as Boto3S3Client
 
 from shared.content_type import ContentType, content_type_to_mime_type
 from shared.settings import settings
+
+if TYPE_CHECKING:
+    from mypy_boto3_s3.client import S3Client as Boto3S3Client
 
 logger = logging.getLogger(__name__)
 

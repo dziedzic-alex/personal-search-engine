@@ -1,7 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import boto3
-from mypy_boto3_ses.client import SESClient as Boto3SESClient
 
 from shared.settings import settings
+
+if TYPE_CHECKING:
+    from mypy_boto3_ses.client import SESClient as Boto3SESClient
 
 ses_client: SESClient | None = None
 

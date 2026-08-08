@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import boto3
-from mypy_boto3_sqs.service_resource import Queue
 
 from shared.settings import settings
+
+if TYPE_CHECKING:
+    from mypy_boto3_sqs.service_resource import Queue
 
 document_processing_sqs_client: SQSDocumentProcessingClient | None = None
 document_processing_dead_letter_sqs_client: (
