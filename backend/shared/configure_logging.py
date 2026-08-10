@@ -18,3 +18,4 @@ def configure_logging():
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
     logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+    logging.getLogger("filelock").setLevel(logging.WARNING)
