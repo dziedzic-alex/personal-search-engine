@@ -3,13 +3,13 @@ data "aws_caller_identity" "current" {}
 
 resource "aws_s3vectors_vector_bucket" "this" {
   vector_bucket_name = var.vector_bucket_name
-  region = coalesce(var.region, data.aws_region.current.region)
+  region             = coalesce(var.region, data.aws_region.current.region)
 }
 
 resource "aws_s3vectors_index" "this" {
   index_name         = var.vector_bucket_index_name
   vector_bucket_name = aws_s3vectors_vector_bucket.this.vector_bucket_name
-  region = coalesce(var.region, data.aws_region.current.region)
+  region             = coalesce(var.region, data.aws_region.current.region)
 
   data_type       = "float32"
   dimension       = var.embedding_dimensions
@@ -47,9 +47,9 @@ resource "aws_iam_role_policy" "this" {
     Statement = concat([
       # Source S3 bucket — Get documents for ingestion
       {
-        Sid    = "SourceBucketGet"
-        Effect = "Allow"
-        Action = ["s3:GetObject"]
+        Sid      = "SourceBucketGet"
+        Effect   = "Allow"
+        Action   = ["s3:GetObject"]
         Resource = "${var.source_s3_bucket_arn}/*"
         Condition = {
           StringEquals = { "aws:ResourceAccount" = data.aws_caller_identity.current.account_id }
@@ -73,43 +73,43 @@ resource "aws_iam_role_policy" "this" {
       },
       # Bedrock — invoke embedding model
       {
-        Sid    = "BedrockInvokeModel"
-        Effect = "Allow"
-        Action = ["bedrock:InvokeModel"]
+        Sid      = "BedrockInvokeModel"
+        Effect   = "Allow"
+        Action   = ["bedrock:InvokeModel"]
         Resource = var.embedding_model_arn
       }],
       # Supplemental storage bucket — read/write extracted images
       var.supplemental_data_storage_s3_bucket_arn != null ? [
-      {
-        Sid    = "SupplementalBucket"
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject"
-        ]
-        Resource = "${var.supplemental_data_storage_s3_bucket_arn}/*"
+        {
+          Sid    = "SupplementalBucket"
+          Effect = "Allow"
+          Action = [
+            "s3:GetObject",
+            "s3:PutObject",
+            "s3:DeleteObject"
+          ]
+          Resource = "${var.supplemental_data_storage_s3_bucket_arn}/*"
 
-        Condition = {
-          StringEquals = { "aws:ResourceAccount" = data.aws_caller_identity.current.account_id }
+          Condition = {
+            StringEquals = { "aws:ResourceAccount" = data.aws_caller_identity.current.account_id }
+          }
+        },
+        {
+          Sid      = "SupplementalBucketList"
+          Effect   = "Allow"
+          Action   = ["s3:ListBucket"]
+          Resource = var.supplemental_data_storage_s3_bucket_arn
+          Condition = {
+            StringEquals = { "aws:ResourceAccount" = data.aws_caller_identity.current.account_id }
+          }
         }
-      },
-      {
-        Sid    = "SupplementalBucketList"
-        Effect = "Allow"
-        Action = ["s3:ListBucket"]
-        Resource = var.supplemental_data_storage_s3_bucket_arn
-        Condition = {
-          StringEquals = { "aws:ResourceAccount" = data.aws_caller_identity.current.account_id }
-        }
-      }
       ] : [],
       # Bedrock foundation model - invoke parsing model
       var.parsing_strategy == "BEDROCK_FOUNDATION_MODEL" ? [
         {
-          Sid = "BedrockFoundationModelInvoke"
-          Effect = "Allow"
-          Action = ["bedrock:InvokeModel"]
+          Sid      = "BedrockFoundationModelInvoke"
+          Effect   = "Allow"
+          Action   = ["bedrock:InvokeModel"]
           Resource = var.bedrock_foundation_model_configuration.model_arn
         }
       ] : []
@@ -122,13 +122,13 @@ resource "aws_bedrockagent_knowledge_base" "this" {
 
   name     = var.knowledge_base_name
   role_arn = aws_iam_role.this.arn
-  region = coalesce(var.region, data.aws_region.current.region)
+  region   = coalesce(var.region, data.aws_region.current.region)
 
   knowledge_base_configuration {
     type = "VECTOR"
     vector_knowledge_base_configuration {
       embedding_model_arn = var.embedding_model_arn
-      
+
       embedding_model_configuration {
         bedrock_embedding_model_configuration {
           dimensions          = var.embedding_dimensions
@@ -140,12 +140,12 @@ resource "aws_bedrockagent_knowledge_base" "this" {
         for_each = var.supplemental_data_storage_s3_bucket_name != null ? [1] : []
 
         content {
-            storage_location {
-                type = "S3"
-                s3_location {
-                    uri = "s3://${var.supplemental_data_storage_s3_bucket_name}"
-                }
+          storage_location {
+            type = "S3"
+            s3_location {
+              uri = "s3://${var.supplemental_data_storage_s3_bucket_name}"
             }
+          }
         }
       }
     }
@@ -162,7 +162,7 @@ resource "aws_bedrockagent_knowledge_base" "this" {
 resource "aws_bedrockagent_data_source" "this" {
   knowledge_base_id = aws_bedrockagent_knowledge_base.this.id
   name              = var.kb_data_source_name
-  region = coalesce(var.region, data.aws_region.current.region)
+  region            = coalesce(var.region, data.aws_region.current.region)
 
   data_source_configuration {
     type = "CUSTOM"
@@ -240,7 +240,7 @@ resource "aws_bedrockagent_data_source" "this" {
 
 resource "aws_cloudwatch_log_delivery_source" "this" {
   count        = var.enable_cloudwatch_logs ? 1 : 0
-  region = coalesce(var.region, data.aws_region.current.region)
+  region       = coalesce(var.region, data.aws_region.current.region)
   name         = "bedrock-kb-${aws_bedrockagent_knowledge_base.this.id}"
   log_type     = "APPLICATION_LOGS"
   resource_arn = aws_bedrockagent_knowledge_base.this.arn
@@ -248,15 +248,15 @@ resource "aws_cloudwatch_log_delivery_source" "this" {
 
 
 resource "aws_cloudwatch_log_group" "this" {
-  count = var.enable_cloudwatch_logs ? 1 : 0
-  region = coalesce(var.region, data.aws_region.current.region)
-  name  = "/aws/vendedlogs/bedrock/knowledge-base/APPLICATION_LOGS/${aws_bedrockagent_knowledge_base.this.id}"
+  count             = var.enable_cloudwatch_logs ? 1 : 0
+  region            = coalesce(var.region, data.aws_region.current.region)
+  name              = "/aws/vendedlogs/bedrock/knowledge-base/APPLICATION_LOGS/${aws_bedrockagent_knowledge_base.this.id}"
   retention_in_days = 14
 }
 
 resource "aws_cloudwatch_log_resource_policy" "this" {
   count       = var.enable_cloudwatch_logs ? 1 : 0
-  region = coalesce(var.region, data.aws_region.current.region)
+  region      = coalesce(var.region, data.aws_region.current.region)
   policy_name = "bedrock-kb-${aws_bedrockagent_knowledge_base.this.id}-policy"
   policy_document = jsonencode({
     Version = "2012-10-17"
@@ -283,19 +283,19 @@ resource "aws_cloudwatch_log_resource_policy" "this" {
 }
 
 resource "aws_cloudwatch_log_delivery_destination" "this" {
-  count = var.enable_cloudwatch_logs ? 1 : 0
+  count  = var.enable_cloudwatch_logs ? 1 : 0
   region = coalesce(var.region, data.aws_region.current.region)
-  name  = "bedrock-kb-${aws_bedrockagent_knowledge_base.this.id}-cloudwatch-logs"
+  name   = "bedrock-kb-${aws_bedrockagent_knowledge_base.this.id}-cloudwatch-logs"
   delivery_destination_configuration {
     destination_resource_arn = aws_cloudwatch_log_group.this[0].arn
   }
-  depends_on = [aws_cloudwatch_log_resource_policy.this]
+  depends_on    = [aws_cloudwatch_log_resource_policy.this]
   output_format = "json"
 }
 
 resource "aws_cloudwatch_log_delivery" "this" {
   count                    = var.enable_cloudwatch_logs ? 1 : 0
-  region = coalesce(var.region, data.aws_region.current.region)
+  region                   = coalesce(var.region, data.aws_region.current.region)
   delivery_destination_arn = aws_cloudwatch_log_delivery_destination.this[0].arn
   delivery_source_name     = aws_cloudwatch_log_delivery_source.this[0].name
 }
