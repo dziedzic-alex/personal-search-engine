@@ -46,13 +46,15 @@ function Search() {
     setFiles([]);
     setShouldShowEmptyState(false);
 
+    const searchUrl =
+      import.meta.env.VITE_IS_DOCUMENT_PROCESSING_V2_ENABLED === "true"
+        ? `/api/documents/search/v2?query=${encodeURIComponent(query)}`
+        : `/api/documents/search?query=${encodeURIComponent(query)}&search_mode=${searchMode}`;
+
     try {
-      const response: Response = await apiFetch(
-        `/api/documents/search?query=${encodeURIComponent(query)}&search_mode=${searchMode}`,
-        {
-          method: "GET",
-        },
-      );
+      const response: Response = await apiFetch(searchUrl, {
+        method: "GET",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to search");
@@ -81,14 +83,17 @@ function Search() {
           onChange={handleQueryChange}
           onSearch={() => void handleSearch()}
           suffix={
-            <SegmentedControl
-              ariaLabel="Type"
-              value={searchMode}
-              options={SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS}
-              onChange={(id) => {
-                setSearchMode(id as SearchMode);
-              }}
-            />
+            import.meta.env.VITE_IS_DOCUMENT_PROCESSING_V2_ENABLED ===
+            "true" ? null : (
+              <SegmentedControl
+                ariaLabel="Type"
+                value={searchMode}
+                options={SEARCH_TYPE_SEGMENTED_CONTROL_OPTIONS}
+                onChange={(id) => {
+                  setSearchMode(id as SearchMode);
+                }}
+              />
+            )
           }
         />
       </div>
