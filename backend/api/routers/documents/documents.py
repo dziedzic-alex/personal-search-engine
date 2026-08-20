@@ -171,7 +171,7 @@ def search_v2(
     s3_client: S3ClientDep,
     bedrock_client: BedrockClientDep,
 ) -> list[ApiDocument]:
-    relevant_chunks: list[bedrock_client.RelevantDocumentChunk] = bedrock_client.retrieve_relevant_document_chunks(query, user.email)
+    relevant_chunks: list[bedrock_client.RelevantDocumentChunk] = bedrock_client.retrieve_relevant_document_chunks(query, user.id)
     unique_document_ids = []
     seen_document_ids = set()
 
@@ -446,9 +446,9 @@ def upload_file_v2(
 
     try:
         if content_type in IMAGE_CONTENT_TYPES:
-            document_status = bedrock_client.ingest_image_document(document.id, user.email, file_data, content_type)
+            document_status = bedrock_client.ingest_image_document(document.id, user.id, file_data, content_type)
         else:
-            document_status = bedrock_client.ingest_text_document(document.id, persisted_file_object_keys.content_key, user.email)
+            document_status = bedrock_client.ingest_text_document(document.id, persisted_file_object_keys.content_key, user.id)
         document.status = document_status
     except Exception:
         logger.error(f"Error ingesting document {filename} into Bedrock", exc_info=True)

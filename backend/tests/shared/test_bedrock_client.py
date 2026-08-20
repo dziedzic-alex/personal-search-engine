@@ -47,7 +47,7 @@ def test_ingest_image_document_rejects_oversized_image(bedrock_client):
     with pytest.raises(ValueError, match="greater than the maximum allowed size"):
         bedrock_client.ingest_image_document(
             uid(1),
-            "user@example.com",
+            uid(2),
             oversized,
             ContentType.JPEG,
         )
@@ -65,7 +65,7 @@ def test_ingest_image_document_allows_max_size(bedrock_client):
 
     status = bedrock_client.ingest_image_document(
         uid(1),
-        "user@example.com",
+        uid(2),
         image_data,
         ContentType.JPEG,
     )
@@ -132,7 +132,7 @@ def test_retrieve_relevant_document_chunks_skips_missing_id_or_score(bedrock_cli
 
     chunks = bedrock_client.retrieve_relevant_document_chunks(
         "query",
-        "user@example.com",
+        uid(3),
     )
 
     assert chunks == [

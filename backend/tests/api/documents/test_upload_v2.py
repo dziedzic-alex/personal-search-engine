@@ -38,7 +38,7 @@ def test_upload_v2_pdf_ingests_text_document(documents_client, mock_user):
     mock_session.flush.assert_called_once()
     mock_session.commit.assert_called_once()
     mock_bedrock_client.ingest_text_document.assert_called_once_with(
-        uid(1), CONTENT_KEY, mock_user.email
+        uid(1), CONTENT_KEY, mock_user.id
     )
     mock_bedrock_client.ingest_image_document.assert_not_called()
     mock_sqs_client.submit_document_message.assert_not_called()
@@ -68,7 +68,7 @@ def test_upload_v2_image_ingests_image_document(documents_client, mock_user):
     assert persist_args[3] == ContentType.JPEG
 
     mock_bedrock_client.ingest_image_document.assert_called_once_with(
-        uid(1), mock_user.email, image_bytes, ContentType.JPEG
+        uid(1), mock_user.id, image_bytes, ContentType.JPEG
     )
     mock_bedrock_client.ingest_text_document.assert_not_called()
     mock_session.commit.assert_called_once()
@@ -102,7 +102,7 @@ def test_upload_v2_converts_heic_to_jpeg_before_ingest(documents_client, mocker,
     assert persist_args[1] == jpeg_bytes
     assert persist_args[3] == ContentType.JPEG
     mock_bedrock_client.ingest_image_document.assert_called_once_with(
-        uid(1), mock_user.email, jpeg_bytes, ContentType.JPEG
+        uid(1), mock_user.id, jpeg_bytes, ContentType.JPEG
     )
 
 

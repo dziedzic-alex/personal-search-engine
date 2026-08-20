@@ -4,6 +4,7 @@ from shared.content_type import ContentType
 from shared.settings import settings
 from db.models.document import DocumentStatus
 if TYPE_CHECKING:
+    from mypy_boto3_bedrock_agent.type_defs import MetadataAttributeTypeDef
     from mypy_boto3_bedrock_agent.client import AgentsforBedrockClient
     from mypy_boto3_bedrock_agent_runtime.client import (
         AgentsforBedrockRuntimeClient,
@@ -26,7 +27,16 @@ def get_bedrock_client() -> BedrockClient:
 
     return bedrock_client
 
-OWNER_EMAIL_METADATA_KEY = 'owner_email'
+OWNER_USER_ID_METADATA_KEY = 'owner_user_id'
+
+def _make_user_id_metadata_attribute(user_id: uuid.UUID) -> MetadataAttributeTypeDef:
+    return {
+        'key': OWNER_USER_ID_METADATA_KEY,
+        'value': {
+            'type': 'STRING',
+            'stringValue': str(user_id)
+        }
+    }
 
 class BedrockClient:
     def __init__(self):
@@ -68,7 +78,7 @@ class BedrockClient:
         return document_status
 
 
-    def ingest_text_document(self, document_id: uuid.UUID, s3_content_key: str, user_email: str) -> DocumentStatus:
+    def ingest_text_document(self, document_id: uuid.UUID, s3_content_key: str, user_id: uuid.UUID) -> DocumentStatus:
         response = self.bedrock_agent_client.ingest_knowledge_base_documents(
             knowledgeBaseId=settings.knowledge_base_id,
             dataSourceId=settings.knowledge_base_data_source_id,
@@ -77,13 +87,7 @@ class BedrockClient:
                     'metadata': {
                         'type': 'IN_LINE_ATTRIBUTE',
                         'inlineAttributes': [
-                            {
-                                'key': OWNER_EMAIL_METADATA_KEY,
-                                'value': {
-                                    'type': 'STRING',
-                                    'stringValue': user_email
-                                }
-                            }
+                            _make_user_id_metadata_attribute(user_id)
                         ]
                     },
                     'content': {
@@ -110,7 +114,7 @@ class BedrockClient:
 
     MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES = 5 * 1024 * 1024 # 5MB
 
-    def ingest_image_document(self, document_id: uuid.UUID, user_email: str, image_data: bytes, content_type: ContentType) -> DocumentStatus:
+    def ingest_image_document(self, document_id: uuid.UUID, user_id: uuid.UUID, image_data: bytes, content_type: ContentType) -> DocumentStatus:
         if len(image_data) > self.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES:
             raise ValueError(f"Image data size {len(image_data)} bytes is greater than the maximum allowed size of {self.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES} bytes")
 
@@ -122,13 +126,7 @@ class BedrockClient:
                     'metadata': {
                         'type': 'IN_LINE_ATTRIBUTE',
                         'inlineAttributes': [
-                            {
-                                'key': OWNER_EMAIL_METADATA_KEY,
-                                'value': {
-                                    'type': 'STRING',
-                                    'stringValue': user_email
-                                }
-                            }
+                            _make_user_id_metadata_attribute(user_id)
                         ]
                     },
                     'content': {
@@ -226,7 +224,7 @@ class BedrockClient:
         document_id: uuid.UUID
         score: float
 
-    def retrieve_relevant_document_chunks(self, query: str, user_email: str) -> list[RelevantDocumentChunk]:
+    def retrieve_relevant_document_chunks(self, query: str, user_id: uuid.UUID) -> list[RelevantDocumentChunk]:
         response = self.bedrock_agent_runtime_client.retrieve(
             knowledgeBaseId=settings.knowledge_base_id,
             retrievalQuery={
@@ -238,8 +236,8 @@ class BedrockClient:
                     'numberOfResults': 50,
                     'filter': {
                         'equals': {
-                            'key': OWNER_EMAIL_METADATA_KEY,
-                            'value': user_email # type: ignore - correct according to AWS documentation
+                            'key': OWNER_USER_ID_METADATA_KEY,
+                            'value': str(user_id) # type: ignore - correct according to AWS documentation
                         }
                     }
                 }

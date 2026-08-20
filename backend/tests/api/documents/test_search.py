@@ -106,7 +106,7 @@ def test_search_v2_returns_documents_in_bedrock_order(documents_client, mocker, 
     ]
     mock_bedrock_client.retrieve_relevant_document_chunks.assert_called_once_with(
         "laid off",
-        mock_user.email,
+        mock_user.id,
     )
     mock_get_documents_by_ids.assert_called_once_with([uid(2), uid(1)], uid(1))
 
