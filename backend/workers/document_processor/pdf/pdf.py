@@ -1,4 +1,5 @@
 import logging
+import uuid
 from io import BytesIO
 
 import fitz
@@ -33,7 +34,7 @@ def process_pdf_document(db_document: Document):
         index_pdf(db_document.id, pdf)
 
 
-def index_pdf(document_id: int, document: fitz.Document):
+def index_pdf(document_id: uuid.UUID, document: fitz.Document):
     chunks: list[str] = []
     processed_image_xrefs: set[int] = set()
     for page in document:
