@@ -1,6 +1,7 @@
 import enum
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+import uuid
 
 from sqlalchemy import bindparam, select, text
 from sqlalchemy.engine import Row
@@ -101,7 +102,10 @@ class DocumentRepository:
         ranked_results = [result["document"] for result in ranked_results]
         return ranked_results
 
-    def get_relevant_text_documents(self, query: str, user_id: int) -> list[Document]:
+    def get_documents_by_ids(self, document_ids: list[uuid.UUID], user_id: uuid.UUID) -> list[Document]:
+        return list(self.session.scalars(select(Document).where(Document.id.in_(document_ids)).where(Document.user_id == user_id)).all())
+
+    def get_relevant_text_documents(self, query: str, user_id: uuid.UUID) -> list[Document]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -204,7 +208,7 @@ class DocumentRepository:
 
         return ranked_results
 
-    def get_relevant_image_documents(self, query: str, user_id: int) -> list[Document]:
+    def get_relevant_image_documents(self, query: str, user_id: uuid.UUID) -> list[Document]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -307,7 +311,7 @@ class DocumentRepository:
 
     def get_documents(
         self,
-        user_id: int,
+        user_id: uuid.UUID,
         query: str | None = None,
         sort_config: SortConfig | None = None,
         filter_config: FilterConfig | None = None,
@@ -361,7 +365,7 @@ class DocumentRepository:
 
         return list(self.session.scalars(db_query).all())
 
-    def suggest_documents(self, user_id: int, query: str) -> list[Document]:
+    def suggest_documents(self, user_id: uuid.UUID, query: str) -> list[Document]:
         query = query.strip()
         if not query:
             return []
