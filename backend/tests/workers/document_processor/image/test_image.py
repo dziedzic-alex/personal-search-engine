@@ -1,3 +1,5 @@
+import uuid
+
 from tests.workers.document_processor.helpers import added_embeddings, make_image
 from workers.document_processor.image.image import (
     ImageIndexContext,
@@ -8,6 +10,8 @@ from workers.document_processor.text_quality import (
     OCR_PDF_PAGE_PROFILE,
     passes_text_quality_checks,
 )
+
+DOCUMENT_ID = uuid.UUID(int=1)
 
 
 def test_photo_includes_image_embedding_when_ocr_is_empty():
@@ -51,7 +55,7 @@ def test_index_image_skips_tiny_images(
         return_value="caption",
     )
 
-    assert not index_image(1, make_image(width=32, height=32))
+    assert not index_image(DOCUMENT_ID, make_image(width=32, height=32))
 
     mock_image_session.add.assert_not_called()
 
@@ -64,7 +68,7 @@ def test_photo_with_no_ocr_writes_image_embedding_only(
         return_value="",
     )
 
-    assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
+    assert index_image(DOCUMENT_ID, make_image(), context=ImageIndexContext.PHOTO)
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 1
@@ -80,7 +84,7 @@ def test_photo_with_short_caption_writes_both_embeddings(
         return_value="Lake Tahoe 2024",
     )
 
-    assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
+    assert index_image(DOCUMENT_ID, make_image(), context=ImageIndexContext.PHOTO)
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 2
@@ -101,7 +105,7 @@ def test_photo_with_long_ocr_writes_text_embedding_only(
         return_value=long_text,
     )
 
-    assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
+    assert index_image(DOCUMENT_ID, make_image(), context=ImageIndexContext.PHOTO)
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 1
@@ -118,7 +122,7 @@ def test_photo_with_garbage_ocr_writes_image_embedding_only(
         return_value="|[] ]]] ||| ....",
     )
 
-    assert index_image(1, make_image(), context=ImageIndexContext.PHOTO)
+    assert index_image(DOCUMENT_ID, make_image(), context=ImageIndexContext.PHOTO)
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 1
@@ -135,7 +139,7 @@ def test_pdf_page_with_good_ocr_writes_text_embedding_only(
         return_value=text,
     )
 
-    assert index_image(1, make_image(), context=ImageIndexContext.PDF_PAGE)
+    assert index_image(DOCUMENT_ID, make_image(), context=ImageIndexContext.PDF_PAGE)
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 1
@@ -152,7 +156,7 @@ def test_pdf_page_with_no_ocr_writes_image_embedding_only(
         return_value="",
     )
 
-    assert index_image(1, make_image(), context=ImageIndexContext.PDF_PAGE)
+    assert index_image(DOCUMENT_ID, make_image(), context=ImageIndexContext.PDF_PAGE)
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 1
@@ -169,7 +173,7 @@ def test_pdf_embedded_with_good_ocr_writes_text_embedding_only(
         return_value=text,
     )
 
-    assert index_image(1, make_image(), context=ImageIndexContext.PDF_EMBEDDED)
+    assert index_image(DOCUMENT_ID, make_image(), context=ImageIndexContext.PDF_EMBEDDED)
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 1

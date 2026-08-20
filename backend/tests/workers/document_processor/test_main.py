@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 
 from db.models.document import DocumentStatus
@@ -8,7 +10,7 @@ from workers.document_processor.main import _process_document_message
 
 @pytest.fixture
 def document_message():
-    return ConsumerResponse(document_id=1, receipt_handle="receipt-1")
+    return ConsumerResponse(document_id=uuid.UUID(int=1), receipt_handle="receipt-1")
 
 
 @pytest.fixture

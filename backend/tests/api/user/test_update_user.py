@@ -1,5 +1,5 @@
 def test_update_user_success(user_client):
-    client, mock_session, _, user = user_client
+    client, mock_session, _, user, _ = user_client
 
     response = client.patch(
         "/user/me",
@@ -8,7 +8,7 @@ def test_update_user_success(user_client):
 
     assert response.status_code == 200
     assert response.json() == {
-        "id": user.id,
+        "id": str(user.id),
         "firstName": "Updated",
         "lastName": "Name",
         "email": user.email,
@@ -20,7 +20,7 @@ def test_update_user_success(user_client):
 
 
 def test_update_user_empty_first_name(user_client):
-    client, mock_session, _, _ = user_client
+    client, mock_session, _, _, _ = user_client
 
     response = client.patch(
         "/user/me",
@@ -32,7 +32,7 @@ def test_update_user_empty_first_name(user_client):
 
 
 def test_update_user_empty_last_name(user_client):
-    client, mock_session, _, _ = user_client
+    client, mock_session, _, _, _ = user_client
 
     response = client.patch(
         "/user/me",
@@ -44,7 +44,7 @@ def test_update_user_empty_last_name(user_client):
 
 
 def test_update_user_first_name_too_long(user_client):
-    client, mock_session, _, _ = user_client
+    client, mock_session, _, _, _ = user_client
 
     response = client.patch(
         "/user/me",
@@ -56,7 +56,7 @@ def test_update_user_first_name_too_long(user_client):
 
 
 def test_update_user_last_name_too_long(user_client):
-    client, mock_session, _, _ = user_client
+    client, mock_session, _, _, _ = user_client
 
     response = client.patch(
         "/user/me",
@@ -68,7 +68,7 @@ def test_update_user_last_name_too_long(user_client):
 
 
 def test_update_user_missing_fields(user_client):
-    client, mock_session, _, _ = user_client
+    client, mock_session, _, _, _ = user_client
 
     response = client.patch("/user/me", json={})
 
