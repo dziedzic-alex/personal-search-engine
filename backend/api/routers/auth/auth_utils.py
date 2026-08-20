@@ -10,6 +10,8 @@ from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from redis import Redis
 
+import uuid
+
 from api.dependencies.db import SessionDep
 from api.schemas.camel_model import CamelModel
 from db.models.user import User, UserPlan
@@ -25,7 +27,7 @@ REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 logger = logging.getLogger(__name__)
 
 
-def create_access_token(user_id: int):
+def create_access_token(user_id: uuid.UUID):
     now = datetime.now(UTC)
 
     payload = {
@@ -41,7 +43,7 @@ def create_refresh_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-def persist_refresh_token(refresh_token: str, user_id: int, redis_client: Redis):
+def persist_refresh_token(refresh_token: str, user_id: uuid.UUID, redis_client: Redis):
     redis_client.hset(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token, "1")
     redis_client.hexpire(
         f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}",
@@ -50,17 +52,17 @@ def persist_refresh_token(refresh_token: str, user_id: int, redis_client: Redis)
     )
 
 
-def clear_refresh_token(refresh_token: str, user_id: int, redis_client: Redis):
+def clear_refresh_token(refresh_token: str, user_id: uuid.UUID, redis_client: Redis):
     redis_client.hdel(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}", refresh_token)
 
 
-def clear_refresh_tokens(user_id: int, redis_client: Redis):
+def clear_refresh_tokens(user_id: uuid.UUID, redis_client: Redis):
     redis_client.delete(f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{user_id}")
 
 
 @dataclass(frozen=True)
 class ParsedRefreshCookie:
-    user_id: int
+    user_id: uuid.UUID
     refresh_token: str
 
 
@@ -68,14 +70,14 @@ def parse_refresh_cookie(refresh_cookie: str) -> ParsedRefreshCookie:
     try:
         parts = refresh_cookie.split(":", 1)
 
-        return ParsedRefreshCookie(user_id=int(parts[0]), refresh_token=parts[1])
+        return ParsedRefreshCookie(user_id=uuid.UUID(parts[0]), refresh_token=parts[1])
     except Exception:
         logger.error("Error parsing refresh cookie", exc_info=True)
         raise HTTPException(status_code=401, detail="Invalid refresh cookie") from None
 
 
 def is_refresh_token_valid(
-    refresh_token: str, user_id: int, redis_client: Redis
+    refresh_token: str, user_id: uuid.UUID, redis_client: Redis
 ) -> bool:
     return bool(
         redis_client.hexists(
@@ -84,7 +86,7 @@ def is_refresh_token_valid(
     )
 
 
-def set_refresh_token_cookie(response: Response, refresh_token: str, user_id: int):
+def set_refresh_token_cookie(response: Response, refresh_token: str, user_id: uuid.UUID):
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=f"{user_id}:{refresh_token}",
@@ -103,7 +105,7 @@ def clear_refresh_cookie(response: Response):
 
 
 class AuthResponse(CamelModel):
-    id: int
+    id: uuid.UUID
     first_name: str
     last_name: str
     email: str
@@ -148,7 +150,7 @@ def get_current_user(
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
-        user_id = int(user_id)
+        user_id = uuid.UUID(user_id)
         user = session.get(User, user_id)
         if user is None:
             raise HTTPException(status_code=401, detail="Invalid credentials")

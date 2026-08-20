@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from db.models.document import Document, DocumentStatus
@@ -6,10 +7,14 @@ from shared.content_category import content_type_to_category
 PRESIGNED_URL_PREFIX = "https://presigned.example"
 
 
+def uid(n: int = 1) -> uuid.UUID:
+    return uuid.UUID(int=n)
+
+
 def make_document(**kwargs) -> Document:
     defaults = {
-        "id": 1,
-        "user_id": 1,
+        "id": uid(1),
+        "user_id": uid(1),
         "name": "report.pdf",
         "status": DocumentStatus.PROCESSED,
         "s3_content_key": "1/report.pdf",
@@ -25,7 +30,7 @@ def make_document(**kwargs) -> Document:
 
 def api_document_json(document: Document) -> dict:
     return {
-        "id": document.id,
+        "id": str(document.id),
         "name": document.name,
         "contentCategory": content_type_to_category(document.content_type).value,
         "status": DocumentStatus(document.status).value,

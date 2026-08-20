@@ -2,7 +2,7 @@ import type { ContentCategory } from "./ContentCategory";
 import type { DocumentStatus } from "./DocumentStatus";
 
 export interface Document {
-  id: number;
+  id: string;
   name: string;
   contentCategory: ContentCategory;
   status: DocumentStatus;

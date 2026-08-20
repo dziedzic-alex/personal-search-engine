@@ -2,6 +2,7 @@ import pytest
 from argon2 import PasswordHasher
 
 from db.models.user import User, UserPlan
+from tests.api.factories import uid
 
 ph = PasswordHasher()
 
@@ -23,7 +24,7 @@ def mock_s3_client(mocker):
 @pytest.fixture
 def mock_user() -> User:
     return User(
-        id=1,
+        id=uid(1),
         first_name="Test",
         last_name="User",
         email="test@example.com",
@@ -34,7 +35,7 @@ def mock_user() -> User:
 
 def make_user(**kwargs) -> User:
     defaults = {
-        "id": 1,
+        "id": uid(1),
         "first_name": "Test",
         "last_name": "User",
         "email": "test@example.com",

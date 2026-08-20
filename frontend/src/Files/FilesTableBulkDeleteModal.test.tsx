@@ -17,8 +17,8 @@ vi.mock("../ApiClient", () => ({
 
 describe("FilesTableBulkDeleteModal", () => {
   const selectedFiles = [
-    makeDocument({ id: 1, name: "report.pdf" }),
-    makeDocument({ id: 2, name: "notes.pdf" }),
+    makeDocument({ id: "1", name: "report.pdf" }),
+    makeDocument({ id: "2", name: "notes.pdf" }),
   ];
   const onClose = vi.fn<() => void>();
   const clearSelectedFiles = vi.fn<() => void>();
@@ -57,7 +57,7 @@ describe("FilesTableBulkDeleteModal", () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ documentIds: [1, 2] }),
+        body: JSON.stringify({ documentIds: ["1", "2"] }),
       });
     });
 
@@ -69,9 +69,9 @@ describe("FilesTableBulkDeleteModal", () => {
       updateFiles([
         selectedFiles[0],
         selectedFiles[1],
-        makeDocument({ id: 3, name: "keep.pdf" }),
+        makeDocument({ id: "3", name: "keep.pdf" }),
       ]),
-    ).toEqual([makeDocument({ id: 3, name: "keep.pdf" })]);
+    ).toEqual([makeDocument({ id: "3", name: "keep.pdf" })]);
     expect(clearSelectedFiles).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledOnce();
   });

@@ -2,7 +2,7 @@ import type { Document } from "../Types/Document";
 
 export function makeDocument(overrides: Partial<Document> = {}): Document {
   return {
-    id: 1,
+    id: "1",
     name: "report.pdf",
     contentCategory: "pdf",
     status: "processed",

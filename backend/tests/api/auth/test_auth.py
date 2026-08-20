@@ -7,6 +7,7 @@ from api.routers.auth.auth_utils import (
 )
 from db.models.user import UserPlan
 from tests.api.conftest import make_user
+from tests.api.factories import uid
 
 ph = PasswordHasher()
 
@@ -26,7 +27,7 @@ def test_signup_success(auth_client, mocker):
     mock_session.scalars.return_value = mock_scalars
 
     def assign_user_fields(user):
-        user.id = 1
+        user.id = uid(1)
         if user.plan is None:
             user.plan = UserPlan.FREE
 
@@ -188,7 +189,7 @@ def test_refresh_invalid_cookie_format(auth_client):
 
 def test_refresh_invalid_token(auth_client):
     client, _, _, _ = auth_client
-    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, "1:missing-token")
+    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, f"{uid(1)}:missing-token")
 
     response = client.post("/auth/refresh")
 
@@ -200,8 +201,8 @@ def test_refresh_user_not_found(auth_client, mocker):
     client, mock_session, redis_store, _ = auth_client
 
     refresh_token = "stale-refresh-token"
-    redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}1"] = {refresh_token: b"1"}
-    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, f"1:{refresh_token}")
+    redis_store[f"{REDIS_REFRESH_TOKEN_KEY_PREFIX}{uid(1)}"] = {refresh_token: b"1"}
+    client.cookies.set(REFRESH_TOKEN_COOKIE_NAME, f"{uid(1)}:{refresh_token}")
     mock_session.get.return_value = None
 
     response = client.post("/auth/refresh")
@@ -339,7 +340,7 @@ def test_verify_email_success(auth_client, mocker):
 
     response = client.post(
         "/auth/verify-email",
-        json={"token": token, "userId": user.id},
+        json={"token": token, "userId": str(user.id)},
     )
 
     assert response.status_code == 200
@@ -357,7 +358,7 @@ def test_verify_email_invalid_token(auth_client, mocker):
 
     response = client.post(
         "/auth/verify-email",
-        json={"token": "missing-token", "userId": 1},
+        json={"token": "missing-token", "userId": str(uid(1))},
     )
 
     assert response.status_code == 400
@@ -374,7 +375,7 @@ def test_verify_email_wrong_token(auth_client, mocker):
 
     response = client.post(
         "/auth/verify-email",
-        json={"token": "wrong-token", "userId": user.id},
+        json={"token": "wrong-token", "userId": str(user.id)},
     )
 
     assert response.status_code == 400
@@ -387,17 +388,17 @@ def test_verify_email_user_not_found(auth_client, mocker):
     client, mock_session, redis_store, _ = auth_client
     token = "valid-verification-token"
 
-    redis_store["email_verification_token:1"] = token.encode()
+    redis_store[f"email_verification_token:{uid(1)}"] = token.encode()
     mock_session.get.return_value = None
 
     response = client.post(
         "/auth/verify-email",
-        json={"token": token, "userId": 1},
+        json={"token": token, "userId": str(uid(1))},
     )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "User associated with token not found"
-    assert "email_verification_token:1" in redis_store
+    assert f"email_verification_token:{uid(1)}" in redis_store
 
 
 def test_request_password_change_success(auth_client, mocker):
@@ -456,7 +457,7 @@ def test_reset_password_success_revokes_sessions(auth_client, mocker):
         "/auth/reset-password",
         json={
             "token": token,
-            "userId": user.id,
+            "userId": str(user.id),
             "newPassword": "newpassword123",
         },
     )
@@ -476,7 +477,7 @@ def test_reset_password_invalid_token(auth_client, mocker):
         "/auth/reset-password",
         json={
             "token": "missing-token",
-            "userId": 1,
+            "userId": str(uid(1)),
             "newPassword": "newpassword123",
         },
     )
@@ -497,7 +498,7 @@ def test_reset_password_wrong_token(auth_client, mocker):
         "/auth/reset-password",
         json={
             "token": "wrong-token",
-            "userId": user.id,
+            "userId": str(user.id),
             "newPassword": "newpassword123",
         },
     )
@@ -512,18 +513,18 @@ def test_reset_password_user_not_found(auth_client, mocker):
     client, mock_session, redis_store, _ = auth_client
     token = "valid-reset-token"
 
-    redis_store["password_reset_token:1"] = token.encode()
+    redis_store[f"password_reset_token:{uid(1)}"] = token.encode()
     mock_session.get.return_value = None
 
     response = client.post(
         "/auth/reset-password",
         json={
             "token": token,
-            "userId": 1,
+            "userId": str(uid(1)),
             "newPassword": "newpassword123",
         },
     )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "User associated with token not found"
-    assert "password_reset_token:1" in redis_store
+    assert f"password_reset_token:{uid(1)}" in redis_store

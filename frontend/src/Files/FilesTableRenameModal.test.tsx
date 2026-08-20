@@ -16,7 +16,7 @@ vi.mock("../ApiClient", () => ({
 }));
 
 describe("FilesTableRenameModal", () => {
-  const file = makeDocument({ id: 42, name: "report.pdf" });
+  const file = makeDocument({ id: "42", name: "report.pdf" });
   const onClose = vi.fn<() => void>();
   const setFiles = vi.fn<Dispatch<SetStateAction<Document[]>>>();
 
@@ -27,7 +27,7 @@ describe("FilesTableRenameModal", () => {
   });
 
   it("renames the file and closes the modal on success", async () => {
-    const updatedFile = makeDocument({ id: 42, name: "annual report.pdf" });
+    const updatedFile = makeDocument({ id: "42", name: "annual report.pdf" });
     mockApiFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(updatedFile),

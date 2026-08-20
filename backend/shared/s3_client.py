@@ -46,7 +46,7 @@ class S3Client:
 
     def persist_file(
         self,
-        user_id: int,
+        user_id: uuid.UUID,
         file_data: bytes,
         content_type: ContentType,
         object_key_suffix: str | None = None,
@@ -73,6 +73,9 @@ class S3Client:
     MAX_DELETE_OBJECTS_PER_REQUEST = 1000
 
     def delete_files(self, object_keys: list[str]) -> None:
+        if len(object_keys) == 0:
+            return
+
         for i in range(0, len(object_keys), self.MAX_DELETE_OBJECTS_PER_REQUEST):
             response = self.client.delete_objects(
                 Bucket=settings.s3_files_thumbnails_bucket_name,
