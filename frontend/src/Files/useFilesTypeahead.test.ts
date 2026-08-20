@@ -28,8 +28,8 @@ describe("useFilesTypeahead", () => {
 
   it("fetches suggestions when the query is set", async () => {
     const files = [
-      makeDocument({ id: 1, name: "report.pdf" }),
-      makeDocument({ id: 2, name: "annual-report.pdf" }),
+      makeDocument({ id: "1", name: "report.pdf" }),
+      makeDocument({ id: "2", name: "annual-report.pdf" }),
     ];
     mockApiFetch.mockResolvedValue({
       ok: true,
@@ -109,7 +109,7 @@ describe("useFilesTypeahead", () => {
   });
 
   it("resets state when the query is cleared", async () => {
-    const files = [makeDocument({ id: 1, name: "report.pdf" })];
+    const files = [makeDocument({ id: "1", name: "report.pdf" })];
     mockApiFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(files),
