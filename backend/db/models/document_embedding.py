@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+import uuid
+
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import DateTime, ForeignKey, Text
+from sqlalchemy import DateTime, ForeignKey, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -14,8 +16,8 @@ if TYPE_CHECKING:
 class DocumentEmbedding(Base):
     __tablename__ = "document_embeddings"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    document_id: Mapped[int] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=func.uuidv7())
+    document_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("documents.id", ondelete="CASCADE")
     )
     content: Mapped[str | None] = mapped_column(Text)
