@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makeDocument } from "../Files/filesTest.utils";
 
@@ -25,6 +25,11 @@ function renderSearch() {
 describe("Search", () => {
   beforeEach(() => {
     mockApiFetch.mockReset();
+    vi.stubEnv("VITE_IS_DOCUMENT_PROCESSING_V2_ENABLED", "false");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("does not search when the query is empty", async () => {
@@ -37,8 +42,8 @@ describe("Search", () => {
 
   it("searches documents and renders results", async () => {
     const files = [
-      makeDocument({ id: 1, name: "contract.pdf" }),
-      makeDocument({ id: 2, name: "photo.jpg", contentCategory: "image" }),
+      makeDocument({ id: "1", name: "contract.pdf" }),
+      makeDocument({ id: "2", name: "photo.jpg", contentCategory: "image" }),
     ];
     mockApiFetch.mockResolvedValue({
       ok: true,
@@ -108,5 +113,44 @@ describe("Search", () => {
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
     expect(await screen.findByText("Failed to search")).toBeInTheDocument();
+  });
+
+  describe("when document processing v2 is enabled", () => {
+    beforeEach(() => {
+      vi.stubEnv("VITE_IS_DOCUMENT_PROCESSING_V2_ENABLED", "true");
+    });
+
+    it("searches via /api/documents/search/v2", async () => {
+      const files = [makeDocument({ id: "1", name: "contract.pdf" })];
+      mockApiFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(files),
+      } as Response);
+
+      renderSearch();
+
+      await userEvent.type(screen.getByPlaceholderText("Search"), "contract");
+      await userEvent.click(screen.getByRole("button", { name: "Search" }));
+
+      await waitFor(() => {
+        expect(mockApiFetch).toHaveBeenCalledWith(
+          "/api/documents/search/v2?query=contract",
+          { method: "GET" },
+        );
+      });
+
+      expect(screen.getByText("contract.pdf")).toBeInTheDocument();
+    });
+
+    it("hides the PDF/Images segmented control", () => {
+      renderSearch();
+
+      expect(
+        screen.queryByRole("radio", { name: "PDFs" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("radio", { name: "Images" }),
+      ).not.toBeInTheDocument();
+    });
   });
 });
