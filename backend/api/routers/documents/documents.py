@@ -1,6 +1,7 @@
 import enum
 import logging
 import os
+import uuid
 import zipfile
 from datetime import datetime
 from tempfile import NamedTemporaryFile
@@ -10,13 +11,17 @@ from fastapi.responses import FileResponse
 from pydantic import Field
 from sqlalchemy import delete, select
 from starlette.background import BackgroundTask
+from shared.bedrock_client import BedrockClient
+from shared.settings import settings
 
-from api.dependencies import S3ClientDep, SessionDep, UserDep
+from api.dependencies import BedrockClientDep, S3ClientDep, SessionDep, UserDep
 from api.dependencies.sqs import SQSDocumentProcessingClientDep
 from api.routers.documents.upload_utils import (
     is_allowed_content_type,
     persist_file_to_s3,
     sanitize_content_type,
+    convert_heic_or_heif_to_jpeg,
+    replace_heic_or_heif_file_type_extension,
 )
 from api.schemas.camel_model import CamelModel
 from db.models.document import Document, DocumentStatus
@@ -27,7 +32,7 @@ from db.repositories.documents import (
     SortConfig,
 )
 from shared.content_category import ContentCategory, content_type_to_category
-from shared.content_type import ContentType
+from shared.content_type import IMAGE_CONTENT_TYPES, ContentType
 from shared.s3_client import S3Client
 
 logger = logging.getLogger(__name__)
@@ -35,7 +40,7 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 
 
 class ApiDocument(CamelModel):
-    id: int
+    id: uuid.UUID
     name: str
     content_category: ContentCategory
     status: DocumentStatus
@@ -104,6 +109,19 @@ def get_documents(
         next_page=next_page,
     )
 
+class GetDocumentsByIdsRequest(CamelModel):
+    document_ids: list[uuid.UUID] = Field(min_length=1, max_length=100)
+
+@router.post("/by-ids")
+def get_documents_by_ids(
+    request: GetDocumentsByIdsRequest,
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
+) -> list[ApiDocument]:
+    documents = DocumentRepository(session).get_documents_by_ids(request.document_ids, user.id)
+    return [to_api_document(document, s3_client) for document in documents]
+
 
 @router.get("/suggest")
 def suggest_documents(
@@ -145,9 +163,38 @@ def search(
 
     return response
 
+@router.get("/search/v2")
+def search_v2(
+    query: str,
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
+    bedrock_client: BedrockClientDep,
+) -> list[ApiDocument]:
+    relevant_chunks: list[bedrock_client.RelevantDocumentChunk] = bedrock_client.retrieve_relevant_document_chunks(query, user.email)
+    unique_document_ids = []
+    seen_document_ids = set()
+
+    for chunk in relevant_chunks:
+        if chunk.document_id in seen_document_ids:
+            continue
+        seen_document_ids.add(chunk.document_id)
+        unique_document_ids.append(chunk.document_id)
+
+    relevant_documents = DocumentRepository(session).get_documents_by_ids(unique_document_ids, user.id)
+    relevant_documents_id_to_document: dict[uuid.UUID, Document] = {d.id: d for d in relevant_documents}
+    
+    response_documents: list[ApiDocument] = []
+    for document_id in unique_document_ids:
+        document = relevant_documents_id_to_document.get(document_id)
+        if document is not None:
+            response_documents.append(to_api_document(document, s3_client))
+
+    return response_documents
+
 
 class DeleteDocumentsRequest(CamelModel):
-    document_ids: list[int] = Field(min_length=1)
+    document_ids: list[uuid.UUID] = Field(min_length=1)
 
 
 @router.delete("/bulk-delete", status_code=204)
@@ -156,12 +203,9 @@ def delete_documents(
     session: SessionDep,
     user: UserDep,
     s3_client: S3ClientDep,
+    bedrock_client: BedrockClientDep,
 ):
-    documents_to_delete = session.scalars(
-        select(Document)
-        .where(Document.user_id == user.id)
-        .where(Document.id.in_(request.document_ids))
-    ).all()
+    documents_to_delete = DocumentRepository(session).get_documents_by_ids(request.document_ids, user.id)
 
     if len(documents_to_delete) != len(request.document_ids):
         raise HTTPException(status_code=404, detail="One or more documents not found")
@@ -184,10 +228,17 @@ def delete_documents(
         )
         pass
 
+    if settings.is_document_processing_v2_enabled:
+        try:
+            bedrock_client.delete_documents(request.document_ids)
+        except Exception:
+            logger.error(f"Error deleting documents {request.document_ids} from Bedrock", exc_info=True)
+            pass
+
 
 @router.delete("/{document_id}", status_code=204)
 def delete_document(
-    document_id: int, session: SessionDep, user: UserDep, s3_client: S3ClientDep
+    document_id: uuid.UUID, session: SessionDep, user: UserDep, s3_client: S3ClientDep, bedrock_client: BedrockClientDep
 ) -> None:
     document = session.get(Document, document_id)
     if document is None:
@@ -204,6 +255,13 @@ def delete_document(
         logger.error(f"Error deleting document {document.id} from S3", exc_info=True)
         pass
 
+    if settings.is_document_processing_v2_enabled:
+        try:
+            bedrock_client.delete_documents([document.id])
+        except Exception:
+            logger.error(f"Error deleting document {document.id} from Bedrock", exc_info=True)
+            pass
+
 
 class DocumentUpdateRequest(CamelModel):
     name: str
@@ -211,7 +269,7 @@ class DocumentUpdateRequest(CamelModel):
 
 @router.patch("/{document_id}")
 def update_document(
-    document_id: int,
+    document_id: uuid.UUID,
     request: DocumentUpdateRequest,
     session: SessionDep,
     user: UserDep,
@@ -291,9 +349,9 @@ def upload_file(
         session.commit()
     except Exception:
         logger.error(f"Error saving document {filename}", exc_info=True)
-        session.rollback()
         s3_client.delete_file(persisted_file_object_keys.content_key)
         s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
+        session.rollback()
         raise HTTPException(
             status_code=500, detail=f"Error saving document {filename}"
         ) from None
@@ -315,13 +373,113 @@ def upload_file(
 
     return to_api_document(document, s3_client)
 
+@router.post("/v2")
+def upload_file_v2(
+    file: UploadFile,
+    user: UserDep,
+    session: SessionDep,
+    s3_client: S3ClientDep,
+    bedrock_client: BedrockClientDep,
+) -> ApiDocument:
+    filename = file.filename
+
+    if not filename:
+        raise HTTPException(status_code=400, detail="Missing filename")
+
+    sanitized_content_type = sanitize_content_type(file.content_type, filename)
+    if not is_allowed_content_type(sanitized_content_type):
+        raise HTTPException(
+            status_code=415, detail=f"Content type {file.content_type} not allowed"
+        )
+
+    content_type = ContentType(sanitized_content_type)
+    if content_type == ContentType.HEIC or content_type == ContentType.HEIF:
+        filename = replace_heic_or_heif_file_type_extension(filename)
+
+    existing_document = session.scalars(
+        select(Document)
+        .where(Document.user_id == user.id)
+        .where(Document.name == filename)
+    ).first()
+
+    if existing_document is not None:
+        logger.info(f"Document {filename} already exists. Skipping...")
+        raise HTTPException(
+            status_code=409, detail=f"Document {filename} already exists"
+        )
+
+    file_data = file.file.read()
+
+    if content_type == ContentType.HEIC or content_type == ContentType.HEIF:
+        file_data = convert_heic_or_heif_to_jpeg(file_data)
+        content_type = ContentType.JPEG
+
+    if content_type in IMAGE_CONTENT_TYPES:
+        if len(file_data) > BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413, detail=f"Image size {len(file_data)} bytes is greater than the maximum allowed size of {BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES} bytes"
+            )
+
+    persisted_file_object_keys = persist_file_to_s3(
+        s3_client, file_data, user.id, content_type
+    )
+
+    try:
+        document = Document(
+                user_id=user.id,
+                name=filename,
+                s3_content_key=persisted_file_object_keys.content_key,
+                s3_thumbnail_key=persisted_file_object_keys.thumbnail_key,
+                content_type=content_type.value,
+                size_bytes=len(file_data),
+            )
+        session.add(document)
+        session.flush()
+    except Exception:
+        logger.error(f"Error creating and flushing document {filename}", exc_info=True)
+        s3_client.delete_file(persisted_file_object_keys.content_key)
+        s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
+        session.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Error creating and flushing document {filename}"
+        ) from None
+
+    try:
+        if content_type in IMAGE_CONTENT_TYPES:
+            document_status = bedrock_client.ingest_image_document(document.id, user.email, file_data, content_type)
+        else:
+            document_status = bedrock_client.ingest_text_document(document.id, persisted_file_object_keys.content_key, user.email)
+        document.status = document_status
+    except Exception:
+        logger.error(f"Error ingesting document {filename} into Bedrock", exc_info=True)
+        s3_client.delete_file(persisted_file_object_keys.content_key)
+        s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
+        session.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Error ingesting document {filename} into Bedrock"
+        ) from None
+
+    try:
+        session.commit()
+    except Exception:
+        logger.error(f"Error saving document {filename}", exc_info=True)
+        s3_client.delete_file(persisted_file_object_keys.content_key)
+        s3_client.delete_file(persisted_file_object_keys.thumbnail_key)
+        bedrock_client.delete_documents([document.id])
+        session.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Error saving document {filename}"
+        ) from None
+
+    return to_api_document(document, s3_client)
+
 
 MAX_BULK_DOWNLOAD_GB = 2
 MAX_BULK_DOWNLOAD_BYTE_SIZE = MAX_BULK_DOWNLOAD_GB * 1024 * 1024 * 1024
 
 
 class DownloadDocumentsRequest(CamelModel):
-    document_ids: list[int] = Field(min_length=2)
+    document_ids: list[uuid.UUID] = Field(min_length=2)
 
 
 @router.post("/bulk-download")
@@ -331,11 +489,7 @@ def download_documents(
     user: UserDep,
     s3_client: S3ClientDep,
 ):
-    documents_to_download = session.scalars(
-        select(Document)
-        .where(Document.user_id == user.id)
-        .where(Document.id.in_(request.document_ids))
-    ).all()
+    documents_to_download = DocumentRepository(session).get_documents_by_ids(request.document_ids, user.id)
 
     if len(documents_to_download) != len(request.document_ids):
         raise HTTPException(status_code=404, detail="One or more documents not found")
