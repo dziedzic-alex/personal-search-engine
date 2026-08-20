@@ -61,6 +61,9 @@ jobs:
       SQS_DOCUMENT_QUEUES_REGION: dummy
       SES_FROM_EMAIL: dummy
       SES_REGION: dummy
+      KNOWLEDGE_BASE_ID: dummy
+      KNOWLEDGE_BASE_DATA_SOURCE_ID: dummy
+      IS_DOCUMENT_PROCESSING_V2_ENABLED: true
 
     steps:
       - name: Checkout code
