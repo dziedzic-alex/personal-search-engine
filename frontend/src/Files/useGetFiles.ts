@@ -22,6 +22,8 @@ interface UseGetFilesOptions {
   sortColumnDirection: SortColumnDirection | null;
 }
 
+const MAX_NUM_FILES_PER_POLL_REQUEST = 100;
+
 function useGetFiles(options: UseGetFilesOptions) {
   const { filterConfig, query, sortColumnDirection } = options;
 
@@ -36,6 +38,12 @@ function useGetFiles(options: UseGetFilesOptions) {
 
   const refetchInitialController = useRef<AbortController | null>(null);
   const fetchMoreController = useRef<AbortController | null>(null);
+
+  const pendingOrProcessingIds = files
+    .filter((file) => file.status === "pending" || file.status === "processing")
+    .map((file) => file.id)
+    .sort()
+    .join(",");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -59,6 +67,22 @@ function useGetFiles(options: UseGetFilesOptions) {
       fetchMoreController.current?.abort();
     };
   }, [filterConfig, query, sortColumnDirection]);
+
+  useEffect(() => {
+    if (!pendingOrProcessingIds) return;
+    const ids = pendingOrProcessingIds.split(",");
+
+    const controller = new AbortController();
+
+    const intervalId = setInterval(() => {
+      void pollFileStatuses(ids, setFiles, controller.signal);
+    }, 30000);
+
+    return () => {
+      clearInterval(intervalId);
+      controller.abort();
+    };
+  }, [pendingOrProcessingIds]);
 
   const fetchMoreFiles = async () => {
     if (nextPage === null || isFetchingMore) {
@@ -203,4 +227,58 @@ async function fetchDocumentsList(
   }
 
   return (await response.json()) as DocumentsListResponse;
+}
+
+async function pollFileStatuses(
+  file_ids: string[],
+  setFiles: Dispatch<SetStateAction<Document[]>>,
+  signal: AbortSignal,
+) {
+  let files: Document[] = [];
+  for (let i = 0; i < file_ids.length; i += MAX_NUM_FILES_PER_POLL_REQUEST) {
+    const file_ids_batch = file_ids.slice(
+      i,
+      i + MAX_NUM_FILES_PER_POLL_REQUEST,
+    );
+
+    try {
+      const response: Response = await apiFetch("/api/documents/by-ids", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          documentIds: file_ids_batch,
+        }),
+        signal: signal,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to poll file statuses.");
+      }
+
+      files = [...files, ...((await response.json()) as Document[])];
+    } catch (error: unknown) {
+      if (isAbortError(error)) {
+        return;
+      }
+
+      continue;
+    }
+  }
+
+  if (signal.aborted) {
+    return;
+  }
+
+  const file_id_to_file: Record<string, Document> = {};
+  files.forEach((file) => {
+    file_id_to_file[file.id] = file;
+  });
+
+  setFiles((prevFiles) => {
+    return prevFiles.map((file) => {
+      return file_id_to_file[file.id] ?? file;
+    });
+  });
 }
