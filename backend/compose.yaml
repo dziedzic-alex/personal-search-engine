@@ -98,6 +98,29 @@ services:
         - path: ./db
           action: restart
 
+  document-status-poller:
+    build: .
+    command: python -m workers.document_status_poller.main
+    environment:
+      AWS_PROFILE: default
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/vector_db
+    volumes:
+      - .:/backend
+      - ~/.aws:/root/.aws
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    develop:
+      watch:
+        - path: ./workers/document_status_poller
+          action: restart
+
+        - path: ./shared
+          action: restart
+
+        - path: ./db
+          action: restart
+
 volumes:
   redis_data:
   db_data:
