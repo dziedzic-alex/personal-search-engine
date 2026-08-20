@@ -1,11 +1,16 @@
 from fastapi import APIRouter
 from pydantic import Field
 from sqlalchemy import select
+import uuid
 
-from api.dependencies import S3ClientDep, SessionDep, UserDep
+from api.dependencies import BedrockClientDep, S3ClientDep, SessionDep, UserDep
 from api.schemas.camel_model import CamelModel
 from db.models.document import Document
 from db.models.user import UserPlan
+import logging
+from shared.settings import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -16,7 +21,7 @@ class UpdateUserRequest(CamelModel):
 
 
 class UserResponse(CamelModel):
-    id: int
+    id: uuid.UUID
     first_name: str
     last_name: str
     email: str
@@ -41,7 +46,7 @@ def update_user(
 
 
 @router.delete("/me", status_code=204)
-def delete_user(user: UserDep, session: SessionDep, s3_client: S3ClientDep):
+def delete_user(user: UserDep, session: SessionDep, s3_client: S3ClientDep, bedrock_client: BedrockClientDep):
     user_documents = session.scalars(
         select(Document).where(Document.user_id == user.id)
     ).all()
@@ -54,7 +59,14 @@ def delete_user(user: UserDep, session: SessionDep, s3_client: S3ClientDep):
     session.commit()
 
     try:
-        if len(objects_to_delete) > 0:
-            s3_client.delete_files(objects_to_delete)
+        s3_client.delete_files(objects_to_delete)
     except Exception:
+        logger.error(f"Error deleting user {user.id} documents from S3", exc_info=True)
         pass
+
+    if settings.is_document_processing_v2_enabled:
+        try:
+            bedrock_client.delete_documents([document.id for document in user_documents])
+        except Exception:
+            logger.error(f"Error deleting user {user.id} documents from Bedrock", exc_info=True)
+            pass
