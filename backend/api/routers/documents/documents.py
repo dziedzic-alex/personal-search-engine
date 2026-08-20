@@ -11,17 +11,15 @@ from fastapi.responses import FileResponse
 from pydantic import Field
 from sqlalchemy import delete, select
 from starlette.background import BackgroundTask
-from shared.bedrock_client import BedrockClient
-from shared.settings import settings
 
 from api.dependencies import BedrockClientDep, S3ClientDep, SessionDep, UserDep
 from api.dependencies.sqs import SQSDocumentProcessingClientDep
 from api.routers.documents.upload_utils import (
+    convert_heic_or_heif_to_jpeg,
     is_allowed_content_type,
     persist_file_to_s3,
-    sanitize_content_type,
-    convert_heic_or_heif_to_jpeg,
     replace_heic_or_heif_file_type_extension,
+    sanitize_content_type,
 )
 from api.schemas.camel_model import CamelModel
 from db.models.document import Document, DocumentStatus
@@ -31,9 +29,11 @@ from db.repositories.documents import (
     FilterConfig,
     SortConfig,
 )
+from shared.bedrock_client import BedrockClient
 from shared.content_category import ContentCategory, content_type_to_category
 from shared.content_type import IMAGE_CONTENT_TYPES, ContentType
 from shared.s3_client import S3Client
+from shared.settings import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/documents", tags=["documents"])

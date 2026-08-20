@@ -9,9 +9,9 @@ from api.routers.documents.documents import router as documents_router
 from api.routers.documents.upload_utils import PersistedFileObjectKeys
 from db.models.document import DocumentStatus
 from db.session import get_session
+from shared.bedrock_client import get_bedrock_client
 from shared.s3_client import get_s3_client
 from shared.sqs_client import get_document_processing_sqs_client
-from shared.bedrock_client import get_bedrock_client
 from tests.api.factories import uid
 
 FILE_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000"

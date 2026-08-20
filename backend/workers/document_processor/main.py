@@ -11,6 +11,7 @@ from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 from shared.s3_client import get_s3_client
+from shared.settings import settings
 from shared.sqs_client import (
     ConsumerResponse,
     SQSDocumentProcessingClient,
@@ -18,8 +19,6 @@ from shared.sqs_client import (
 )
 from workers.document_processor.image.image import process_image_document
 from workers.document_processor.pdf.pdf import process_pdf_document
-from shared.settings import settings
-
 
 configure_logging()
 logger = logging.getLogger(__name__)

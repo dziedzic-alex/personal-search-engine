@@ -1,5 +1,6 @@
 import logging
 import secrets
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
@@ -9,8 +10,6 @@ from fastapi import Depends, HTTPException
 from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from redis import Redis
-
-import uuid
 
 from api.dependencies.db import SessionDep
 from api.schemas.camel_model import CamelModel

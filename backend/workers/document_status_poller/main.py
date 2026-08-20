@@ -1,13 +1,15 @@
-from shared.settings import settings
-from shared.configure_logging import configure_logging
 import logging
-from time import sleep
-from shared.bedrock_client import BedrockClient, get_bedrock_client
-from db.session import SessionLocal
-from db.models.document import Document, DocumentStatus
-from sqlalchemy import select, update
-from collections import defaultdict
 import uuid
+from collections import defaultdict
+from time import sleep
+
+from sqlalchemy import select, update
+
+from db.models.document import Document, DocumentStatus
+from db.session import SessionLocal
+from shared.bedrock_client import BedrockClient, get_bedrock_client
+from shared.configure_logging import configure_logging
+from shared.settings import settings
 
 configure_logging()
 
@@ -51,7 +53,7 @@ def poll_document_statuses(bedrock_client: BedrockClient):
 
             session.commit()
     except Exception:
-        logger.error(f"Error polling & updating document statuses", exc_info=True)
+        logger.error("Error polling & updating document statuses", exc_info=True)
         pass
 
 if __name__ == "__main__":

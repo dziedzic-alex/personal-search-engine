@@ -3,12 +3,12 @@ import logging
 from db.models.document import Document, DocumentStatus
 from db.session import SessionLocal
 from shared.configure_logging import configure_logging
+from shared.settings import settings
 from shared.sqs_client import (
     ConsumerResponse,
     SQSDocumentProcessingDeadLetterClient,
     get_document_processing_dead_letter_sqs_client,
 )
-from shared.settings import settings
 
 configure_logging()
 

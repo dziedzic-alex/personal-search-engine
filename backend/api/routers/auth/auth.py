@@ -1,8 +1,8 @@
 import hmac
 import logging
+import uuid
 from secrets import token_urlsafe
 from typing import cast
-import uuid
 
 from argon2 import PasswordHasher
 from fastapi import APIRouter, Cookie, HTTPException

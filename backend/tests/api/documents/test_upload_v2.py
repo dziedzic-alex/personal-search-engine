@@ -1,6 +1,6 @@
+from db.models.document import DocumentStatus
 from shared.bedrock_client import BedrockClient
 from shared.content_type import ContentType
-from db.models.document import DocumentStatus
 from tests.api.factories import uid
 
 FILE_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000"

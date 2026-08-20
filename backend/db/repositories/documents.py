@@ -1,7 +1,7 @@
 import enum
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import uuid
 
 from sqlalchemy import bindparam, select, text
 from sqlalchemy.engine import Row

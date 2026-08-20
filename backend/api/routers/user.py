@@ -1,13 +1,14 @@
+import logging
+import uuid
+
 from fastapi import APIRouter
 from pydantic import Field
 from sqlalchemy import select
-import uuid
 
 from api.dependencies import BedrockClientDep, S3ClientDep, SessionDep, UserDep
 from api.schemas.camel_model import CamelModel
 from db.models.document import Document
 from db.models.user import UserPlan
-import logging
 from shared.settings import settings
 
 logger = logging.getLogger(__name__)

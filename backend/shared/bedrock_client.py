@@ -1,18 +1,22 @@
-import boto3
 from typing import TYPE_CHECKING
+
+import boto3
+
+from db.models.document import DocumentStatus
 from shared.content_type import ContentType
 from shared.settings import settings
-from db.models.document import DocumentStatus
+
 if TYPE_CHECKING:
-    from mypy_boto3_bedrock_agent.type_defs import MetadataAttributeTypeDef
     from mypy_boto3_bedrock_agent.client import AgentsforBedrockClient
+    from mypy_boto3_bedrock_agent.type_defs import MetadataAttributeTypeDef
     from mypy_boto3_bedrock_agent_runtime.client import (
         AgentsforBedrockRuntimeClient,
     )
 
 import logging
-from dataclasses import dataclass
 import uuid
+from dataclasses import dataclass
+
 from shared.content_type import content_type_to_mime_type
 
 logger = logging.getLogger(__name__)

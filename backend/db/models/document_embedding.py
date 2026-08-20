@@ -1,7 +1,6 @@
+import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
-
-import uuid
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, ForeignKey, Text, Uuid, func
