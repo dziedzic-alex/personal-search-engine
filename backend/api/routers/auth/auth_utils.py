@@ -85,7 +85,9 @@ def is_refresh_token_valid(
     )
 
 
-def set_refresh_token_cookie(response: Response, refresh_token: str, user_id: uuid.UUID):
+def set_refresh_token_cookie(
+    response: Response, refresh_token: str, user_id: uuid.UUID
+):
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=f"{user_id}:{refresh_token}",

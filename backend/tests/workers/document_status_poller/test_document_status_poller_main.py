@@ -102,9 +102,7 @@ def test_poll_document_statuses_skips_updates_when_all_still_pending(
     mock_main_session.commit.assert_called_once()
 
 
-def test_poll_document_statuses_swallows_errors(
-    mock_bedrock_client, mock_main_session
-):
+def test_poll_document_statuses_swallows_errors(mock_bedrock_client, mock_main_session):
     mock_main_session.scalars.side_effect = Exception("db error")
 
     poll_document_statuses(mock_bedrock_client)

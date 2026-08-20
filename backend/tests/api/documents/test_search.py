@@ -82,7 +82,9 @@ def test_search_returns_empty_list_when_no_matches(documents_client, mocker):
     assert response.json() == []
 
 
-def test_search_v2_returns_documents_in_bedrock_order(documents_client, mocker, mock_user):
+def test_search_v2_returns_documents_in_bedrock_order(
+    documents_client, mocker, mock_user
+):
     client, _, _, _, _, mock_bedrock_client = documents_client
     documents = [
         make_document(id=uid(1), name="first.pdf"),

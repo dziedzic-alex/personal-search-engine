@@ -29,13 +29,22 @@ def main():
         poll_document_statuses(bedrock_client)
         sleep(30)
 
+
 def poll_document_statuses(bedrock_client: BedrockClient):
     try:
         with SessionLocal() as session:
-            documents_to_poll = session.scalars(select(Document).where(Document.status.in_([DocumentStatus.PENDING, DocumentStatus.PROCESSING]))).all()
+            documents_to_poll = session.scalars(
+                select(Document).where(
+                    Document.status.in_(
+                        [DocumentStatus.PENDING, DocumentStatus.PROCESSING]
+                    )
+                )
+            ).all()
 
         document_ids_to_poll = [document.id for document in documents_to_poll]
-        document_ingestion_statuses = bedrock_client.get_documents_ingestion_statuses(document_ids_to_poll)
+        document_ingestion_statuses = bedrock_client.get_documents_ingestion_statuses(
+            document_ids_to_poll
+        )
 
         if len(document_ingestion_statuses) == 0:
             return
@@ -44,17 +53,20 @@ def poll_document_statuses(bedrock_client: BedrockClient):
         for ingestion_status in document_ingestion_statuses:
             if ingestion_status.status == DocumentStatus.PENDING:
                 continue
-            
+
             status_to_ids[ingestion_status.status].append(ingestion_status.document_id)
 
         with SessionLocal() as session:
             for status, ids in status_to_ids.items():
-                session.execute(update(Document).where(Document.id.in_(ids)).values(status=status))
+                session.execute(
+                    update(Document).where(Document.id.in_(ids)).values(status=status)
+                )
 
             session.commit()
     except Exception:
         logger.error("Error polling & updating document statuses", exc_info=True)
         pass
+
 
 if __name__ == "__main__":
     main()

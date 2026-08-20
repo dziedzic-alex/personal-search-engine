@@ -121,7 +121,9 @@ def test_create_thumbnail():
 
 
 def _heic_bytes(size: tuple[int, int] = (32, 24), mode: str = "RGB") -> bytes:
-    source = Image.new(mode, size, color=(10, 20, 30) if mode == "RGB" else (10, 20, 30, 255))
+    source = Image.new(
+        mode, size, color=(10, 20, 30) if mode == "RGB" else (10, 20, 30, 255)
+    )
     source_buffer = BytesIO()
     source.save(source_buffer, format="HEIF")
     return source_buffer.getvalue()

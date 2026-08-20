@@ -26,7 +26,13 @@ def upgrade() -> None:
 
     op.create_table(
         "users",
-        sa.Column("id", sa.Uuid(), primary_key=True, server_default=sa.text("uuidv7()"), nullable=False),
+        sa.Column(
+            "id",
+            sa.Uuid(),
+            primary_key=True,
+            server_default=sa.text("uuidv7()"),
+            nullable=False,
+        ),
         sa.Column("first_name", sa.String(length=255), nullable=False),
         sa.Column("last_name", sa.String(length=255), nullable=False),
         sa.Column("email", sa.String(length=255), nullable=False),
@@ -50,7 +56,13 @@ def upgrade() -> None:
 
     op.create_table(
         "documents",
-        sa.Column("id", sa.Uuid(), primary_key=True, server_default=sa.text("uuidv7()"), nullable=False),
+        sa.Column(
+            "id",
+            sa.Uuid(),
+            primary_key=True,
+            server_default=sa.text("uuidv7()"),
+            nullable=False,
+        ),
         sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column(
@@ -87,7 +99,13 @@ def upgrade() -> None:
     )
     op.create_table(
         "document_embeddings",
-        sa.Column("id", sa.Uuid(), primary_key=True, server_default=sa.text("uuidv7()"), nullable=False),
+        sa.Column(
+            "id",
+            sa.Uuid(),
+            primary_key=True,
+            server_default=sa.text("uuidv7()"),
+            nullable=False,
+        ),
         sa.Column("document_id", sa.Uuid(), nullable=False),
         sa.Column("content", sa.Text(), nullable=True),
         sa.Column(

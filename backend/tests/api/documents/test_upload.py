@@ -8,7 +8,9 @@ THUMBNAIL_KEY = f"{USER_ID}/{FILE_GROUP_ID}/thumbnail"
 
 
 def test_upload_returns_created_document(documents_client, mock_user):
-    client, mock_session, mock_sqs_client, mock_persist_file_to_s3, _, _ = documents_client
+    client, mock_session, mock_sqs_client, mock_persist_file_to_s3, _, _ = (
+        documents_client
+    )
 
     response = client.post(
         "/documents/",
@@ -64,7 +66,9 @@ def test_upload_returns_415_for_unsupported_content_type(documents_client):
 
 
 def test_upload_returns_409_for_duplicate_filename(documents_client, mocker):
-    client, mock_session, mock_sqs_client, mock_persist_file_to_s3, _, _ = documents_client
+    client, mock_session, mock_sqs_client, mock_persist_file_to_s3, _, _ = (
+        documents_client
+    )
 
     mock_scalars = mocker.MagicMock()
     mock_scalars.first.return_value = mocker.MagicMock()
@@ -112,6 +116,4 @@ def test_upload_rolls_back_db_and_s3_on_sqs_failure(documents_client, mock_s3_cl
     mock_session.delete.assert_called_once()
     mock_s3_client.delete_file.assert_any_call(CONTENT_KEY)
     mock_s3_client.delete_file.assert_any_call(THUMBNAIL_KEY)
-    mock_sqs_client.submit_document_message.assert_called_once_with(
-        uid(1), uid(1)
-    )
+    mock_sqs_client.submit_document_message.assert_called_once_with(uid(1), uid(1))

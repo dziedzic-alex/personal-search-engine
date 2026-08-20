@@ -109,8 +109,10 @@ def get_documents(
         next_page=next_page,
     )
 
+
 class GetDocumentsByIdsRequest(CamelModel):
     document_ids: list[uuid.UUID] = Field(min_length=1, max_length=100)
+
 
 @router.post("/by-ids")
 def get_documents_by_ids(
@@ -119,7 +121,9 @@ def get_documents_by_ids(
     user: UserDep,
     s3_client: S3ClientDep,
 ) -> list[ApiDocument]:
-    documents = DocumentRepository(session).get_documents_by_ids(request.document_ids, user.id)
+    documents = DocumentRepository(session).get_documents_by_ids(
+        request.document_ids, user.id
+    )
     return [to_api_document(document, s3_client) for document in documents]
 
 
@@ -163,6 +167,7 @@ def search(
 
     return response
 
+
 @router.get("/search/v2")
 def search_v2(
     query: str,
@@ -171,7 +176,9 @@ def search_v2(
     s3_client: S3ClientDep,
     bedrock_client: BedrockClientDep,
 ) -> list[ApiDocument]:
-    relevant_chunks: list[bedrock_client.RelevantDocumentChunk] = bedrock_client.retrieve_relevant_document_chunks(query, user.id)
+    relevant_chunks: list[bedrock_client.RelevantDocumentChunk] = (
+        bedrock_client.retrieve_relevant_document_chunks(query, user.id)
+    )
     unique_document_ids = []
     seen_document_ids = set()
 
@@ -181,9 +188,13 @@ def search_v2(
         seen_document_ids.add(chunk.document_id)
         unique_document_ids.append(chunk.document_id)
 
-    relevant_documents = DocumentRepository(session).get_documents_by_ids(unique_document_ids, user.id)
-    relevant_documents_id_to_document: dict[uuid.UUID, Document] = {d.id: d for d in relevant_documents}
-    
+    relevant_documents = DocumentRepository(session).get_documents_by_ids(
+        unique_document_ids, user.id
+    )
+    relevant_documents_id_to_document: dict[uuid.UUID, Document] = {
+        d.id: d for d in relevant_documents
+    }
+
     response_documents: list[ApiDocument] = []
     for document_id in unique_document_ids:
         document = relevant_documents_id_to_document.get(document_id)
@@ -205,7 +216,9 @@ def delete_documents(
     s3_client: S3ClientDep,
     bedrock_client: BedrockClientDep,
 ):
-    documents_to_delete = DocumentRepository(session).get_documents_by_ids(request.document_ids, user.id)
+    documents_to_delete = DocumentRepository(session).get_documents_by_ids(
+        request.document_ids, user.id
+    )
 
     if len(documents_to_delete) != len(request.document_ids):
         raise HTTPException(status_code=404, detail="One or more documents not found")
@@ -232,13 +245,20 @@ def delete_documents(
         try:
             bedrock_client.delete_documents(request.document_ids)
         except Exception:
-            logger.error(f"Error deleting documents {request.document_ids} from Bedrock", exc_info=True)
+            logger.error(
+                f"Error deleting documents {request.document_ids} from Bedrock",
+                exc_info=True,
+            )
             pass
 
 
 @router.delete("/{document_id}", status_code=204)
 def delete_document(
-    document_id: uuid.UUID, session: SessionDep, user: UserDep, s3_client: S3ClientDep, bedrock_client: BedrockClientDep
+    document_id: uuid.UUID,
+    session: SessionDep,
+    user: UserDep,
+    s3_client: S3ClientDep,
+    bedrock_client: BedrockClientDep,
 ) -> None:
     document = session.get(Document, document_id)
     if document is None:
@@ -259,7 +279,9 @@ def delete_document(
         try:
             bedrock_client.delete_documents([document.id])
         except Exception:
-            logger.error(f"Error deleting document {document.id} from Bedrock", exc_info=True)
+            logger.error(
+                f"Error deleting document {document.id} from Bedrock", exc_info=True
+            )
             pass
 
 
@@ -373,6 +395,7 @@ def upload_file(
 
     return to_api_document(document, s3_client)
 
+
 @router.post("/v2")
 def upload_file_v2(
     file: UploadFile,
@@ -415,9 +438,13 @@ def upload_file_v2(
         content_type = ContentType.JPEG
 
     if content_type in IMAGE_CONTENT_TYPES:
-        if len(file_data) > BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES:
+        if (
+            len(file_data)
+            > BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES
+        ):
             raise HTTPException(
-                status_code=413, detail=f"Image size {len(file_data)} bytes is greater than the maximum allowed size of {BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES} bytes"
+                status_code=413,
+                detail=f"Image size {len(file_data)} bytes is greater than the maximum allowed size of {BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES} bytes",
             )
 
     persisted_file_object_keys = persist_file_to_s3(
@@ -426,13 +453,13 @@ def upload_file_v2(
 
     try:
         document = Document(
-                user_id=user.id,
-                name=filename,
-                s3_content_key=persisted_file_object_keys.content_key,
-                s3_thumbnail_key=persisted_file_object_keys.thumbnail_key,
-                content_type=content_type.value,
-                size_bytes=len(file_data),
-            )
+            user_id=user.id,
+            name=filename,
+            s3_content_key=persisted_file_object_keys.content_key,
+            s3_thumbnail_key=persisted_file_object_keys.thumbnail_key,
+            content_type=content_type.value,
+            size_bytes=len(file_data),
+        )
         session.add(document)
         session.flush()
     except Exception:
@@ -446,9 +473,13 @@ def upload_file_v2(
 
     try:
         if content_type in IMAGE_CONTENT_TYPES:
-            document_status = bedrock_client.ingest_image_document(document.id, user.id, file_data, content_type)
+            document_status = bedrock_client.ingest_image_document(
+                document.id, user.id, file_data, content_type
+            )
         else:
-            document_status = bedrock_client.ingest_text_document(document.id, persisted_file_object_keys.content_key, user.id)
+            document_status = bedrock_client.ingest_text_document(
+                document.id, persisted_file_object_keys.content_key, user.id
+            )
         document.status = document_status
     except Exception:
         logger.error(f"Error ingesting document {filename} into Bedrock", exc_info=True)
@@ -489,7 +520,9 @@ def download_documents(
     user: UserDep,
     s3_client: S3ClientDep,
 ):
-    documents_to_download = DocumentRepository(session).get_documents_by_ids(request.document_ids, user.id)
+    documents_to_download = DocumentRepository(session).get_documents_by_ids(
+        request.document_ids, user.id
+    )
 
     if len(documents_to_download) != len(request.document_ids):
         raise HTTPException(status_code=404, detail="One or more documents not found")

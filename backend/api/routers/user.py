@@ -47,7 +47,12 @@ def update_user(
 
 
 @router.delete("/me", status_code=204)
-def delete_user(user: UserDep, session: SessionDep, s3_client: S3ClientDep, bedrock_client: BedrockClientDep):
+def delete_user(
+    user: UserDep,
+    session: SessionDep,
+    s3_client: S3ClientDep,
+    bedrock_client: BedrockClientDep,
+):
     user_documents = session.scalars(
         select(Document).where(Document.user_id == user.id)
     ).all()
@@ -67,7 +72,11 @@ def delete_user(user: UserDep, session: SessionDep, s3_client: S3ClientDep, bedr
 
     if settings.is_document_processing_v2_enabled:
         try:
-            bedrock_client.delete_documents([document.id for document in user_documents])
+            bedrock_client.delete_documents(
+                [document.id for document in user_documents]
+            )
         except Exception:
-            logger.error(f"Error deleting user {user.id} documents from Bedrock", exc_info=True)
+            logger.error(
+                f"Error deleting user {user.id} documents from Bedrock", exc_info=True
+            )
             pass

@@ -33,15 +33,13 @@ def bedrock_client(mocker):
 )
 def test_to_document_status_mapping(bedrock_status, expected):
     assert (
-        BedrockClient._to_document_status(uid(1), bedrock_status, "reason")
-        == expected
+        BedrockClient._to_document_status(uid(1), bedrock_status, "reason") == expected
     )
 
 
 def test_ingest_image_document_rejects_oversized_image(bedrock_client):
-    oversized = (
-        b"x"
-        * (BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES + 1)
+    oversized = b"x" * (
+        BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES + 1
     )
 
     with pytest.raises(ValueError, match="greater than the maximum allowed size"):
@@ -56,9 +54,7 @@ def test_ingest_image_document_rejects_oversized_image(bedrock_client):
 
 
 def test_ingest_image_document_allows_max_size(bedrock_client):
-    image_data = (
-        b"x" * BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES
-    )
+    image_data = b"x" * BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES
     bedrock_client.bedrock_agent_client.ingest_knowledge_base_documents.return_value = {
         "documentDetails": [{"status": "STARTING"}]
     }
@@ -103,11 +99,11 @@ def test_get_documents_ingestion_statuses_batches_requests(bedrock_client):
 
     assert len(statuses) == 11
     assert all(status.status == DocumentStatus.PROCESSED for status in statuses)
-    assert [
-        status.document_id for status in statuses
-    ] == document_ids
+    assert [status.document_id for status in statuses] == document_ids
 
-    calls = bedrock_client.bedrock_agent_client.get_knowledge_base_documents.call_args_list
+    calls = (
+        bedrock_client.bedrock_agent_client.get_knowledge_base_documents.call_args_list
+    )
     assert len(calls) == 2
     assert len(calls[0].kwargs["documentIdentifiers"]) == batch_size
     assert len(calls[1].kwargs["documentIdentifiers"]) == 1

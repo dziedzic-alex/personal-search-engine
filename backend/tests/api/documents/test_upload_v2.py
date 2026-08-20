@@ -10,9 +10,14 @@ THUMBNAIL_KEY = f"{USER_ID}/{FILE_GROUP_ID}/thumbnail"
 
 
 def test_upload_v2_pdf_ingests_text_document(documents_client, mock_user):
-    client, mock_session, mock_sqs_client, mock_persist_file_to_s3, _, mock_bedrock_client = (
-        documents_client
-    )
+    (
+        client,
+        mock_session,
+        mock_sqs_client,
+        mock_persist_file_to_s3,
+        _,
+        mock_bedrock_client,
+    ) = documents_client
     mock_bedrock_client.ingest_text_document.return_value = DocumentStatus.PENDING
 
     response = client.post(
@@ -45,9 +50,14 @@ def test_upload_v2_pdf_ingests_text_document(documents_client, mock_user):
 
 
 def test_upload_v2_image_ingests_image_document(documents_client, mock_user):
-    client, mock_session, mock_sqs_client, mock_persist_file_to_s3, _, mock_bedrock_client = (
-        documents_client
-    )
+    (
+        client,
+        mock_session,
+        mock_sqs_client,
+        mock_persist_file_to_s3,
+        _,
+        mock_bedrock_client,
+    ) = documents_client
     image_bytes = b"jpeg-bytes"
     mock_bedrock_client.ingest_image_document.return_value = DocumentStatus.PENDING
 
@@ -75,7 +85,9 @@ def test_upload_v2_image_ingests_image_document(documents_client, mock_user):
     mock_sqs_client.submit_document_message.assert_not_called()
 
 
-def test_upload_v2_converts_heic_to_jpeg_before_ingest(documents_client, mocker, mock_user):
+def test_upload_v2_converts_heic_to_jpeg_before_ingest(
+    documents_client, mocker, mock_user
+):
     client, mock_session, _, mock_persist_file_to_s3, _, mock_bedrock_client = (
         documents_client
     )
@@ -110,8 +122,8 @@ def test_upload_v2_rejects_image_over_bedrock_size_limit(documents_client, mocke
     client, mock_session, _, mock_persist_file_to_s3, _, mock_bedrock_client = (
         documents_client
     )
-    too_large = (
-        b"x" * (BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES + 1)
+    too_large = b"x" * (
+        BedrockClient.MAX_BEDROCK_INGESTION_IMAGE_DOCUMENT_SIZE_BYTES + 1
     )
 
     response = client.post(

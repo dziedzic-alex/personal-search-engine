@@ -6,9 +6,7 @@ def test_update_document_renames_document(documents_client):
     document = make_document()
     mock_session.get.return_value = document
 
-    response = client.patch(
-        f"/documents/{uid(1)}", json={"name": "annual report.pdf"}
-    )
+    response = client.patch(f"/documents/{uid(1)}", json={"name": "annual report.pdf"})
 
     assert response.status_code == 200
     assert response.json()["name"] == "annual report.pdf"
@@ -43,9 +41,7 @@ def test_update_document_returns_409_when_name_already_exists(documents_client, 
     mock_scalars.first.return_value = make_document(id=uid(2), name="existing.pdf")
     mock_session.scalars.return_value = mock_scalars
 
-    response = client.patch(
-        f"/documents/{uid(1)}", json={"name": "existing.pdf"}
-    )
+    response = client.patch(f"/documents/{uid(1)}", json={"name": "existing.pdf"})
 
     assert response.status_code == 409
     assert response.json() == {

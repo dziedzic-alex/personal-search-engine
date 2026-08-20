@@ -102,10 +102,20 @@ class DocumentRepository:
         ranked_results = [result["document"] for result in ranked_results]
         return ranked_results
 
-    def get_documents_by_ids(self, document_ids: list[uuid.UUID], user_id: uuid.UUID) -> list[Document]:
-        return list(self.session.scalars(select(Document).where(Document.id.in_(document_ids)).where(Document.user_id == user_id)).all())
+    def get_documents_by_ids(
+        self, document_ids: list[uuid.UUID], user_id: uuid.UUID
+    ) -> list[Document]:
+        return list(
+            self.session.scalars(
+                select(Document)
+                .where(Document.id.in_(document_ids))
+                .where(Document.user_id == user_id)
+            ).all()
+        )
 
-    def get_relevant_text_documents(self, query: str, user_id: uuid.UUID) -> list[Document]:
+    def get_relevant_text_documents(
+        self, query: str, user_id: uuid.UUID
+    ) -> list[Document]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)
@@ -208,7 +218,9 @@ class DocumentRepository:
 
         return ranked_results
 
-    def get_relevant_image_documents(self, query: str, user_id: uuid.UUID) -> list[Document]:
+    def get_relevant_image_documents(
+        self, query: str, user_id: uuid.UUID
+    ) -> list[Document]:
         query_prefix = "Represent this sentence for searching relevant passages: "
         query_text_embedding = get_text_embedding_model().encode(query_prefix + query)
         query_image_embedding = get_image_embedding_model().encode(query)

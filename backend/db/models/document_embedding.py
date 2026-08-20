@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 class DocumentEmbedding(Base):
     __tablename__ = "document_embeddings"
 
-    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=func.uuidv7())
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, primary_key=True, server_default=func.uuidv7()
+    )
     document_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("documents.id", ondelete="CASCADE")
     )

@@ -93,6 +93,7 @@ def _create_thumbnail(image: Image.Image) -> bytes:
 
     return buffer.getvalue()
 
+
 def convert_heic_or_heif_to_jpeg(file_data: bytes) -> bytes:
     image = Image.open(BytesIO(file_data))
     image = normalize_image(image)
@@ -100,6 +101,7 @@ def convert_heic_or_heif_to_jpeg(file_data: bytes) -> bytes:
     image.save(buffer, format="JPEG", quality=90, optimize=True)
 
     return buffer.getvalue()
+
 
 def replace_heic_or_heif_file_type_extension(filename: str) -> str:
     normalized_filename = filename.lower()

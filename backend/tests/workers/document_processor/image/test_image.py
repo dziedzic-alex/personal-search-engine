@@ -173,7 +173,9 @@ def test_pdf_embedded_with_good_ocr_writes_text_embedding_only(
         return_value=text,
     )
 
-    assert index_image(DOCUMENT_ID, make_image(), context=ImageIndexContext.PDF_EMBEDDED)
+    assert index_image(
+        DOCUMENT_ID, make_image(), context=ImageIndexContext.PDF_EMBEDDED
+    )
 
     embeddings = added_embeddings(mock_image_session)
     assert len(embeddings) == 1

@@ -74,7 +74,9 @@ class SQSDocumentProcessingClient(_SQSClient):
     def __init__(self):
         super().__init__(settings.sqs_document_processing_queue_name)
 
-    def submit_document_message(self, document_id: uuid.UUID, user_id: uuid.UUID) -> None:
+    def submit_document_message(
+        self, document_id: uuid.UUID, user_id: uuid.UUID
+    ) -> None:
         self.client.send_message(
             MessageBody=json.dumps({"document_id": str(document_id)}),
             MessageGroupId=str(user_id),
