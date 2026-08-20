@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC
 
 import fitz
@@ -69,7 +70,7 @@ def should_fallback_to_image(text: str) -> bool:
     return len(text) < MIN_PAGE_TEXT_LENGTH
 
 
-def extract_pdf_metadata(document: fitz.Document, document_id: int):
+def extract_pdf_metadata(document: fitz.Document, document_id: uuid.UUID):
     metadata = document.metadata
     if not metadata:
         return

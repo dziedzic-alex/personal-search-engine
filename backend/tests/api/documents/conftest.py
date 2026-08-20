@@ -9,8 +9,10 @@ from api.routers.documents.documents import router as documents_router
 from api.routers.documents.upload_utils import PersistedFileObjectKeys
 from db.models.document import DocumentStatus
 from db.session import get_session
+from shared.bedrock_client import get_bedrock_client
 from shared.s3_client import get_s3_client
 from shared.sqs_client import get_document_processing_sqs_client
+from tests.api.factories import uid
 
 FILE_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000"
 
@@ -35,7 +37,7 @@ def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file_to_s3)
 
     def assign_document_id(document):
         nonlocal next_document_id
-        document.id = next_document_id
+        document.id = uid(next_document_id)
         if document.status is None:
             document.status = DocumentStatus.PENDING
         if document.created_time is None:
@@ -52,6 +54,7 @@ def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file_to_s3)
         yield mock_session
 
     mock_sqs_client = mocker.MagicMock()
+    mock_bedrock_client = mocker.MagicMock()
 
     app = FastAPI()
     app.include_router(documents_router)
@@ -61,6 +64,7 @@ def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file_to_s3)
     app.dependency_overrides[get_document_processing_sqs_client] = lambda: (
         mock_sqs_client
     )
+    app.dependency_overrides[get_bedrock_client] = lambda: mock_bedrock_client
 
     return (
         TestClient(app),
@@ -68,4 +72,5 @@ def documents_client(mocker, mock_user, mock_s3_client, mock_persist_file_to_s3)
         mock_sqs_client,
         mock_persist_file_to_s3,
         mock_s3_client,
+        mock_bedrock_client,
     )

@@ -1,5 +1,6 @@
 import hmac
 import logging
+import uuid
 from secrets import token_urlsafe
 from typing import cast
 
@@ -187,7 +188,7 @@ def send_verification_email(
 
 class VerifyEmailRequest(CamelModel):
     token: str = Field(min_length=1)
-    user_id: int
+    user_id: uuid.UUID
 
 
 @router.post("/verify-email")
@@ -214,8 +215,7 @@ def verify_email(
             status_code=400, detail="Invalid or expired verification token"
         )
 
-    user_id = int(request.user_id)
-    user = session.get(User, user_id)
+    user = session.get(User, request.user_id)
     if user is None:
         raise HTTPException(
             status_code=404, detail="User associated with token not found"
@@ -276,7 +276,7 @@ def request_password_change(
 
 class ResetPasswordRequest(CamelModel):
     token: str = Field(min_length=1)
-    user_id: int
+    user_id: uuid.UUID
     new_password: str = Field(min_length=8)
 
 

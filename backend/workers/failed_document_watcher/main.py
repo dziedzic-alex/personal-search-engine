@@ -3,6 +3,7 @@ import logging
 from db.models.document import Document, DocumentStatus
 from db.session import SessionLocal
 from shared.configure_logging import configure_logging
+from shared.settings import settings
 from shared.sqs_client import (
     ConsumerResponse,
     SQSDocumentProcessingDeadLetterClient,
@@ -15,6 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    if settings.is_document_processing_v2_enabled:
+        logger.info("Document processing v2 is enabled. Exiting...")
+        exit(0)
+
     logger.info("Failed document watcher is running")
 
     sqs_client = get_document_processing_dead_letter_sqs_client()

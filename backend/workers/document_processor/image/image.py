@@ -1,4 +1,5 @@
 import enum
+import uuid
 from io import BytesIO
 
 import pytesseract
@@ -70,7 +71,7 @@ def should_encode_image_embedding(
 
 
 def index_image(
-    document_id: int,
+    document_id: uuid.UUID,
     image: Image.Image,
     *,
     context: ImageIndexContext = ImageIndexContext.PHOTO,

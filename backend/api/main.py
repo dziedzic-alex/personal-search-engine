@@ -4,6 +4,7 @@ from pillow_heif import register_heif_opener
 from api.routers.auth.auth import router as auth_router
 from api.routers.documents.documents import router as documents_router
 from api.routers.user import router as user_router
+from shared.bedrock_client import get_bedrock_client
 from shared.configure_logging import configure_logging
 from shared.models.cross_encoding import get_cross_encoding_model
 from shared.models.image_embedding import get_image_embedding_model
@@ -11,17 +12,21 @@ from shared.models.text_embedding import get_text_embedding_model
 from shared.redis_client import get_redis_client
 from shared.s3_client import get_s3_client
 from shared.ses_client import get_ses_client
+from shared.settings import settings
 from shared.sqs_client import get_document_processing_sqs_client
 
 configure_logging()
 
-get_text_embedding_model()
-get_image_embedding_model()
-get_cross_encoding_model()
+if not settings.is_document_processing_v2_enabled:
+    get_text_embedding_model()
+    get_image_embedding_model()
+    get_cross_encoding_model()
+    get_document_processing_sqs_client()
+else:
+    get_bedrock_client()
 get_redis_client()
 register_heif_opener()
 get_s3_client()
-get_document_processing_sqs_client()
 get_ses_client()
 
 app = FastAPI()

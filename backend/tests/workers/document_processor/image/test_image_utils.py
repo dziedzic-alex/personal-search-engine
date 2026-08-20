@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from PIL.ExifTags import Base
@@ -20,7 +21,7 @@ def test_extract_image_metadata_uses_exif_datetime(mocker, mock_image_utils_sess
     image.getexif.return_value = exif
     image.info = {}
 
-    extract_image_metadata(image, document_id=1)
+    extract_image_metadata(image, document_id=uuid.UUID(int=1))
 
     mock_image_utils_session.execute.assert_called_once()
     mock_image_utils_session.commit.assert_called_once()
@@ -39,7 +40,7 @@ def test_extract_image_metadata_prefers_exif_datetime_original(
     image.getexif.return_value = exif
     image.info = {}
 
-    extract_image_metadata(image, document_id=2)
+    extract_image_metadata(image, document_id=uuid.UUID(int=2))
 
     assert _source_created_time_from_execute(mock_image_utils_session) == datetime(
         2024, 5, 10, 9, 7, 1
@@ -62,7 +63,7 @@ def test_extract_image_metadata_falls_back_to_xmp(mocker, mock_image_utils_sessi
         )
     }
 
-    extract_image_metadata(image, document_id=3)
+    extract_image_metadata(image, document_id=uuid.UUID(int=3))
 
     mock_image_utils_session.execute.assert_called_once()
     assert _source_created_time_from_execute(mock_image_utils_session) == datetime(
@@ -78,7 +79,7 @@ def test_extract_image_metadata_skips_when_no_dates(mocker, mock_image_utils_ses
     image.getexif.return_value = exif
     image.info = {}
 
-    extract_image_metadata(image, document_id=4)
+    extract_image_metadata(image, document_id=uuid.UUID(int=4))
 
     mock_image_utils_session.execute.assert_not_called()
     mock_image_utils_session.commit.assert_not_called()

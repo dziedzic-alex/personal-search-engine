@@ -11,6 +11,7 @@ from shared.content_type import IMAGE_CONTENT_TYPE_VALUES, ContentType
 from shared.models.image_embedding import get_image_embedding_model
 from shared.models.text_embedding import get_text_embedding_model
 from shared.s3_client import get_s3_client
+from shared.settings import settings
 from shared.sqs_client import (
     ConsumerResponse,
     SQSDocumentProcessingClient,
@@ -26,6 +27,10 @@ register_heif_opener()
 
 
 def main():
+    if settings.is_document_processing_v2_enabled:
+        logger.info("Document processing v2 is enabled. Exiting...")
+        exit(0)
+
     logger.info("Worker is running")
 
     get_text_embedding_model()

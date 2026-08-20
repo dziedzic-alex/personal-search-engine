@@ -16,6 +16,8 @@ interface Props {
   setFiles: Dispatch<SetStateAction<Document[]>>;
 }
 
+const MAX_IMAGE_SIZE_IN_MB = 5;
+
 function UploadButton(props: Props) {
   const { setFiles } = props;
 
@@ -61,7 +63,12 @@ function UploadButton(props: Props) {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await apiFetch("/api/documents/", {
+      const uploadUrl =
+        import.meta.env.VITE_IS_DOCUMENT_PROCESSING_V2_ENABLED === "true"
+          ? "/api/documents/v2"
+          : "/api/documents/";
+
+      const response = await apiFetch(uploadUrl, {
         method: "POST",
         body: formData,
       });
@@ -74,6 +81,10 @@ function UploadButton(props: Props) {
         );
       } else if (response.status === 409) {
         throw new Error(`File ${file.name} already exists`);
+      } else if (response.status === 413) {
+        throw new Error(
+          `Image is too large. The maximum allowed size is ${String(MAX_IMAGE_SIZE_IN_MB)}MB`,
+        );
       } else if (!response.ok) {
         throw new Error("Error uploading file. Please try again.");
       }

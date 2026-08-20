@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from sqlalchemy.dialects import postgresql
@@ -107,7 +108,7 @@ def test_extract_pdf_metadata_uses_creation_date(mocker, mock_pdf_utils_session)
         "modDate": "",
     }
 
-    extract_pdf_metadata(document, document_id=1)
+    extract_pdf_metadata(document, document_id=uuid.UUID(int=1))
 
     mock_pdf_utils_session.execute.assert_called_once()
     mock_pdf_utils_session.commit.assert_called_once()
@@ -123,7 +124,7 @@ def test_extract_pdf_metadata_falls_back_to_mod_date(mocker, mock_pdf_utils_sess
         "modDate": "D:20260501120219-04'00'",
     }
 
-    extract_pdf_metadata(document, document_id=2)
+    extract_pdf_metadata(document, document_id=uuid.UUID(int=2))
 
     mock_pdf_utils_session.execute.assert_called_once()
     assert _source_created_time_from_execute(mock_pdf_utils_session) == datetime(
@@ -135,7 +136,7 @@ def test_extract_pdf_metadata_skips_when_no_dates(mocker, mock_pdf_utils_session
     document = mocker.MagicMock()
     document.metadata = {"creationDate": "", "modDate": ""}
 
-    extract_pdf_metadata(document, document_id=3)
+    extract_pdf_metadata(document, document_id=uuid.UUID(int=3))
 
     mock_pdf_utils_session.execute.assert_not_called()
     mock_pdf_utils_session.commit.assert_not_called()
@@ -150,6 +151,6 @@ def test_extract_pdf_metadata_skips_on_invalid_creation_date(
         "modDate": "not-a-pdf-date",
     }
 
-    extract_pdf_metadata(document, document_id=4)
+    extract_pdf_metadata(document, document_id=uuid.UUID(int=4))
 
     mock_pdf_utils_session.execute.assert_not_called()

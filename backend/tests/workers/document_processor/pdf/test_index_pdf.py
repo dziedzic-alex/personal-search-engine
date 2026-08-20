@@ -1,3 +1,5 @@
+import uuid
+
 from tests.workers.document_processor.helpers import (
     added_embeddings,
     make_document,
@@ -7,6 +9,8 @@ from tests.workers.document_processor.helpers import (
 from workers.document_processor.image.image import ImageIndexContext
 from workers.document_processor.pdf.pdf import index_pdf
 
+DOCUMENT_ID = uuid.UUID(int=1)
+
 
 def test_text_rich_page_indexes_chunks_without_images(
     mock_pdf_session, mock_embedding_models, mocker
@@ -15,7 +19,7 @@ def test_text_rich_page_indexes_chunks_without_images(
     document = make_document([page])
     mock_index_image = mocker.patch("workers.document_processor.pdf.pdf.index_image")
 
-    index_pdf(1, document)
+    index_pdf(DOCUMENT_ID, document)
 
     mock_index_image.assert_not_called()
     embeddings = added_embeddings(mock_pdf_session)
@@ -33,7 +37,7 @@ def test_scanned_page_uses_pixmap_fallback(
         "workers.document_processor.pdf.pdf.index_image", return_value=True
     )
 
-    index_pdf(1, document)
+    index_pdf(DOCUMENT_ID, document)
 
     mock_index_image.assert_called_once()
     assert mock_index_image.call_args.kwargs["context"] == ImageIndexContext.PDF_PAGE
@@ -52,7 +56,7 @@ def test_embedded_image_uses_pdf_embedded_context(
         "workers.document_processor.pdf.pdf.index_image", return_value=True
     )
 
-    index_pdf(1, document)
+    index_pdf(DOCUMENT_ID, document)
 
     mock_index_image.assert_called_once()
     assert (
@@ -72,7 +76,7 @@ def test_pixmap_fallback_when_embedded_image_is_too_small(
         "workers.document_processor.pdf.pdf.index_image", return_value=False
     )
 
-    index_pdf(1, document)
+    index_pdf(DOCUMENT_ID, document)
 
     assert mock_index_image.call_count == 2
     assert (
@@ -98,7 +102,7 @@ def test_duplicate_xref_is_indexed_once(
         "workers.document_processor.pdf.pdf.index_image", return_value=True
     )
 
-    index_pdf(1, document)
+    index_pdf(DOCUMENT_ID, document)
 
     mock_index_image.assert_called_once()
     assert (
@@ -119,7 +123,7 @@ def test_extract_image_failure_falls_back_to_pixmap(
         "workers.document_processor.pdf.pdf.index_image", return_value=True
     )
 
-    index_pdf(1, document)
+    index_pdf(DOCUMENT_ID, document)
 
     mock_index_image.assert_called_once()
     assert mock_index_image.call_args.kwargs["context"] == ImageIndexContext.PDF_PAGE
@@ -136,7 +140,7 @@ def test_mixed_pdf_indexes_text_chunks_and_scanned_pages(
         "workers.document_processor.pdf.pdf.index_image", return_value=True
     )
 
-    index_pdf(1, document)
+    index_pdf(DOCUMENT_ID, document)
 
     mock_index_image.assert_called_once()
     assert mock_index_image.call_args.kwargs["context"] == ImageIndexContext.PDF_PAGE

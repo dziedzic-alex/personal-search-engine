@@ -35,7 +35,7 @@ function FilesTableRenameModal(props: Props) {
   const handleRename = () => {
     setIsSavingRename(true);
     setError(null);
-    apiFetch(`/api/documents/${file.id.toString()}`, {
+    apiFetch(`/api/documents/${file.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     sqs_document_queues_region: str
     ses_from_email: str
     ses_region: str
+    knowledge_base_id: str
+    knowledge_base_data_source_id: str
+    is_document_processing_v2_enabled: bool
 
 
 settings = Settings()  # type: ignore

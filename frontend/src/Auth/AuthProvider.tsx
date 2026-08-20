@@ -10,7 +10,7 @@ import type { User, UserPlan } from "./User";
 export type LoginResult = "authenticated" | "email_not_verified";
 
 interface AuthResponse {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;

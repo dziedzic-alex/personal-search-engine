@@ -116,7 +116,7 @@ function FilesTable(props: Props) {
       const startIndex = Math.min(selectedAnchorIndex, currentFileIndex);
       const endIndex = Math.max(selectedAnchorIndex, currentFileIndex);
 
-      const shiftSelectedFilesIds = new Set<number>();
+      const shiftSelectedFilesIds = new Set<string>();
       const shiftSelectedFiles: Document[] = [];
 
       for (let i = startIndex; i < endIndex + 1; i++) {
@@ -248,22 +248,25 @@ function FilesTable(props: Props) {
               {getSortDirectionIcon("uploadedTime", sortColumn, sortDirection)}
             </Stack>
           </TableCell>
-          <TableCell
-            as="th"
-            sortable
-            onClick={() => {
-              updateSort("sourceCreatedTime");
-            }}
-          >
-            <Stack direction="horizontal" spacing="xs" align="center">
-              Date created
-              {getSortDirectionIcon(
-                "sourceCreatedTime",
-                sortColumn,
-                sortDirection,
-              )}
-            </Stack>
-          </TableCell>
+          {import.meta.env.VITE_IS_DOCUMENT_PROCESSING_V2_ENABLED !==
+            "true" && (
+            <TableCell
+              as="th"
+              sortable
+              onClick={() => {
+                updateSort("sourceCreatedTime");
+              }}
+            >
+              <Stack direction="horizontal" spacing="xs" align="center">
+                Date created
+                {getSortDirectionIcon(
+                  "sourceCreatedTime",
+                  sortColumn,
+                  sortDirection,
+                )}
+              </Stack>
+            </TableCell>
+          )}
           <TableCell
             as="th"
             sortable
@@ -303,11 +306,14 @@ function FilesTable(props: Props) {
             </TableCell>
             <TableCell>{getDocumentStatusBadge(file.status)}</TableCell>
             <TableCell>{formatDate(file.uploadedTime)}</TableCell>
-            <TableCell>
-              {file.sourceCreatedTime
-                ? formatDate(file.sourceCreatedTime)
-                : "N/A"}
-            </TableCell>
+            {import.meta.env.VITE_IS_DOCUMENT_PROCESSING_V2_ENABLED !==
+              "true" && (
+              <TableCell>
+                {file.sourceCreatedTime
+                  ? formatDate(file.sourceCreatedTime)
+                  : "N/A"}
+              </TableCell>
+            )}
             <TableCell>{formatBytes(file.size)}</TableCell>
             <TableCell>
               <FilesTableRowActionMenu

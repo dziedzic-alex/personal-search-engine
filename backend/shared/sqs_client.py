@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -41,7 +42,7 @@ def get_document_processing_dead_letter_sqs_client() -> (
 
 @dataclass
 class ConsumerResponse:
-    document_id: int
+    document_id: uuid.UUID
     receipt_handle: str
 
 
@@ -58,7 +59,7 @@ class _SQSClient:
             return None
 
         message = messages[0]
-        document_id = int(json.loads(message.body)["document_id"])
+        document_id = uuid.UUID(json.loads(message.body)["document_id"])
         receipt_handle = message.receipt_handle
 
         return ConsumerResponse(document_id=document_id, receipt_handle=receipt_handle)
@@ -73,9 +74,11 @@ class SQSDocumentProcessingClient(_SQSClient):
     def __init__(self):
         super().__init__(settings.sqs_document_processing_queue_name)
 
-    def submit_document_message(self, document_id: int, user_id: int) -> None:
+    def submit_document_message(
+        self, document_id: uuid.UUID, user_id: uuid.UUID
+    ) -> None:
         self.client.send_message(
-            MessageBody=json.dumps({"document_id": document_id}),
+            MessageBody=json.dumps({"document_id": str(document_id)}),
             MessageGroupId=str(user_id),
         )
 

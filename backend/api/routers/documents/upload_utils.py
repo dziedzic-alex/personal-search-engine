@@ -42,7 +42,7 @@ class PersistedFileObjectKeys:
 def persist_file_to_s3(
     s3_client: S3Client,
     file_data: bytes,
-    user_id: int,
+    user_id: uuid.UUID,
     content_type: ContentType,
 ) -> PersistedFileObjectKeys:
     content_category = content_type_to_category(content_type)
@@ -92,3 +92,21 @@ def _create_thumbnail(image: Image.Image) -> bytes:
     image.save(buffer, format="JPEG", quality=90, optimize=True)
 
     return buffer.getvalue()
+
+
+def convert_heic_or_heif_to_jpeg(file_data: bytes) -> bytes:
+    image = Image.open(BytesIO(file_data))
+    image = normalize_image(image)
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG", quality=90, optimize=True)
+
+    return buffer.getvalue()
+
+
+def replace_heic_or_heif_file_type_extension(filename: str) -> str:
+    normalized_filename = filename.lower()
+
+    if normalized_filename.endswith(".heic") or normalized_filename.endswith(".heif"):
+        return filename[:-5] + ".jpg"
+
+    return filename

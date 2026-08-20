@@ -18,3 +18,6 @@ def configure_logging():
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
     logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+    logging.getLogger("filelock").setLevel(logging.WARNING)
+    logging.getLogger("python_multipart").setLevel(logging.WARNING)
+    logging.getLogger("PIL").setLevel(logging.WARNING)

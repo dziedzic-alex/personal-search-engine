@@ -11,7 +11,7 @@ import type { LoginResult } from "../Auth/AuthProvider";
 import type { User } from "../Auth/User";
 
 export const mockUser: User = {
-  id: 1,
+  id: "1",
   firstName: "Test",
   lastName: "User",
   email: "test@example.com",

@@ -1,3 +1,4 @@
+import uuid
 import xml.etree.ElementTree as ET
 from datetime import datetime
 
@@ -82,7 +83,7 @@ def _parse_source_created_time_from_xmp(image: Image.Image) -> datetime | None:
     return None
 
 
-def extract_image_metadata(image: Image.Image, document_id: int):
+def extract_image_metadata(image: Image.Image, document_id: uuid.UUID):
     source_created_time = _parse_source_created_time_from_exif(image)
 
     if source_created_time is None:

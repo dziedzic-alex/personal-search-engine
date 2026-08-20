@@ -1,9 +1,9 @@
 from db.repositories.documents import DOCUMENT_LIST_PAGE_SIZE
-from tests.api.factories import api_document_json, make_document
+from tests.api.factories import api_document_json, make_document, uid
 
 
 def test_list_documents_returns_user_documents(documents_client, mocker):
-    client, _, _, _, _ = documents_client
+    client, _, _, _, _, _ = documents_client
     document = make_document()
     mock_get_documents = mocker.patch(
         "api.routers.documents.documents.DocumentRepository.get_documents",
@@ -17,13 +17,13 @@ def test_list_documents_returns_user_documents(documents_client, mocker):
         "documents": [api_document_json(document)],
         "nextPage": None,
     }
-    mock_get_documents.assert_called_once_with(1, None, None, None, 0)
+    mock_get_documents.assert_called_once_with(uid(1), None, None, None, 0)
 
 
 def test_list_documents_returns_next_page_when_page_is_full(documents_client, mocker):
-    client, _, _, _, _ = documents_client
+    client, _, _, _, _, _ = documents_client
     documents = [
-        make_document(id=document_id, name=f"report-{document_id}.pdf")
+        make_document(id=uid(document_id), name=f"report-{document_id}.pdf")
         for document_id in range(1, DOCUMENT_LIST_PAGE_SIZE + 1)
     ]
     mocker.patch(
@@ -41,7 +41,7 @@ def test_list_documents_returns_next_page_when_page_is_full(documents_client, mo
 
 
 def test_list_documents_passes_query_sort_and_filter_config(documents_client, mocker):
-    client, _, _, _, _ = documents_client
+    client, _, _, _, _, _ = documents_client
     mock_get_documents = mocker.patch(
         "api.routers.documents.documents.DocumentRepository.get_documents",
         return_value=[],
@@ -66,7 +66,7 @@ def test_list_documents_passes_query_sort_and_filter_config(documents_client, mo
     assert response.json() == {"documents": [], "nextPage": None}
 
     call_args = mock_get_documents.call_args
-    assert call_args.args[0] == 1
+    assert call_args.args[0] == uid(1)
     assert call_args.args[1] == "report"
     assert call_args.args[2].column.value == "name"
     assert call_args.args[2].direction.value == "asc"
