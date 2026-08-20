@@ -111,12 +111,9 @@ function MyFilesCard(props: Props) {
     }
 
     try {
-      const response = await apiFetch(
-        `/api/documents/${String(selectedFiles[0].id)}`,
-        {
-          method: "DELETE",
-        },
-      );
+      const response = await apiFetch(`/api/documents/${selectedFiles[0].id}`, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         throw new Error(
