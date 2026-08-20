@@ -18,6 +18,8 @@ from shared.sqs_client import (
 )
 from workers.document_processor.image.image import process_image_document
 from workers.document_processor.pdf.pdf import process_pdf_document
+from shared.settings import settings
+
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -26,6 +28,10 @@ register_heif_opener()
 
 
 def main():
+    if settings.is_document_processing_v2_enabled:
+        logger.info("Document processing v2 is enabled. Exiting...")
+        exit(0)
+
     logger.info("Worker is running")
 
     get_text_embedding_model()

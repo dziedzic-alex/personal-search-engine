@@ -8,6 +8,7 @@ from shared.sqs_client import (
     SQSDocumentProcessingDeadLetterClient,
     get_document_processing_dead_letter_sqs_client,
 )
+from shared.settings import settings
 
 configure_logging()
 
@@ -15,6 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    if settings.is_document_processing_v2_enabled:
+        logger.info("Document processing v2 is enabled. Exiting...")
+        exit(0)
+        
     logger.info("Failed document watcher is running")
 
     sqs_client = get_document_processing_dead_letter_sqs_client()
