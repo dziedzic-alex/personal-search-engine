@@ -3,14 +3,27 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.routers.documents.documents import router as documents_router
+from tests.api.factories import uid
 
 DOCUMENT_ROUTES = [
     pytest.param("post", "/documents/list", {"json": {"page": 0}}, id="list"),
+    pytest.param(
+        "post",
+        "/documents/by-ids",
+        {"json": {"documentIds": [str(uid(1))]}},
+        id="by-ids",
+    ),
     pytest.param(
         "get",
         "/documents/search",
         {"params": {"query": "test", "search_mode": "text"}},
         id="search",
+    ),
+    pytest.param(
+        "get",
+        "/documents/search/v2",
+        {"params": {"query": "test"}},
+        id="search-v2",
     ),
     pytest.param(
         "get",
@@ -25,12 +38,18 @@ DOCUMENT_ROUTES = [
         id="upload",
     ),
     pytest.param(
+        "post",
+        "/documents/v2",
+        {"files": [("files", ("test.pdf", b"pdf content", "application/pdf"))]},
+        id="upload-v2",
+    ),
+    pytest.param(
         "patch",
-        "/documents/1",
+        f"/documents/{uid(1)}",
         {"json": {"name": "test.pdf"}},
         id="update",
     ),
-    pytest.param("delete", "/documents/1", {}, id="delete"),
+    pytest.param("delete", f"/documents/{uid(1)}", {}, id="delete"),
     pytest.param(
         "delete",
         "/documents/bulk-delete",
@@ -40,7 +59,7 @@ DOCUMENT_ROUTES = [
     pytest.param(
         "post",
         "/documents/bulk-download",
-        {"json": {"documentIds": [1, 2]}},
+        {"json": {"documentIds": [str(uid(1)), str(uid(2))]}},
         id="bulk-download",
     ),
 ]
